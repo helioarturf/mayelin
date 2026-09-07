@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Quicksand", sans-serif;
+  --font-body: "Nunito Sans", sans-serif;
+
+  --color-surface: #fff8f5;
+  --color-surface-dim: #e6d7cd;
+  --color-surface-bright: #fff8f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fff1e7;
+  --color-surface-container: #faebe1;
+  --color-surface-container-high: #f4e6db;
+  --color-surface-container-highest: #eee0d6;
+  --color-on-surface: #211a14;
+  --color-on-surface-variant: #5c3f42;
+
+  --color-ninos-pink: #ed145b;
+  --color-ninos-cyan: #00a6c0;
+  --color-ninos-orange: #f78b1f;
+  --color-ninos-green: #2ca568;
+  --color-sunny-yellow: #FFD13B;
+  --color-soft-sky: #48BFE3;
+  --color-mint-sprout: #52B788;
+  --color-cream-canvas: #FFF7ED;
+  --color-secondary-container: #fd9924;
+  --color-tertiary: #0e6577;
+  --color-primary: #b80043;
+}
+
+/* Playful Niños Shadows & Borders */
+.ninos-shadow-sm {
+  box-shadow: 0 8px 24px -4px rgba(237, 20, 91, 0.1), 0 3px 10px -2px rgba(253, 153, 36, 0.08);
+}
+
+.ninos-shadow-lg {
+  box-shadow: 0 16px 36px -6px rgba(237, 20, 91, 0.2), 0 6px 16px -2px rgba(255, 209, 59, 0.15);
+}
+
+.playful-border {
+  border: 2px solid #fee8e1;
+}
+
+.playful-border-hover:hover {
+  border-color: #ed145b;
+}
+
+/* Wavy background decoration */
+.bg-clouds {
+  background-image: radial-gradient(circle at 10px 10px, rgba(237, 20, 91, 0.04) 2px, transparent 0);
+  background-size: 24px 24px;
+}

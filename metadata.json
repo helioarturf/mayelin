@@ -1,0 +1,6 @@
+{
+  "name": "Jardim Escola da Mayelin",
+  "description": "Educação Infantil e Creche Integrada com acompanhamento da rotina em tempo real, diário digital e agendamento de visitas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
