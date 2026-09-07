@@ -361,7 +361,7 @@ export const TESTIMONIALS: Testimonial[] = [
     id: 't-1',
     parentName: 'Camila & Fernando Rocha',
     childInfo: 'Pais da Helena (Berçário)',
-    badge: 'Turma 2024',
+    badge: 'Turma 2025',
     badgeColor: 'bg-[#ed145b] text-white',
     quote: 'Colocar a Helena no berçário aos 6 meses com o retorno ao trabalho era meu maior pânico. A equipe da Mayelin não só acolheu minha filha, mas me acolheu como mãe. O aplicativo me dava paz a cada notificação de soninho e mamadeira.',
     rating: 5
@@ -370,7 +370,7 @@ export const TESTIMONIALS: Testimonial[] = [
     id: 't-2',
     parentName: 'Juliana Mendes',
     childInfo: 'Mãe do Bento (Maternal II)',
-    badge: 'Turma 2024',
+    badge: 'Turma 2025',
     badgeColor: 'bg-[#fd9924] text-white',
     quote: 'O desfralde do Bento foi feito com tanta paciência e leveza que pareceu uma brincadeira. Além disso, a alimentação dele melhorou 100% por causa da horta e da nutricionista da escola. Recomendo de olhos fechados!',
     rating: 5
@@ -379,7 +379,7 @@ export const TESTIMONIALS: Testimonial[] = [
     id: 't-3',
     parentName: 'Rodrigo & Beatriz Alcantara',
     childInfo: 'Pais do Theo (Jardim)',
-    badge: 'Turma 2025',
+    badge: 'Turma 2026',
     badgeColor: 'bg-[#00a6c0] text-white',
     quote: 'O Theo acorda todos os dias animado para ir ao Jardim da Mayelin. As oficinas de música e inglês são maravilhosas. Ver a evolução na fala e autonomia dele nos enche de orgulho.',
     rating: 5

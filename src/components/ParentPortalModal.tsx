@@ -135,36 +135,36 @@ export default function ParentPortalModal({
         className="bg-[#fff8f5] w-full max-w-4xl rounded-3xl border-2 border-[#eee0d6] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden"
       >
         {/* Top Header */}
-        <div className="bg-white border-b border-[#eee0d6] px-5 py-4 flex items-center justify-between">
+        <div className="bg-white border-b border-[#eee0d6] px-4 sm:px-5 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#ed145b] to-[#fd9924] flex items-center justify-center text-white shadow-sm">
-              <Smartphone className="w-6 h-6" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-[#ed145b] to-[#fd9924] flex items-center justify-center text-white shadow-sm shrink-0">
+              <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg sm:text-xl font-['Quicksand'] text-[#211a14] font-bold">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base sm:text-lg font-['Quicksand'] text-[#211a14] font-bold">
                   Mayelin Kids • Portal da Família
                 </h3>
-                <span className="text-[11px] font-['Nunito_Sans'] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="text-[10px] sm:text-[11px] font-['Nunito_Sans'] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   Tempo Real
                 </span>
               </div>
-              <p className="text-xs font-['Nunito_Sans'] text-[#5c3f42]">
+              <p className="text-[11px] sm:text-xs font-['Nunito_Sans'] text-[#5c3f42]">
                 Diário digital, registros pedagógicos e segurança
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto">
             {/* Student Switcher */}
-            <div className="flex items-center gap-1.5 bg-[#faebe1] p-1 rounded-2xl">
+            <div className="flex items-center gap-1 bg-[#faebe1] p-1 rounded-2xl overflow-x-auto">
               {students.map((s) => (
                 <button
                   key={s.id}
                   type="button"
                   onClick={() => onSelectStudent(s.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-['Nunito_Sans'] font-bold transition-all ${
+                  className={`min-h-[36px] px-2.5 sm:px-3 py-1 rounded-xl text-xs font-['Nunito_Sans'] font-bold transition-all whitespace-nowrap ${
                     s.id === currentStudent.id
                       ? 'bg-white text-[#ed145b] shadow-sm'
                       : 'text-[#5c3f42] hover:text-[#ed145b]'
@@ -178,7 +178,7 @@ export default function ParentPortalModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-9 h-9 rounded-full bg-[#faebe1] text-[#5c3f42] hover:bg-[#ed145b] hover:text-white flex items-center justify-center transition-colors"
+              className="min-w-[40px] min-h-[40px] rounded-full bg-[#faebe1] text-[#5c3f42] hover:bg-[#ed145b] hover:text-white flex items-center justify-center transition-colors shrink-0"
               aria-label="Fechar modal"
             >
               <X className="w-5 h-5" />
@@ -187,42 +187,42 @@ export default function ParentPortalModal({
         </div>
 
         {/* Student Mini Profile Strip */}
-        <div className="bg-[#faebe1]/70 px-5 py-3 border-b border-[#eee0d6] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#ed145b] text-white flex items-center justify-center font-bold text-base shadow-sm">
+        <div className="bg-[#faebe1]/70 px-4 sm:px-5 py-2.5 sm:py-3 border-b border-[#eee0d6] flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#ed145b] text-white flex items-center justify-center font-bold text-sm sm:text-base shadow-sm shrink-0">
               {currentStudent.avatarLetter}
             </div>
             <div>
-              <p className="text-sm font-['Quicksand'] font-bold text-[#211a14]">
-                {currentStudent.name} <span className="text-xs text-[#5c3f42] font-normal">({currentStudent.age})</span>
+              <p className="text-xs sm:text-sm font-['Quicksand'] font-bold text-[#211a14]">
+                {currentStudent.name} <span className="text-[11px] sm:text-xs text-[#5c3f42] font-normal">({currentStudent.age})</span>
               </p>
-              <p className="text-xs text-[#5c3f42]">
+              <p className="text-[11px] sm:text-xs text-[#5c3f42]">
                 Turma: <span className="font-semibold text-[#ed145b]">{currentStudent.classroom}</span> • Educadoras: {currentStudent.teacherName}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs font-['Nunito_Sans'] font-bold px-3 py-1 rounded-full bg-emerald-500 text-white shadow-sm flex items-center gap-1.5">
+            <span className="text-[11px] sm:text-xs font-['Nunito_Sans'] font-bold px-2.5 sm:px-3 py-1 rounded-full bg-emerald-500 text-white shadow-sm flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Status: {currentStudent.status}</span>
+              <span>{currentStudent.status}</span>
             </span>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white px-5 pt-2 border-b border-[#eee0d6] flex space-x-2 sm:space-x-4 overflow-x-auto">
+        <div className="bg-white px-3 sm:px-5 pt-1 sm:pt-2 border-b border-[#eee0d6] flex space-x-2 sm:space-x-4 overflow-x-auto scrollbar-none">
           <button
             type="button"
             onClick={() => setActiveTab('diario')}
-            className={`pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
+            className={`min-h-[44px] pb-2 sm:pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
               activeTab === 'diario'
                 ? 'border-[#ed145b] text-[#ed145b]'
                 : 'border-transparent text-[#5c3f42] hover:text-[#ed145b]'
             }`}
           >
             <Calendar className="w-4 h-4" />
-            <span>Diário de Bordo</span>
+            <span>Diário</span>
             <span className="text-[10px] bg-pink-100 text-[#ed145b] px-1.5 py-0.2 rounded-full">
               {currentStudent.dailyLogs.length}
             </span>
@@ -231,14 +231,14 @@ export default function ParentPortalModal({
           <button
             type="button"
             onClick={() => setActiveTab('fotos')}
-            className={`pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
+            className={`min-h-[44px] pb-2 sm:pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
               activeTab === 'fotos'
                 ? 'border-[#ed145b] text-[#ed145b]'
                 : 'border-transparent text-[#5c3f42] hover:text-[#ed145b]'
             }`}
           >
             <Camera className="w-4 h-4" />
-            <span>Fotos do Dia</span>
+            <span>Fotos</span>
             <span className="text-[10px] bg-sky-100 text-[#00a6c0] px-1.5 py-0.2 rounded-full">
               {currentStudent.photos.length}
             </span>
@@ -247,45 +247,45 @@ export default function ParentPortalModal({
           <button
             type="button"
             onClick={() => setActiveTab('retirada')}
-            className={`pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
+            className={`min-h-[44px] pb-2 sm:pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
               activeTab === 'retirada'
                 ? 'border-[#ed145b] text-[#ed145b]'
                 : 'border-transparent text-[#5c3f42] hover:text-[#ed145b]'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
-            <span>Autorizar Retirada</span>
+            <span>Retirada</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('saude')}
-            className={`pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
+            className={`min-h-[44px] pb-2 sm:pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
               activeTab === 'saude'
                 ? 'border-[#ed145b] text-[#ed145b]'
                 : 'border-transparent text-[#5c3f42] hover:text-[#ed145b]'
             }`}
           >
             <HeartPulse className="w-4 h-4" />
-            <span>Ficha de Saúde</span>
+            <span>Saúde</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('chat')}
-            className={`pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
+            className={`min-h-[44px] pb-2 sm:pb-3 text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-1.5 border-b-2 transition-all shrink-0 ${
               activeTab === 'chat'
                 ? 'border-[#ed145b] text-[#ed145b]'
                 : 'border-transparent text-[#5c3f42] hover:text-[#ed145b]'
             }`}
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Falar com a Professora</span>
+            <span>Chat Educadoras</span>
           </button>
         </div>
 
         {/* Tab Content Body */}
-        <div className="p-5 overflow-y-auto flex-1 space-y-6">
+        <div className="p-3.5 sm:p-5 overflow-y-auto flex-1 space-y-4 sm:space-y-6">
           {/* TAB 1: DIÁRIO DE BORDO */}
           {activeTab === 'diario' && (
             <div className="space-y-4">

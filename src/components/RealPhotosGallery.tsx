@@ -168,13 +168,13 @@ export default function RealPhotosGallery() {
   };
 
   return (
-    <section id="galeria-real" className="py-16 md:py-24 bg-[#fffaf6] border-b border-[#eee0d6]/70 relative overflow-hidden">
+    <section id="galeria-real" className="py-12 sm:py-16 md:py-24 bg-[#fffaf6] border-b border-[#eee0d6]/70 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-4 sm:gap-6">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-100 text-[#ed145b] font-bold text-xs font-['Nunito_Sans'] mb-3">
-              <Camera className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-100 text-[#ed145b] font-bold text-xs font-['Nunito_Sans'] mb-2 sm:mb-3">
+              <Camera className="w-4 h-4 shrink-0" />
               <span>Fotos Reais & Facebook Oficial</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-['Quicksand'] text-[#211a14] font-bold tracking-tight">
@@ -186,59 +186,59 @@ export default function RealPhotosGallery() {
           </div>
 
           {/* Direct Facebook Link & Actions */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <a
               href={SCHOOL_CONTACT.facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
               id="facebook-official-gallery-btn"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#1877F2] text-white text-xs md:text-sm font-['Nunito_Sans'] font-bold hover:bg-[#0c63d4] transition-colors shadow-sm shadow-blue-200"
+              className="flex-1 sm:flex-initial min-h-[44px] inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl bg-[#1877F2] text-white text-xs md:text-sm font-['Nunito_Sans'] font-bold hover:bg-[#0c63d4] transition-colors shadow-sm"
             >
-              <span>Ver Álbum no Facebook</span>
-              <ExternalLink className="w-4 h-4" />
+              <span>Álbum no Facebook</span>
+              <ExternalLink className="w-4 h-4 shrink-0" />
             </a>
 
             <button
               type="button"
               id="copy-fb-link-btn"
               onClick={handleCopyFbLink}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-white border border-[#eee0d6] text-[#5c3f42] text-xs font-bold hover:bg-amber-50 transition-colors shadow-2xs"
+              className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-white border border-[#eee0d6] text-[#5c3f42] text-xs font-bold hover:bg-amber-50 transition-colors shadow-2xs"
             >
-              <Share2 className="w-3.5 h-3.5 text-[#fd9924]" />
-              <span>{copiedLink ? 'Link Copiado!' : 'Copiar Link'}</span>
+              <Share2 className="w-3.5 h-3.5 text-[#fd9924] shrink-0" />
+              <span>{copiedLink ? 'Copiado!' : 'Copiar'}</span>
             </button>
           </div>
         </div>
 
         {/* Facebook Page Highlight Banner Card */}
-        <div className="mb-10 p-5 sm:p-6 rounded-3xl bg-white playful-border shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 border-l-8 border-l-[#1877F2]">
-          <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-blue-100 shrink-0 shadow-inner bg-amber-50">
+        <div className="mb-8 sm:mb-10 p-4 sm:p-6 rounded-3xl bg-white playful-border shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 border-l-8 border-l-[#1877F2]">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 border-blue-100 shrink-0 shadow-inner bg-amber-50">
               <img
                 src={SCHOOL_IMAGES.mayelinRealProfile}
                 alt="Foto de Perfil Real do Jardim Escola da Mayelin no Facebook"
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
               />
-              <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-white">
-                <CheckCircle2 className="w-3 h-3" />
+              <span className="absolute bottom-1 right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-white">
+                <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-base sm:text-lg font-['Quicksand'] font-bold text-[#211a14]">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h4 className="text-sm sm:text-base md:text-lg font-['Quicksand'] font-bold text-[#211a14] truncate">
                   Jardim Escola da Mayelin | Luanda
                 </h4>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold">
-                  <ShieldCheck className="w-3 h-3" />
+                  <ShieldCheck className="w-3 h-3 shrink-0" />
                   Verificado
                 </span>
               </div>
               <p className="text-xs font-['Nunito_Sans'] text-[#5c3f42] mt-0.5">
-                Centralidade do Kilamba / Belas • Província de Luanda, Angola
+                Centralidade do Kilamba / Belas • Luanda, Angola
               </p>
               <p className="text-[11px] font-['Nunito_Sans'] text-emerald-700 font-bold mt-1 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse shrink-0" />
                 Matrículas e Visitas Abertas para Berçário, Maternal e Jardim
               </p>
             </div>
@@ -249,9 +249,9 @@ export default function RealPhotosGallery() {
               type="button"
               id="upload-photos-toggle-btn"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 text-white hover:bg-amber-600 text-xs md:text-sm font-['Nunito_Sans'] font-bold transition-all shadow-xs"
+              className="w-full md:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 text-white hover:bg-amber-600 text-xs md:text-sm font-['Nunito_Sans'] font-bold transition-all shadow-xs"
             >
-              <Upload className="w-4 h-4" />
+              <Upload className="w-4 h-4 shrink-0" />
               <span>Adicionar Foto da Escola</span>
             </button>
             <input
@@ -400,52 +400,52 @@ export default function RealPhotosGallery() {
       {lightboxPhoto && (
         <div
           id="photo-lightbox-modal"
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
           onClick={() => setLightboxPhoto(null)}
         >
           <div
-            className="relative max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl playful-border"
+            className="relative max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl playful-border max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button
               type="button"
               onClick={() => setLightboxPhoto(null)}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+              className="absolute top-3 right-3 z-20 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/90 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Photo */}
-            <div className="max-h-[70vh] bg-black/5 flex items-center justify-center overflow-hidden">
+            <div className="flex-1 min-h-0 bg-stone-900/10 flex items-center justify-center overflow-hidden p-2 sm:p-4">
               <img
                 src={lightboxPhoto.url}
                 alt={lightboxPhoto.caption}
-                className="max-h-[70vh] w-auto max-w-full object-contain"
+                className="max-h-[60vh] sm:max-h-[68vh] w-auto max-w-full object-contain rounded-xl"
                 referrerPolicy="no-referrer"
               />
             </div>
 
             {/* Caption & Footer */}
-            <div className="p-5 sm:p-6 bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="p-4 sm:p-6 bg-white shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-t border-stone-100">
               <div>
                 <span className="px-2.5 py-1 rounded-full bg-pink-100 text-[#ed145b] text-xs font-bold font-['Nunito_Sans']">
                   {lightboxPhoto.tag}
                 </span>
-                <h4 className="text-base sm:text-lg font-['Quicksand'] font-bold text-[#211a14] mt-1.5">
+                <h4 className="text-sm sm:text-base md:text-lg font-['Quicksand'] font-bold text-[#211a14] mt-1">
                   {lightboxPhoto.caption}
                 </h4>
-                <p className="text-xs font-['Nunito_Sans'] text-[#5c3f42] mt-0.5">
-                  Jardim Escola da Mayelin • Kilamba, Belas, Luanda, Angola
+                <p className="text-[11px] sm:text-xs font-['Nunito_Sans'] text-[#5c3f42] mt-0.5">
+                  Jardim Escola da Mayelin • Kilamba, Luanda
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0 w-full sm:w-auto">
                 <a
                   href={SCHOOL_CONTACT.facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1877F2] text-white text-xs font-bold font-['Nunito_Sans'] hover:bg-blue-700 transition-colors"
+                  className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#1877F2] text-white text-xs font-bold font-['Nunito_Sans'] hover:bg-blue-700 transition-colors"
                 >
                   <span>Álbum no Facebook</span>
                   <ExternalLink className="w-3.5 h-3.5" />

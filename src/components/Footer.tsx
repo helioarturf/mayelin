@@ -137,7 +137,7 @@ export default function Footer({ onOpenPortal, onOpenMenu }: FooterProps) {
                 <span className="text-[#5c3f42]">Termos de Matrícula</span>
               </li>
               <li>
-                <span className="text-[#5c3f42]">Credenciamento MEC / SME-SP</span>
+                <span className="text-[#5c3f42]">Ministério da Educação (MED - Angola)</span>
               </li>
               <li>
                 <button
@@ -155,7 +155,7 @@ export default function Footer({ onOpenPortal, onOpenMenu }: FooterProps) {
         {/* Copyright & Bottom Line */}
         <div className="pt-8 border-t border-[#eee0d6] flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <p className="text-xs font-['Nunito_Sans'] text-[#5c3f42] font-semibold">
-            © 2025 Jardim Escola da Mayelin. Todos os direitos reservados.
+            © {new Date().getFullYear()} Jardim Escola da Mayelin. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-2 text-xs font-['Nunito_Sans'] text-[#ed145b] font-bold">
             <Heart className="w-3.5 h-3.5 fill-[#ed145b]" />

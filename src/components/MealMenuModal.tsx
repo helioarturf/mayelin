@@ -17,24 +17,24 @@ export default function MealMenuModal({ isOpen, onClose }: MealMenuModalProps) {
   return (
     <div
       id="meal-menu-modal-overlay"
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in"
     >
       <div
         id="meal-menu-modal-container"
         className="bg-[#fff8f5] w-full max-w-2xl rounded-3xl border-2 border-[#eee0d6] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
       >
         {/* Modal Header */}
-        <div className="bg-white border-b border-[#eee0d6] px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-[#fd9924] flex items-center justify-center shadow-sm">
-              <Utensils className="w-5 h-5" />
+        <div className="bg-white border-b border-[#eee0d6] px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-amber-100 text-[#fd9924] flex items-center justify-center shadow-sm shrink-0">
+              <Utensils className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h3 className="text-lg font-['Quicksand'] font-bold text-[#211a14]">
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-lg font-['Quicksand'] font-bold text-[#211a14] truncate">
                 Cardápio Nutricional da Semana
               </h3>
-              <p className="text-xs font-['Nunito_Sans'] text-[#5c3f42]">
-                Supervisionado por nutricionista infantil • Ingredientes frescos e orgânicos
+              <p className="text-[11px] sm:text-xs font-['Nunito_Sans'] text-[#5c3f42] truncate">
+                Nutrição infantil especializada • Alimentos frescos
               </p>
             </div>
           </div>
@@ -42,20 +42,20 @@ export default function MealMenuModal({ isOpen, onClose }: MealMenuModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#faebe1] text-[#5c3f42] hover:bg-[#ed145b] hover:text-white flex items-center justify-center transition-colors"
+            className="min-w-[40px] min-h-[40px] rounded-full bg-[#faebe1] text-[#5c3f42] hover:bg-[#ed145b] hover:text-white flex items-center justify-center transition-colors shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Days Tabs */}
-        <div className="bg-[#faebe1]/60 px-6 py-3 border-b border-[#eee0d6] flex space-x-2 overflow-x-auto">
+        <div className="bg-[#faebe1]/60 px-4 sm:px-6 py-2.5 sm:py-3 border-b border-[#eee0d6] flex space-x-2 overflow-x-auto scrollbar-none">
           {WEEKLY_MENU.map((item, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setSelectedDayIdx(idx)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-['Nunito_Sans'] font-bold transition-all whitespace-nowrap ${
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs font-['Nunito_Sans'] font-bold transition-all whitespace-nowrap ${
                 selectedDayIdx === idx
                   ? 'bg-[#fd9924] text-white shadow-sm'
                   : 'bg-white text-[#5c3f42] hover:text-[#fd9924]'
@@ -67,10 +67,10 @@ export default function MealMenuModal({ isOpen, onClose }: MealMenuModalProps) {
         </div>
 
         {/* Day Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-4">
-          <div className="bg-white p-5 rounded-2xl playful-border shadow-sm space-y-4">
-            <div className="border-b border-amber-100 pb-3">
-              <h4 className="text-base font-['Quicksand'] font-bold text-[#8c4f00]">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl playful-border shadow-sm space-y-3 sm:space-y-4">
+            <div className="border-b border-amber-100 pb-2.5 sm:pb-3">
+              <h4 className="text-sm sm:text-base font-['Quicksand'] font-bold text-[#8c4f00]">
                 {currentDay.day}
               </h4>
             </div>

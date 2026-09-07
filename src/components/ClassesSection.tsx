@@ -8,8 +8,8 @@ interface ClassesSectionProps {
 
 export default function ClassesSection({ onSelectClassroom }: ClassesSectionProps) {
   return (
-    <section id="nossas-turmas" className="py-16 md:py-24 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+    <section id="nossas-turmas" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-3 sm:gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-[#8c4f00] font-bold text-xs md:text-sm font-['Nunito_Sans'] mb-2">
             <Baby className="w-4 h-4 text-[#fd9924]" />
@@ -26,17 +26,17 @@ export default function ClassesSection({ onSelectClassroom }: ClassesSectionProp
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {CLASSROOMS.map((cls) => {
           return (
             <div
               key={cls.id}
               id={`turma-card-${cls.id}`}
-              className={`bg-white rounded-3xl p-6 sm:p-8 playful-border ninos-shadow-sm flex flex-col justify-between border-t-8 ${cls.borderColor} hover:-translate-y-1.5 transition-all duration-300`}
+              className={`bg-white rounded-3xl p-5 sm:p-6 md:p-8 playful-border ninos-shadow-sm flex flex-col justify-between border-t-8 ${cls.borderColor} hover:-translate-y-1.5 transition-all duration-300`}
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs sm:text-sm font-['Nunito_Sans'] font-bold ${cls.badgeColor}`}>
+                  <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-['Nunito_Sans'] font-bold ${cls.badgeColor}`}>
                     {cls.ageRange}
                   </span>
                   <span className="text-xs font-['Nunito_Sans'] font-bold text-[#5c3f42] bg-[#fff1e7] px-2.5 py-1 rounded-full">
@@ -89,7 +89,7 @@ export default function ClassesSection({ onSelectClassroom }: ClassesSectionProp
                 <button
                   type="button"
                   onClick={() => onSelectClassroom(cls.id)}
-                  className="mt-6 w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#fff1e7] hover:bg-[#ed145b] hover:text-white text-[#ed145b] text-xs sm:text-sm font-['Nunito_Sans'] font-bold transition-all shadow-sm group"
+                  className="mt-6 w-full min-h-[48px] inline-flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#fff1e7] hover:bg-[#ed145b] hover:text-white text-[#ed145b] text-xs sm:text-sm font-['Nunito_Sans'] font-bold transition-all shadow-sm group"
                 >
                   <span>Solicitar Vaga no {cls.title.split(' ')[0]}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
