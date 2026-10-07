@@ -57,31 +57,31 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
   // Navigation & Active Section
   const [activeSection, setActiveSection] = useState<GuardianSection>('overview');
 
-  // Selected Child Profile (Rodrigo Silva 4º Ano B vs. Sofia Silva Jardim de Infância)
+  // Selected Child Profile (Rodrigo Silva no Jardim de Infância vs. Sofia Silva no Maternal I)
   const childrenList: ChildProfile[] = [
     {
       id: 'rodrigo-silva',
       name: 'Rodrigo Silva',
-      classroom: '4º Ano B',
-      cycle: 'Ensino Básico (1º Ciclo)',
+      classroom: 'Jardim de Infância - Sala das Estrelinhas',
+      cycle: 'Pré-Escolar & Jardim de Infância (4 a 5 anos)',
       leadTeacher: 'Profª Maria Clara Marques',
       avatarLetter: 'R',
-      status: 'Presente na Aula de Estudo do Meio',
+      status: 'Presente na Atividade da Horta & Expressão',
       presenceRate: 98.2,
-      averageGrade: 88.5,
+      averageGrade: 92.5,
       financialStatus: 'Regularizada',
       newMessagesCount: 1
     },
     {
       id: 'sofia-silva',
       name: 'Sofia Silva',
-      classroom: 'Sala das Estrelinhas',
-      cycle: 'Jardim de Infância',
+      classroom: 'Maternal I - Sala dos Primeiros Passos',
+      cycle: 'Maternal I & II (1 a 2 anos)',
       leadTeacher: 'Educadora Teresa Melo',
       avatarLetter: 'S',
-      status: 'Em Atividade Lúdica no Pátio',
+      status: 'Em Atividade Sensorial no Pátio',
       presenceRate: 99.0,
-      averageGrade: 94.0,
+      averageGrade: 95.0,
       financialStatus: 'Regularizada',
       newMessagesCount: 0
     }
@@ -106,38 +106,38 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
   const [signAuthorizationModal, setSignAuthorizationModal] = useState(false);
   const [newMessageModal, setNewMessageModal] = useState(false);
 
-  // Pilar 1: Assiduidade Semanal & Boletim Trimestral
+  // Pilar 1: Assiduidade Semanal & Boletim Trimestral de Educação Infantil
   const routineHistory = [
-    { day: 'Hoje (Terça)', entry: '08:24 (Portaria Central - Validação Biométrica)', meal: 'Almoço Biológico Completo (Peixe com legumes e fruta fresca)', activity: 'Clube de Robótica & Expressão Plástica (16:30)' },
-    { day: 'Segunda-feira', entry: '08:26 (Portaria Central - Validação Biométrica)', meal: 'Almoço Biológico Completo (Sopa da horta e arroz com frango)', activity: 'Oficina de Música & Inglês Cambridge' },
-    { day: 'Sexta-feira (Semana Passada)', entry: '08:25 (Portaria Central)', meal: 'Almoço Completo', activity: 'Saída de Campo no Pomar Escolar' },
-    { day: 'Quinta-feira', entry: '08:30 (Atestado Pediátrico Arquivado)', meal: 'Dieta Ligeira Monitorizada', activity: 'Apoio Individualizado na Biblioteca' }
+    { day: 'Hoje (Terça)', entry: '08:24 (Portaria Central - Validação Biométrica)', meal: 'Almoço Biológico Completo (Peixe com legumes e fruta fresca)', activity: 'Oficina de Psicomotricidade & Modelagem com Argila' },
+    { day: 'Segunda-feira', entry: '08:26 (Portaria Central - Validação Biométrica)', meal: 'Almoço Biológico Completo (Sopa da horta e arroz com frango)', activity: 'Oficina de Música & Canções em Roda' },
+    { day: 'Sexta-feira (Semana Passada)', entry: '08:25 (Portaria Central)', meal: 'Almoço Completo', activity: 'Saída de Campo no Pomar da Escola' },
+    { day: 'Quinta-feira', entry: '08:30 (Atestado Pediátrico Arquivado)', meal: 'Dieta Ligeira Monitorizada', activity: 'Cantinho de Leitura & Contação de Histórias' }
   ];
 
   const academicReport = [
-    { subject: 'Matemática e Cálculo', maker: 92, formative: 88, summative: 90, finalAverage: 90, assessment: 'Excelente', feedback: 'Domínio sólido do raciocínio lógico e resolução de problemas Cuisenaire.' },
-    { subject: 'Português e Literacia', maker: 85, formative: 86, summative: 88, finalAverage: 87, assessment: 'Muito Bom', feedback: 'Boa expressão oral e redação criativa fluente com vocabulário rico.' },
-    { subject: 'Estudo do Meio / Ciências', maker: 94, formative: 90, summative: 89, finalAverage: 91, assessment: 'Excelente', feedback: 'Grande curiosidade na horta pedagógica e rigor na metodologia científica.' },
-    { subject: 'Expressão Plástica & Maker', maker: 96, formative: 92, summative: 90, finalAverage: 93, assessment: 'Excelente', feedback: 'Criatividade ímpar na modelagem e montagem de maquetes sustentáveis.' },
-    { subject: 'Inglês Cambridge Primary', maker: 88, formative: 85, summative: 86, finalAverage: 86, assessment: 'Muito Bom', feedback: 'Pronúncia articulada e excelente compreensão nas histórias interativas.' }
+    { subject: 'Linguagem e Expressão Oral', maker: 92, formative: 90, summative: 94, finalAverage: 92, assessment: 'Excelente', feedback: 'Expressão oral fluente, vocabulário rico e participação ativa nas rodas de conversa.' },
+    { subject: 'Estimulação Sensorial e Lógica', maker: 88, formative: 86, summative: 90, finalAverage: 88, assessment: 'Muito Bom', feedback: 'Grande destreza na seriação de blocos lógicos, identificação de formas e texturas.' },
+    { subject: 'Relações com a Natureza & Horta', maker: 95, formative: 92, summative: 93, finalAverage: 94, assessment: 'Excelente', feedback: 'Curiosidade exemplar no cuidado com as mudinhas, rega e preservação ambiental.' },
+    { subject: 'Expressão Plástica & Criatividade', maker: 96, formative: 94, summative: 92, finalAverage: 94, assessment: 'Excelente', feedback: 'Criatividade ímpar na pintura com pigmentos naturais e modelagem de massinhas.' },
+    { subject: 'Psicomotricidade & Autonomia', maker: 90, formative: 88, summative: 92, finalAverage: 90, assessment: 'Excelente', feedback: 'Excelente coordenação motora ampla no circuito e progressiva autonomia nas refeições.' }
   ];
 
-  // Pilar 2: Financeiro
+  // Pilar 2: Financeiro em Moeda Nacional (Kwanza - Kz)
   const [financialHistory, setFinancialHistory] = useState([
-    { id: 'inv-3', ref: 'FT-2025/0284', desc: 'Mensalidade Escolar - Fevereiro 2025', amount: 460.0, method: 'Débito Direto SEPA (PT50 0033...)', status: 'Liquidado', date: '08/02/2025' },
-    { id: 'inv-2', ref: 'FT-2025/0142', desc: 'Mensalidade Escolar - Janeiro 2025', amount: 460.0, method: 'Débito Direto SEPA (PT50 0033...)', status: 'Liquidado', date: '08/01/2025' },
-    { id: 'inv-1', ref: 'FT-2024/1899', desc: 'Mensalidade Escolar - Dezembro 2024', amount: 460.0, method: 'Débito Direto SEPA (PT50 0033...)', status: 'Liquidado', date: '08/12/2024' }
+    { id: 'inv-3', ref: 'FT-2025/0284', desc: 'Mensalidade Escolar - Fevereiro 2025', amount: 150000.0, method: 'Multicaixa Express (MCX)', status: 'Liquidado', date: '08/02/2025' },
+    { id: 'inv-2', ref: 'FT-2025/0142', desc: 'Mensalidade Escolar - Janeiro 2025', amount: 150000.0, method: 'Referência Multicaixa', status: 'Liquidado', date: '08/01/2025' },
+    { id: 'inv-1', ref: 'FT-2024/1899', desc: 'Mensalidade Escolar - Dezembro 2024', amount: 150000.0, method: 'Multicaixa Express (MCX)', status: 'Liquidado', date: '08/12/2024' }
   ]);
 
   // Pilar 3: Comunicações
   const [messagesList, setMessagesList] = useState([
     {
       id: 'msg-1',
-      senderRole: 'Professora Titular (4º Ano B)',
+      senderRole: 'Professora Titular (Jardim de Infância)',
       senderName: 'Profª Maria Clara Marques',
       date: 'Hoje, às 10:45',
-      subject: 'Nota de Mérito: Participação exemplar na Feira da Ciência',
-      preview: 'Estimado Dr. António, o Rodrigo teve uma apresentação brilhante no projeto da horta hidropónica hoje de manhã. Parabéns pelo apoio em casa!',
+      subject: 'Nota de Mérito: Participação exemplar na Horta Pedagógica',
+      preview: 'Estimado Dr. António, o Rodrigo teve uma manhã brilhante no plantio das sementinhas de girassol e cooperou com todos os coleguinhas. Parabéns pelo apoio familiar!',
       unread: true
     },
     {
@@ -145,8 +145,8 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       senderRole: 'Coordenação Pedagógica',
       senderName: 'Prof. Carlos Esteves',
       date: '02 de Março, 2025',
-      subject: 'Confirmação: Apoio ao Estudo de Matemática (Olimpíadas)',
-      preview: 'Confirmamos a inscrição do Rodrigo nas sessões semanais de aprofundamento às quintas-feiras.',
+      subject: 'Confirmação: Oficina de Psicomotricidade Lúdica',
+      preview: 'Confirmamos a participação do Rodrigo nas oficinas motoras de enriquecimento às quintas-feiras.',
       unread: false
     },
     {
@@ -155,7 +155,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       senderName: 'Dra. Manuela Castro',
       date: '25 de Fevereiro, 2025',
       subject: 'Renovação de Matrícula para o Ano Letivo 2025/2026',
-      preview: 'Informamos que o período de renovação prioritária para irmãos abre na próxima semana.',
+      preview: 'Informamos que o período de renovação prioritária para irmãos (Rodrigo e Sofia) já está aberto.',
       unread: false
     }
   ]);
@@ -171,10 +171,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
     signed: boolean;
     hash?: string;
   }>({
-    id: 'auth-sintra',
-    title: 'Visita de Estudo ao Observatório Astronómico e Bosque de Sintra',
-    date: '14 de Março de 2025 (08:30 às 17:30)',
-    transport: 'Autocarro de Turismo Contratado com Cintos e Vigilância',
+    id: 'auth-luanda',
+    title: 'Visita Pedagógica ao Parque Natural e Museu de História Natural de Luanda',
+    date: '14 de Março de 2025 (08:30 às 15:30)',
+    transport: 'Autocarro Escolar Climatizado com Cintos e Vigilância de 4 Educadoras',
     meal: 'Piquenique Nutritivo fornecido pelo Refeitório Biológico da Escola',
     medicalCheck: 'Kit de Primeiros Socorros + Ficha Médica de Alergias pré-validada',
     signed: false
@@ -260,7 +260,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Encarregado Autenticado: <strong>Dr. António Ferreira Silva</strong> • NIF: 218 409 382
+              Encarregado Autenticado: <strong>Dr. António Ferreira Silva</strong> • NIF: 5418409382 • Luanda
             </p>
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-100 transition-colors"
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Propinas em Dia (SEPA)</span>
+            <span>Propinas em Dia (Multicaixa)</span>
           </button>
 
           <button
@@ -375,7 +375,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <p className="text-lg font-bold font-['Quicksand'] text-emerald-700 mt-0.5">
               Regularizada
             </p>
-            <span className="text-[10px] text-slate-400">SEPA Core Ativo</span>
+            <span className="text-[10px] text-slate-400">Multicaixa Express Ativo</span>
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
@@ -500,7 +500,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           {/* ========================================================================= */}
           {activeSection === 'overview' && (
             <div className="space-y-6 animate-in fade-in duration-150">
-              {/* Alerta de Ação Urgente Pendente: Visita de Estudo a Sintra */}
+              {/* Alerta de Ação Urgente Pendente: Visita Pedagógica em Luanda */}
               {!urgentAuth.signed && (
                 <div className="bg-gradient-to-r from-pink-500 to-rose-600 text-white p-5 rounded-2xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1">
@@ -567,17 +567,17 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                       <span>Próxima Cobrança Agendada</span>
                     </h3>
                     <span className="text-[11px] font-bold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-full">
-                      SEPA Core
+                      Multicaixa Express
                     </span>
                   </div>
 
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-slate-900">Mensalidade Escolar - Março de 2025</span>
-                      <span className="text-base text-slate-900">€460,00</span>
+                      <span className="text-base text-slate-900">150.000,00 Kz</span>
                     </div>
-                    <p className="text-slate-500">Vencimento a 08/03/2025 via Débito Direto SEPA</p>
-                    <p className="text-emerald-700 font-semibold">IBAN Registado: PT50 0033 0000 8291 0281 9283 1</p>
+                    <p className="text-slate-500">Vencimento a 08/03/2025 via Multicaixa / Débito em Conta</p>
+                    <p className="text-emerald-700 font-semibold">IBAN Registado: AO06 0040 0000 8291 0281 9283 1</p>
                   </div>
 
                   <button
@@ -585,7 +585,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     onClick={() => setActiveSection('finance')}
                     className="text-xs font-bold text-[#00a6c0] hover:underline flex items-center gap-1"
                   >
-                    <span>Gerir métodos de pagamento e declaração de IRS</span>
+                    <span>Gerir métodos de pagamento e certidão fiscal</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -705,10 +705,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
-                    Painel Financeiro, Propinas & Faturação Certificada
+                    Painel Financeiro, Propinas & Faturação Certificada (Kz)
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Documentos fiscais comunicados à Autoridade Tributária (AT) com assinatura digital
+                    Documentos fiscais comunicados à Administração Geral Tributária (AGT) com assinatura digital
                   </p>
                 </div>
 
@@ -720,7 +720,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>Declaração IRS 2024</span>
+                    <span>Declaração AGT 2024</span>
                   </button>
 
                   <button
@@ -729,7 +729,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
                   >
                     <CreditCard className="w-3.5 h-3.5" />
-                    <span>2ª Via Multibanco / MB WAY</span>
+                    <span>2ª Via Multicaixa / MCX</span>
                   </button>
 
                   <button
@@ -738,7 +738,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 transition-colors"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Alterar IBAN SEPA</span>
+                    <span>Alterar IBAN (AO06)</span>
                   </button>
                 </div>
               </div>
@@ -747,7 +747,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
                 <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                   <h4 className="font-bold text-sm text-slate-900">
-                    Histórico de Mensalidades & Documentos Fiscais
+                    Histórico de Mensalidades & Documentos Fiscais (Kz)
                   </h4>
                   <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
                     Todas Liquidadas
@@ -760,10 +760,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                       <tr>
                         <th className="p-3.5">Fatura Certificada</th>
                         <th className="p-3.5">Descrição</th>
-                        <th className="p-3.5">Valor Liquidado</th>
+                        <th className="p-3.5">Valor Liquidado (Kz)</th>
                         <th className="p-3.5">Método de Liquidação</th>
                         <th className="p-3.5">Data de Liquidação</th>
-                        <th className="p-3.5 text-right">Recibo Oficial AT</th>
+                        <th className="p-3.5 text-right">Recibo Oficial AGT</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -771,7 +771,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                         <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
                           <td className="p-3.5 font-bold font-mono text-slate-900">{item.ref}</td>
                           <td className="p-3.5 text-slate-700">{item.desc}</td>
-                          <td className="p-3.5 font-extrabold text-slate-900">€{item.amount.toFixed(2)}</td>
+                          <td className="p-3.5 font-extrabold text-slate-900">Kz {item.amount.toLocaleString('pt-PT')},00</td>
                           <td className="p-3.5 text-slate-600">{item.method}</td>
                           <td className="p-3.5 text-slate-500">{item.date}</td>
                           <td className="p-3.5 text-right">
@@ -781,7 +781,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                               className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#8c4f00] font-bold rounded-lg transition-colors inline-flex items-center gap-1"
                             >
                               <Printer className="w-3 h-3" />
-                              <span>Recibo AT (PDF)</span>
+                              <span>Recibo AGT (PDF)</span>
                             </button>
                           </td>
                         </tr>
@@ -872,7 +872,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 </p>
               </div>
 
-              {/* Cartão de Destaque Urgente (Visita a Sintra) */}
+              {/* Cartão de Destaque Urgente (Visita Pedagógica) */}
               <div
                 className={`p-5 rounded-2xl border transition-all ${
                   urgentAuth.signed
@@ -1095,7 +1095,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: DECLARAÇÃO DE DESPESAS DE EDUCAÇÃO PARA O IRS 2024               */}
+      {/* MODAL 3: DECLARAÇÃO DE DESPESAS DE EDUCAÇÃO PARA A AGT 2024               */}
       {/* ========================================================================= */}
       {taxDeclarationModal && (
         <div
@@ -1109,7 +1109,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-emerald-600" />
                 <h3 id="tax-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
-                  Declaração Anual para IRS 2024
+                  Declaração Anual de Propinas & Despesas (AGT 2024)
                 </h3>
               </div>
               <button
@@ -1123,12 +1123,12 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             </div>
 
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2">
-              <p className="font-bold text-slate-900">Declaracao_Despesas_Educacao_IRS_2024.pdf</p>
+              <p className="font-bold text-slate-900">Declaracao_Despesas_Educacao_AGT_2024.pdf</p>
               <p className="text-slate-600">
-                Total Faturado e Comunicado à AT em 2024: <strong>€4.600,00</strong>
+                Total Faturado e Comunicado à AGT em 2024: <strong>1.500.000,00 Kz</strong>
               </p>
               <p className="text-slate-500 text-[11px]">
-                NIF do Sujeito Passivo: 218 409 382 (Dr. António Ferreira Silva)
+                NIF do Encarregado: 218 409 382 (Dr. António Ferreira Silva)
               </p>
             </div>
 
@@ -1143,13 +1143,13 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Declaração de IRS descarregada com sucesso.');
+                  showToast('Declaração fiscal de educação (AGT) descarregada com sucesso.');
                   setTaxDeclarationModal(false);
                 }}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Descarregar Certidão de IRS</span>
+                <span>Descarregar Certidão AGT</span>
               </button>
             </div>
           </div>
@@ -1169,7 +1169,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 id="mb-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
-                Emissão de Referência Multibanco / MB WAY
+                Emissão de Referência Multicaixa / MCX Express
               </h3>
               <button
                 type="button"
@@ -1184,7 +1184,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2">
               <div className="flex justify-between">
                 <span className="text-slate-500">Entidade:</span>
-                <span className="font-bold font-mono text-slate-900">21840</span>
+                <span className="font-bold font-mono text-slate-900">00192 (EMIS)</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Referência:</span>
@@ -1192,7 +1192,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Montante:</span>
-                <span className="font-bold text-slate-900">€460,00</span>
+                <span className="font-bold text-slate-900">150.000,00 Kz</span>
               </div>
             </div>
 
@@ -1207,13 +1207,13 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Notificação MB WAY disparada para o seu telemóvel associado.');
+                  showToast('Notificação enviada para o seu aplicativo Multicaixa Express.');
                   setMultibancoModal(false);
                 }}
                 className="px-4 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs hover:bg-amber-600 flex items-center gap-1.5"
               >
                 <Smartphone className="w-3.5 h-3.5" />
-                <span>Pagar com MB WAY</span>
+                <span>Pagar com Multicaixa Express</span>
               </button>
             </div>
           </div>
@@ -1233,7 +1233,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 id="iban-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
-                Atualizar IBAN para Débito Direto SEPA
+                Atualizar IBAN para Débito em Conta Bancária
               </h3>
               <button
                 type="button"
@@ -1248,17 +1248,17 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                showToast('Novo IBAN SEPA registado com sucesso para as próximas cobranças.');
+                showToast('Novo IBAN registado com sucesso para as próximas cobranças.');
                 setIbanModal(false);
               }}
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Novo IBAN (Portugal)</label>
+                <label className="font-bold text-slate-700 block mb-1">Novo IBAN (Angola - AO06)</label>
                 <input
                   type="text"
                   required
-                  defaultValue="PT50 0033 0000 8291 0281 9283 1"
+                  defaultValue="AO06 0040 0000 8291 0281 9283 1"
                   className="w-full p-2.5 font-mono text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#fd9924]"
                 />
               </div>
@@ -1300,7 +1300,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 id="rec-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
-                Recibo de Quitação Certificado (AT)
+                Recibo de Quitação Certificado (AGT / Geral)
               </h3>
               <button
                 type="button"
@@ -1315,9 +1315,9 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-1.5">
               <p className="font-bold text-slate-900">{receiptPreviewRecord.ref}</p>
               <p className="text-slate-600">{receiptPreviewRecord.desc}</p>
-              <p className="text-slate-900 font-bold">Valor: €{receiptPreviewRecord.amount.toFixed(2)}</p>
+              <p className="text-slate-900 font-bold">Valor: {receiptPreviewRecord.amount.toLocaleString('pt-AO', { minimumFractionDigits: 2 })} Kz</p>
               <p className="text-emerald-700 font-semibold">Liquidado via {receiptPreviewRecord.method}</p>
-              <p className="text-slate-400 font-mono text-[10px]">Hash Fiscal: AT-48192-2025</p>
+              <p className="text-slate-400 font-mono text-[10px]">Hash Fiscal: AGT-48192-2025</p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -1380,7 +1380,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Destinatário Institucional</label>
                 <select className="w-full p-2.5 rounded-xl border border-slate-200 bg-white">
-                  <option>Profª Maria Clara Marques (Professora Titular 4º Ano B)</option>
+                  <option>Profª Maria Clara Marques (Educadora Titular - Jardim de Infância)</option>
                   <option>Prof. Carlos Esteves (Coordenação Pedagógica)</option>
                   <option>Dra. Manuela Castro (Secretaria Geral)</option>
                 </select>

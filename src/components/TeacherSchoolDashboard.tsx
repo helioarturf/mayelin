@@ -85,7 +85,7 @@ interface PedagogicalIncident {
 export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboardProps) {
   // Navigation & Header State
   const [activeSection, setActiveSection] = useState<TeacherSection>('overview');
-  const [activeClass, setActiveClass] = useState('1º Ano A');
+  const [activeClass, setActiveClass] = useState('Jardim de Infância (Estrelinhas)');
   const currentTerm = '2º Trimestre';
   const currentDate = 'Terça-feira, 08 de Outubro de 2024';
 
@@ -157,8 +157,8 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
     showToast('Folha de presenças sincronizada e enviada para a Secretaria Geral com sucesso.');
   };
 
-  // 2. Pilar de Notas e Pautas
-  const [selectedSubject, setSelectedSubject] = useState<'Matemática e Cálculo' | 'Português e Literacia' | 'Estudo do Meio / Ciências' | 'Expressão Plástica'>('Matemática e Cálculo');
+  // 2. Pilar de Notas e Pautas de Educação Infantil
+  const [selectedSubject, setSelectedSubject] = useState<'Linguagem e Expressão Oral' | 'Estimulação Sensorial e Lógica' | 'Psicomotricidade & Esquema Corporal' | 'Expressão Plástica & Criatividade'>('Linguagem e Expressão Oral');
 
   const [gradesList, setGradesList] = useState<StudentGrade[]>([
     { id: 'g-1', number: 1, name: 'Afonso Magalhães', formative: 84, makerProject: 90, summativeExam: 82, participation: 88 },
@@ -171,8 +171,8 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
     { id: 'g-8', number: 8, name: 'Sofia Rocha Ramos', formative: 88, makerProject: 92, summativeExam: 85, participation: 90 }
   ]);
 
-  // Função para cálculo ponderado oficial:
-  // Formativa (25%), Trabalho Maker/Horta (25%), Exame Sumativo (35%), Participação (15%)
+  // Função para cálculo ponderado oficial de Educação Infantil:
+  // Observação Contínua (25%), Projetos Sensoriais / Horta (25%), Psicomotricidade & Cognitivo (35%), Autonomia (15%)
   const calculateFinalAverage = (g: StudentGrade) => {
     const avg = g.formative * 0.25 + g.makerProject * 0.25 + g.summativeExam * 0.35 + g.participation * 0.15;
     return Math.round(avg);
@@ -329,7 +329,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               </h1>
               {/* Seletor rápido de turma ativa */}
               <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5 border border-slate-200">
-                {(['1º Ano A', '4º Ano B', 'Sala das Estrelinhas', '6º Ano A'] as string[]).map((turma) => (
+                {(['Berçário (Ninho)', 'Maternal I (Passinhos)', 'Maternal II (Exploradores)', 'Pré-Escolar (Descobertas)', 'Jardim de Infância (Estrelinhas)'] as string[]).map((turma) => (
                   <button
                     key={turma}
                     type="button"
@@ -619,24 +619,24 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                     <span className="text-[10px] font-bold text-[#00a6c0] bg-white px-2 py-0.5 rounded shadow-2xs">
                       08:30 - 10:00
                     </span>
-                    <p className="font-bold text-slate-900 mt-2">Português e Literacia</p>
-                    <p className="text-slate-600 text-[11px] mt-0.5">Leitura dramatizada e escrita fonética orientada.</p>
+                    <p className="font-bold text-slate-900 mt-2">Linguagem Oral & Roda da História</p>
+                    <p className="text-slate-600 text-[11px] mt-0.5">Contação dramatizada, canções em roda e expressão verbal.</p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100">
                     <span className="text-[10px] font-bold text-emerald-700 bg-white px-2 py-0.5 rounded shadow-2xs">
                       10:45 - 12:15
                     </span>
-                    <p className="font-bold text-slate-900 mt-2">Matemática e Cálculo</p>
-                    <p className="text-slate-600 text-[11px] mt-0.5">Barras Cuisenaire e cálculo mental lúdico.</p>
+                    <p className="font-bold text-slate-900 mt-2">Estimulação Sensorial & Lógica</p>
+                    <p className="text-slate-600 text-[11px] mt-0.5">Manipulação de peças geométricas, formas e cores com blocos de madeira.</p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-pink-50/70 border border-pink-100">
                     <span className="text-[10px] font-bold text-[#ed145b] bg-white px-2 py-0.5 rounded shadow-2xs">
                       14:00 - 15:30
                     </span>
-                    <p className="font-bold text-slate-900 mt-2">Estudo do Meio / Horta</p>
-                    <p className="text-slate-600 text-[11px] mt-0.5">Transplante das mudas de alface e diário sensorial.</p>
+                    <p className="font-bold text-slate-900 mt-2">Horta Pedagógica & Psicomotricidade</p>
+                    <p className="text-slate-600 text-[11px] mt-0.5">Contacto com a terra, rega das plantas e circuito motor com obstáculos suaves.</p>
                   </div>
                 </div>
               </div>
@@ -792,10 +792,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
-                    Pauta Ponderada Oficial & Digitação de Notas • {activeClass}
+                    Pauta Ponderada Oficial de Educação Infantil • {activeClass}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Cálculo Automático: Ficha Formativa (25%) + Trabalho Maker/Horta (25%) + Exame Sumativo (35%) + Participação (15%)
+                    Cálculo Automático: Observação Contínua (25%) + Projetos Sensoriais / Horta (25%) + Psicomotricidade & Cognitivo (35%) + Autonomia (15%)
                   </p>
                 </div>
 
@@ -803,10 +803,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 <div className="flex items-center gap-1.5 overflow-x-auto bg-white p-1 rounded-xl border border-slate-200">
                   {(
                     [
-                      'Matemática e Cálculo',
-                      'Português e Literacia',
-                      'Estudo do Meio / Ciências',
-                      'Expressão Plástica'
+                      'Linguagem e Expressão Oral',
+                      'Estimulação Sensorial e Lógica',
+                      'Psicomotricidade & Esquema Corporal',
+                      'Expressão Plástica & Criatividade'
                     ] as const
                   ).map((disc) => (
                     <button

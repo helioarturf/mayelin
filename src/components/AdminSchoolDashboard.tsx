@@ -66,7 +66,7 @@ interface FinancialRecord {
   nif: string;
   classGroup: string;
   amount: number;
-  paymentMethod: 'Débito Direto SEPA' | 'Referência Multibanco' | 'Transferência Bancária';
+  paymentMethod: 'Multicaixa Express (MCX)' | 'Referência Multicaixa' | 'Transferência Bancária (AO06)' | 'TPA Presencial';
   status: 'Liquidado' | 'Aviso Enviado' | 'Em Aberto';
   invoiceNumber: string;
   dueDate: string;
@@ -118,68 +118,80 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   const [addStaffModalOpen, setAddStaffModalOpen] = useState(false);
   const [commsModalOpen, setCommsModalOpen] = useState(false);
 
-  // Data: Turmas
+  // Data: Turmas (Apenas Educação Infantil e Creche - 3 Ciclos de Desenvolvimento)
   const [classesList, setClassesList] = useState<ClassItem[]>([
     {
       id: 'c-1',
-      name: 'Sala das Estrelinhas',
-      cycle: 'Jardim de Infância',
-      capacity: 16,
-      enrolled: 16,
-      ratio: '1:8 (Educadora + Auxiliar)',
-      leadTeacher: 'Educadora Teresa Melo',
-      subjects: ['Expressão Plástica', 'Psicomotricidade', 'Iniciação Musical', 'Natureza & Horta'],
-      room: 'Pavilhão A - Sala 01 (Climatizada)',
-      schedule: '08:00 - 18:30 (Integral)'
+      name: 'Berçário Ninho de Afeto',
+      cycle: 'Berçário',
+      capacity: 14,
+      enrolled: 14,
+      ratio: '1:3 (Educadora + 2 Auxiliares)',
+      leadTeacher: 'Educadora Denise Santos',
+      subjects: ['Estimulação Sensorial', 'Psicomotricidade Inicial', 'Massagem Shantala', 'Lactário & Acolhimento'],
+      room: 'Ala dos Bebés - Sala 01 (Climatizada & Acústica)',
+      schedule: '07:30 - 18:30 (Integral/Semi)'
     },
     {
       id: 'c-2',
-      name: '1º Ano A',
-      cycle: 'Ensino Básico (1º Ciclo)',
-      capacity: 22,
-      enrolled: 22,
-      ratio: '1:11',
-      leadTeacher: 'Prof. António Silva',
-      subjects: ['Português', 'Matemática', 'Estudo do Meio', 'Expressão Motora', 'Inglês Lúdico'],
-      room: 'Edifício Central - Sala 102',
-      schedule: '08:30 - 16:30'
+      name: 'Maternal I - Primeiros Passos',
+      cycle: 'Maternal I & II',
+      capacity: 16,
+      enrolled: 16,
+      ratio: '1:5 (Educadora + Auxiliar)',
+      leadTeacher: 'Educadora Carla Mendes',
+      subjects: ['Linguagem Oral', 'Exploração Sensorial', 'Primeiros Passos', 'Musicalização Infantil'],
+      room: 'Pavilhão Baby - Sala 02',
+      schedule: '07:30 - 18:30 (Integral/Semi)'
     },
     {
       id: 'c-3',
-      name: '4º Ano B',
-      cycle: 'Ensino Básico (1º Ciclo)',
-      capacity: 24,
-      enrolled: 23,
-      ratio: '1:12',
-      leadTeacher: 'Profa. Clara Vasconcelos',
-      subjects: ['Português', 'Matemática', 'Ciências', 'Cidadania & Robótica', 'Inglês'],
-      room: 'Edifício Central - Sala 204',
-      schedule: '08:30 - 16:30'
+      name: 'Maternal II - Sala dos Exploradores',
+      cycle: 'Maternal I & II',
+      capacity: 18,
+      enrolled: 18,
+      ratio: '1:7 (Educadora + Auxiliar)',
+      leadTeacher: 'Educadora Teresa Melo',
+      subjects: ['Expressão Corporal', 'Iniciação ao Desfralde', 'Socialização Lúdica', 'Pintura & Texturas'],
+      room: 'Pavilhão Baby - Sala 03',
+      schedule: '07:30 - 18:30 (Integral/Semi)'
     },
     {
       id: 'c-4',
-      name: '6º Ano A',
-      cycle: 'Ensino Básico (2º Ciclo)',
-      capacity: 26,
-      enrolled: 25,
-      ratio: '1:13',
-      leadTeacher: 'Prof. Ricardo Santos (Coord.)',
-      subjects: ['Língua Portuguesa', 'Matemática', 'História e Geografia', 'Ciências Naturais', 'Educação Visual'],
-      room: 'Bloco de Ciências - Sala 301',
-      schedule: '08:15 - 17:00'
+      name: 'Pré-Escolar - Sala das Descobertas',
+      cycle: 'Pré-Escolar & Jardim de Infância',
+      capacity: 20,
+      enrolled: 20,
+      ratio: '1:8 (Educadora + Auxiliar)',
+      leadTeacher: 'Profª Maria Clara Marques',
+      subjects: ['Pré-Letramento Lúdico', 'Raciocínio Concreto', 'Natureza & Horta', 'Inglês Lúdico'],
+      room: 'Pavilhão A - Sala 02',
+      schedule: '07:30 - 18:30 (Integral/Semi)'
+    },
+    {
+      id: 'c-5',
+      name: 'Jardim de Infância - Sala das Estrelinhas',
+      cycle: 'Pré-Escolar & Jardim de Infância',
+      capacity: 22,
+      enrolled: 21,
+      ratio: '1:10 (Educador + Auxiliar)',
+      leadTeacher: 'Prof. António Silva',
+      subjects: ['Literacia Emergente', 'Pensamento Matemático Concreto', 'Oficinas Maker', 'Autonomia & Cidadania'],
+      room: 'Pavilhão A - Sala 01',
+      schedule: '07:30 - 18:30 (Integral/Semi)'
     }
   ]);
 
-  // Data: Gestão Financeira
+  // Data: Gestão Financeira em Moeda Nacional (Kwanza - Kz)
   const [financialRecords, setFinancialRecords] = useState<FinancialRecord[]>([
     {
       id: 'fin-1',
       studentName: 'Lucas Oliveira Mayelin',
       guardianName: 'Helena Mayelin',
-      nif: '249817290',
-      classGroup: 'Sala das Estrelinhas',
-      amount: 410.0,
-      paymentMethod: 'Débito Direto SEPA',
+      nif: '5418172901',
+      classGroup: 'Maternal I - Primeiros Passos',
+      amount: 165000.0,
+      paymentMethod: 'Multicaixa Express (MCX)',
       status: 'Liquidado',
       invoiceNumber: 'FT-2024/0981',
       dueDate: '08/10/2024',
@@ -189,10 +201,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       id: 'fin-2',
       studentName: 'Sofia Rocha Ramos',
       guardianName: 'Fernando Ramos',
-      nif: '213904581',
-      classGroup: '1º Ano A',
-      amount: 435.0,
-      paymentMethod: 'Débito Direto SEPA',
+      nif: '5413904581',
+      classGroup: 'Berçário Ninho de Afeto',
+      amount: 180000.0,
+      paymentMethod: 'Multicaixa Express (MCX)',
       status: 'Liquidado',
       invoiceNumber: 'FT-2024/0982',
       dueDate: '08/10/2024',
@@ -202,10 +214,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       id: 'fin-3',
       studentName: 'Mateus Castro Silva',
       guardianName: 'Rodrigo Silva',
-      nif: '198421093',
-      classGroup: '4º Ano B',
-      amount: 435.0,
-      paymentMethod: 'Referência Multibanco',
+      nif: '5419842109',
+      classGroup: 'Jardim de Infância - Sala das Estrelinhas',
+      amount: 150000.0,
+      paymentMethod: 'Referência Multicaixa',
       status: 'Aviso Enviado',
       invoiceNumber: 'FT-2024/0983',
       dueDate: '10/10/2024'
@@ -214,10 +226,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       id: 'fin-4',
       studentName: 'Beatriz Alcantara',
       guardianName: 'Diogo Alcantara',
-      nif: '254891028',
-      classGroup: '6º Ano A',
-      amount: 460.0,
-      paymentMethod: 'Débito Direto SEPA',
+      nif: '5425489102',
+      classGroup: 'Pré-Escolar - Sala das Descobertas',
+      amount: 150000.0,
+      paymentMethod: 'Transferência Bancária (AO06)',
       status: 'Liquidado',
       invoiceNumber: 'FT-2024/0984',
       dueDate: '08/10/2024',
@@ -227,10 +239,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       id: 'fin-5',
       studentName: 'Tomás Mendonça',
       guardianName: 'Patrícia Mendonça',
-      nif: '228741902',
-      classGroup: '1º Ano A',
-      amount: 435.0,
-      paymentMethod: 'Referência Multibanco',
+      nif: '5422874190',
+      classGroup: 'Maternal II - Sala dos Exploradores',
+      amount: 165000.0,
+      paymentMethod: 'Referência Multicaixa',
       status: 'Aviso Enviado',
       invoiceNumber: 'FT-2024/0985',
       dueDate: '10/10/2024'
@@ -387,7 +399,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   };
 
   const handleDispatchReminders = () => {
-    showToast('28 lembretes de liquidação de propinas disparados via E-mail e Notificação Push!');
+    showToast('28 lembretes de liquidação de propinas disparados via Multicaixa Express, E-mail e Push!');
   };
 
   const handleExportSaft = () => {
@@ -395,7 +407,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   };
 
   const handleIssueInvoiceBatch = () => {
-    showToast('Lote de 482 faturas certificadas geradas e sincronizadas com a Autoridade Tributária (AT).');
+    showToast('Lote de 482 faturas certificadas geradas e sincronizadas com a Administração Geral Tributária (AGT).');
   };
 
   return (
@@ -433,7 +445,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               </span>
             </div>
             <p className="text-[11px] text-slate-500">
-              Jardim Escola da Mayelin • Coordenação Executiva, Financeira & Pedagógica
+              Jardim Escola da Mayelin • Educação Infantil & Creche • Luanda, Angola
             </p>
           </div>
         </div>
@@ -450,7 +462,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Pesquisar por aluno, turma, NIF (ex: 249817290) ou processo..."
+              placeholder="Pesquisar por educando, turma (Berçário, Maternal, Jardim), NIF ou processo..."
               className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#ed145b] focus:ring-2 focus:ring-pink-100 focus:outline-none transition-all placeholder:text-slate-400"
             />
             {searchQuery && (
@@ -710,8 +722,8 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                       <DollarSign className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
-                    €184.250
+                  <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                    Kz 48.250.000
                   </p>
                   <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-700 font-bold">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -754,7 +766,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                     className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-pink-50 hover:border-pink-200 text-slate-800 text-xs font-bold flex items-center gap-2.5 transition-all text-left"
                   >
                     <FileSpreadsheet className="w-4 h-4 text-[#ed145b] shrink-0" />
-                    <span>Exportar SAF-T (PT)</span>
+                    <span>Exportar SAF-T (AO)</span>
                   </button>
 
                   <button
@@ -790,13 +802,13 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
                   <h4 className="text-sm font-bold font-['Quicksand'] text-slate-900">
-                    Distribuição da Faturação do Mês (€184.250)
+                    Distribuição da Faturação do Mês (Kz 48.250.000)
                   </h4>
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between font-semibold">
                       <span className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                        454 Propinas Liquidadas (€173.563)
+                        454 Propinas Liquidadas (Kz 45.451.500)
                       </span>
                       <span className="text-emerald-700 font-bold">94.2%</span>
                     </div>
@@ -807,7 +819,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                     <div className="flex justify-between font-semibold pt-2">
                       <span className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                        28 Avisos Enviados (€10.687)
+                        28 Avisos Enviados (Kz 2.798.500)
                       </span>
                       <span className="text-amber-700 font-bold">5.8%</span>
                     </div>
@@ -866,7 +878,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                     Gestão de Turmas, Lotação & Matriz Curricular
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Supervisão pedagógica de todos os ciclos formativos (Jardim de Infância e Ensino Básico)
+                    Supervisão pedagógica dos 3 ciclos de desenvolvimento: Berçário, Maternal I & II, Pré-Escolar & Jardim de Infância
                   </p>
                 </div>
 
@@ -974,10 +986,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
-                    Gestão Financeira, Faturação e Débito Direto SEPA
+                    Gestão Financeira, Faturação e Multicaixa Express
                   </h3>
                   <p className="text-xs text-slate-500">
-                    454 Propinas liquidadas • 28 com aviso enviado • 0 em contencioso
+                    454 Propinas liquidadas • 28 com aviso enviado • 0 em contencioso • Valores em Kwanza (Kz)
                   </p>
                 </div>
 
@@ -988,7 +1000,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                     className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-sm hover:bg-slate-800 transition-colors flex items-center gap-1.5"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Exportar SAF-T (PT)</span>
+                    <span>Exportar SAF-T (AO)</span>
                   </button>
 
                   <button
@@ -1020,9 +1032,9 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                         <th className="p-3.5">Aluno & Turma</th>
                         <th className="p-3.5">Responsável Financeiro (NIF)</th>
                         <th className="p-3.5">Método de Liquidação</th>
-                        <th className="p-3.5">Valor & Vencimento</th>
+                        <th className="p-3.5">Valor (Kz) & Vencimento</th>
                         <th className="p-3.5">Estado</th>
-                        <th className="p-3.5 text-right">Recibo Certificado AT</th>
+                        <th className="p-3.5 text-right">Recibo AGT</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -1048,7 +1060,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
 
                           <td className="p-3.5">
                             <span className="font-bold text-slate-900">
-                              €{record.amount.toFixed(2)}
+                              Kz {record.amount.toLocaleString('pt-PT')},00
                             </span>
                             <span className="text-[10px] text-slate-500 block">Venc: {record.dueDate}</span>
                           </td>
@@ -1072,7 +1084,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                               className="px-2.5 py-1 bg-pink-50 hover:bg-pink-100 text-[#ed145b] rounded-lg font-bold text-[11px] transition-colors inline-flex items-center gap-1"
                             >
                               <Printer className="w-3 h-3" />
-                              <span>Recibo AT</span>
+                              <span>Recibo AGT</span>
                             </button>
                           </td>
                         </tr>
@@ -1330,7 +1342,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       </div>
 
       {/* ========================================================================= */}
-      {/* MODAL 1: RECIBO CERTIFICADO PELA AUTORIDADE TRIBUTÁRIA (AT)               */}
+      {/* MODAL 1: RECIBO CERTIFICADO PELA ADMINISTRAÇÃO GERAL TRIBUTÁRIA (AGT)     */}
       {/* ========================================================================= */}
       {receiptModalRecord && (
         <div
@@ -1343,14 +1355,14 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                  AT
+                  AGT
                 </div>
                 <div>
                   <h3 id="receipt-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
-                    Recibo de Quitação Certificado
+                    Recibo de Quitação Certificado (AGT)
                   </h3>
                   <p className="text-[10px] text-slate-500 font-mono">
-                    {receiptModalRecord.invoiceNumber} • Software Certificado nº 2841/AT
+                    {receiptModalRecord.invoiceNumber} • Software Certificado nº 1482/AGT • Luanda
                   </p>
                 </div>
               </div>
@@ -1376,7 +1388,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Turma:</span>
+                <span className="text-slate-500">Turma (Ciclo):</span>
                 <span className="font-bold text-slate-900">{receiptModalRecord.classGroup}</span>
               </div>
               <div className="flex justify-between">
@@ -1384,23 +1396,23 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 <span className="font-bold text-slate-900">{receiptModalRecord.paymentMethod}</span>
               </div>
               <div className="flex justify-between pt-2 border-t border-slate-200 text-sm">
-                <span className="font-bold text-slate-800">Total Liquidado:</span>
+                <span className="font-bold text-slate-800">Total Liquidado (Moeda Nacional):</span>
                 <span className="font-extrabold text-emerald-700">
-                  €{receiptModalRecord.amount.toFixed(2)}
+                  Kz {receiptModalRecord.amount.toLocaleString('pt-PT')},00
                 </span>
               </div>
             </div>
 
             <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-between text-xs text-emerald-800">
-              <span className="font-bold">Assinatura Digital & Hash AT Válidos</span>
-              <span className="text-[10px] font-mono">w8X1-AT99</span>
+              <span className="font-bold">Assinatura Digital & Hash AGT Válidos</span>
+              <span className="text-[10px] font-mono">AGT-9481-AO</span>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Recibo impresso com formato oficial certificado.');
+                  showToast('Recibo AGT impresso com formato oficial certificado em Kwanza.');
                   setReceiptModalRecord(null);
                 }}
                 className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 flex items-center gap-1.5"
@@ -1414,7 +1426,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: EXPORTAÇÃO FICHEIRO FISCAL SAF-T (PT)                            */}
+      {/* MODAL 2: EXPORTAÇÃO FICHEIRO FISCAL SAF-T (AO)                            */}
       {/* ========================================================================= */}
       {saftModalOpen && (
         <div
@@ -1428,7 +1440,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               <div className="flex items-center gap-2">
                 <FileCode className="w-5 h-5 text-[#ed145b]" />
                 <h3 id="saft-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
-                  Exportação de Ficheiro Fiscal SAF-T (PT)
+                  Exportação de Ficheiro Fiscal SAF-T (AO)
                 </h3>
               </div>
               <button
@@ -1442,13 +1454,13 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              O ficheiro XML padrão da Autoridade Tributária inclui todos os lançamentos de faturação, recibos emitidos e auditoria de propinas do período corrente.
+              O ficheiro XML padrão da Administração Geral Tributária (AGT - Angola) inclui todos os lançamentos de faturação, recibos emitidos e auditoria de propinas em Kwanzas (Kz) do período corrente.
             </p>
 
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs space-y-1.5">
-              <p className="font-bold text-slate-800">SAF-T_PT_Mayelin_2024-10.xml</p>
-              <p className="text-[11px] text-slate-500">Tamanho estimado: 1.2 MB • 482 Registos</p>
-              <p className="text-[11px] text-emerald-700 font-bold">Validação de Schema XSD: Aprovada</p>
+              <p className="font-bold text-slate-800">SAF-T_AO_Mayelin_2024-10.xml</p>
+              <p className="text-[11px] text-slate-500">Tamanho estimado: 1.2 MB • 482 Registos em Kwanzas</p>
+              <p className="text-[11px] text-emerald-700 font-bold">Validação de Schema AGT: Aprovada</p>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">
@@ -1462,13 +1474,13 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Ficheiro SAF-T (PT) transferido com sucesso para a contabilidade.');
+                  showToast('Ficheiro SAF-T (AO) transferido com sucesso para a contabilidade.');
                   setSaftModalOpen(false);
                 }}
                 className="px-4 py-2 bg-[#ed145b] text-white rounded-xl text-xs font-bold hover:bg-pink-600 flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Descarregar XML Certificado</span>
+                <span>Descarregar XML Certificado (AO)</span>
               </button>
             </div>
           </div>
@@ -1488,7 +1500,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 id="addclass-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
-                Criar Nova Turma Escolar
+                Criar Nova Turma de Educação Infantil
               </h3>
               <button
                 type="button"
@@ -1503,7 +1515,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                showToast('Nova turma adicionada ao plano curricular com sucesso!');
+                showToast('Nova turma adicionada ao plano curricular infantil com sucesso!');
                 setAddClassModalOpen(false);
               }}
               className="space-y-3 text-xs"
@@ -1513,25 +1525,25 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 <input
                   type="text"
                   required
-                  placeholder="Ex: 2º Ano A ou Sala dos Girassóis"
+                  placeholder="Ex: Maternal II - Sala dos Girassóis ou Berçário B"
                   className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#ed145b]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Ciclo Formativo</label>
+                  <label className="font-bold text-slate-700 block mb-1">Ciclo de Desenvolvimento</label>
                   <select className="w-full p-2.5 rounded-xl border border-slate-200 bg-white">
-                    <option>Jardim de Infância</option>
-                    <option>1º Ciclo (Básico)</option>
-                    <option>2º Ciclo (Básico)</option>
+                    <option>Berçário (3 meses a 1 ano)</option>
+                    <option>Maternal I & II (1 a 3 anos)</option>
+                    <option>Pré-Escolar & Jardim de Infância (3 a 5 anos)</option>
                   </select>
                 </div>
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Lotação Máxima</label>
                   <input
                     type="number"
-                    defaultValue={20}
+                    defaultValue={18}
                     className="w-full p-2.5 rounded-xl border border-slate-200"
                   />
                 </div>
