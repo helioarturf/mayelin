@@ -1,4 +1,4 @@
-import { Music, Activity, Palette, Globe, Stars, Utensils } from 'lucide-react';
+import { Music, Activity, Palette, Globe, Utensils } from 'lucide-react';
 import { FACILITIES, WORKSHOPS } from '../data/mockData';
 
 interface FacilitiesSectionProps {
@@ -15,7 +15,6 @@ export default function FacilitiesSection({ onOpenMenu }: FacilitiesSectionProps
         {/* Header Block */}
         <div className="max-w-3xl mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pink-100 text-[#ed145b] font-bold text-xs md:text-sm font-['Nunito_Sans'] mb-2">
-            <Stars className="w-4 h-4 fill-[#ed145b]" />
             <span>Espaços Projetados para Encantar</span>
           </div>
 
@@ -85,7 +84,6 @@ export default function FacilitiesSection({ onOpenMenu }: FacilitiesSectionProps
               </button>
 
               <div className="min-h-[40px] inline-flex items-center gap-1.5 text-xs font-['Nunito_Sans'] text-[#8c4f00] font-bold bg-amber-50 px-4 py-2 rounded-full border border-amber-200">
-                <Stars className="w-4 h-4 text-[#fd9924] fill-[#fd9924]" />
                 <span>100% Integradas à Grade</span>
               </div>
             </div>

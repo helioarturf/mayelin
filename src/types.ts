@@ -106,3 +106,23 @@ export interface Testimonial {
   quote: string;
   rating: number;
 }
+
+export type UserRole = 'admin' | 'professor' | 'pais';
+
+export interface SchoolAnnouncement {
+  id: string;
+  title: string;
+  content: string;
+  date: string;
+  target: 'todos' | 'pais' | 'professores';
+  priority: 'normal' | 'importante' | 'urgente';
+  author: string;
+}
+
+export interface UserProfileInfo {
+  role: UserRole;
+  label: string;
+  name: string;
+  description: string;
+  avatarBadge: string;
+}

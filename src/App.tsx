@@ -14,14 +14,17 @@ import MealMenuModal from './components/MealMenuModal';
 import Footer from './components/Footer';
 import RealPhotosGallery from './components/RealPhotosGallery';
 
-import { INITIAL_STUDENTS, INITIAL_PICKUP_AUTHORIZATIONS, SCHOOL_CONTACT } from './data/mockData';
-import { AgeGroup, Student, PickupAuthorization, VisitAppointment } from './types';
+import { INITIAL_STUDENTS, INITIAL_PICKUP_AUTHORIZATIONS, INITIAL_ANNOUNCEMENTS, SCHOOL_CONTACT } from './data/mockData';
+import { AgeGroup, Student, PickupAuthorization, VisitAppointment, UserRole, SchoolAnnouncement, DailyLogItem } from './types';
 import { MessageCircle, Smartphone, Calendar, ArrowUp } from 'lucide-react';
 
 export default function App() {
   // Modal states
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Active portal role state (admin, professor, pais)
+  const [portalRole, setPortalRole] = useState<UserRole>('pais');
 
   // Selected age group for classroom & visit scheduler
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup>('bercario');
@@ -58,6 +61,16 @@ export default function App() {
     }
   });
 
+  // School Announcements state with localStorage
+  const [announcements, setAnnouncements] = useState<SchoolAnnouncement[]>(() => {
+    try {
+      const saved = localStorage.getItem('mayelin_announcements');
+      return saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
+    } catch {
+      return INITIAL_ANNOUNCEMENTS;
+    }
+  });
+
   // Show back to top button
   const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -70,12 +83,20 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    localStorage.setItem('mayelin_students', JSON.stringify(students));
+  }, [students]);
+
+  useEffect(() => {
     localStorage.setItem('mayelin_authorizations', JSON.stringify(authorizations));
   }, [authorizations]);
 
   useEffect(() => {
     localStorage.setItem('mayelin_appointments', JSON.stringify(appointments));
   }, [appointments]);
+
+  useEffect(() => {
+    localStorage.setItem('mayelin_announcements', JSON.stringify(announcements));
+  }, [announcements]);
 
   const handleAddAuthorization = (newAuth: Omit<PickupAuthorization, 'id' | 'createdAt'>) => {
     const created: PickupAuthorization = {
@@ -86,8 +107,57 @@ export default function App() {
     setAuthorizations((prev) => [created, ...prev]);
   };
 
+  const handleUpdateAuthorizationStatus = (id: string, status: 'Aprovado' | 'Pendente') => {
+    setAuthorizations((prev) =>
+      prev.map((auth) => (auth.id === id ? { ...auth, status } : auth))
+    );
+  };
+
   const handleBookAppointment = (apt: VisitAppointment) => {
     setAppointments((prev) => [apt, ...prev]);
+  };
+
+  const handleUpdateAppointmentStatus = (id: string, status: string) => {
+    setAppointments((prev) =>
+      prev.map((apt) => (apt.id === id ? { ...apt, notes: status } : apt))
+    );
+  };
+
+  const handleAddAnnouncement = (anc: Omit<SchoolAnnouncement, 'id'>) => {
+    const created: SchoolAnnouncement = {
+      ...anc,
+      id: `anc-${Date.now()}`
+    };
+    setAnnouncements((prev) => [created, ...prev]);
+  };
+
+  const handleAddDailyLog = (studentId: string, log: Omit<DailyLogItem, 'id'>) => {
+    const newLog: DailyLogItem = {
+      ...log,
+      id: `log-${Date.now()}`
+    };
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (s.id === studentId) {
+          return {
+            ...s,
+            dailyLogs: [newLog, ...s.dailyLogs]
+          };
+        }
+        return s;
+      })
+    );
+  };
+
+  const handleUpdateStudentStatus = (studentId: string, status: Student['status']) => {
+    setStudents((prev) =>
+      prev.map((s) => (s.id === studentId ? { ...s, status } : s))
+    );
+  };
+
+  const handleOpenPortalWithRole = (role?: UserRole) => {
+    if (role) setPortalRole(role);
+    setIsPortalOpen(true);
   };
 
   const handleSelectClassroom = (ageGroup: AgeGroup) => {
@@ -132,9 +202,9 @@ export default function App() {
         {/* 6.5. Galeria de Fotos Reais & Facebook Oficial */}
         <RealPhotosGallery />
 
-        {/* 7. Gestão Integrada & Portal da Família (Smartphone Showcase) */}
+        {/* 7. Gestão Integrada & Portal Escolar (3 Perfis: Gestão, Professor, Pais) */}
         <ParentPortalSection
-          onOpenPortal={() => setIsPortalOpen(true)}
+          onOpenPortal={handleOpenPortalWithRole}
           activeStudent={activeStudent}
         />
 
@@ -154,11 +224,11 @@ export default function App() {
 
       {/* 11. Footer Institucional */}
       <Footer
-        onOpenPortal={() => setIsPortalOpen(true)}
+        onOpenPortal={() => handleOpenPortalWithRole()}
         onOpenMenu={() => setIsMenuOpen(true)}
       />
 
-      {/* Interactive Parent Portal Modal */}
+      {/* Interactive School Portal Modal (3 Profiles) */}
       <ParentPortalModal
         isOpen={isPortalOpen}
         onClose={() => setIsPortalOpen(false)}
@@ -167,6 +237,15 @@ export default function App() {
         onSelectStudent={setActiveStudentId}
         authorizations={authorizations}
         onAddAuthorization={handleAddAuthorization}
+        onUpdateAuthorizationStatus={handleUpdateAuthorizationStatus}
+        appointments={appointments}
+        onUpdateAppointmentStatus={handleUpdateAppointmentStatus}
+        announcements={announcements}
+        onAddAnnouncement={handleAddAnnouncement}
+        onAddDailyLog={handleAddDailyLog}
+        onUpdateStudentStatus={handleUpdateStudentStatus}
+        currentRole={portalRole}
+        onChangeRole={setPortalRole}
       />
 
       {/* Nutritional Weekly Menu Modal */}
@@ -190,12 +269,12 @@ export default function App() {
 
         <button
           type="button"
-          onClick={() => setIsPortalOpen(true)}
-          aria-label="Abrir Diário do Aluno"
+          onClick={() => handleOpenPortalWithRole()}
+          aria-label="Abrir Portal Escolar"
           className="min-h-[44px] min-w-[44px] px-3 sm:px-4 py-2.5 rounded-full bg-[#ed145b] text-white text-xs sm:text-sm font-bold shadow-lg hover:bg-pink-600 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
         >
           <Smartphone className="w-4 h-4 shrink-0" />
-          <span className="hidden sm:inline">Diário do Aluno</span>
+          <span className="hidden sm:inline">Portal Escolar</span>
         </button>
 
         <a

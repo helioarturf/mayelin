@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, MessageCircle, Smartphone, Menu, X, Utensils, Camera, ChevronDown, GraduationCap, School, ChevronRight } from 'lucide-react';
+import { MessageCircle, Smartphone, Menu, X, Utensils, Camera, ChevronDown, GraduationCap, School, ChevronRight } from 'lucide-react';
 import { SCHOOL_IMAGES, SCHOOL_CONTACT } from '../data/mockData';
 
 interface HeaderProps {
@@ -55,10 +55,6 @@ export default function Header({ onOpenPortal, onOpenMenu, onNavigateToSchedule 
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-emerald-500 border border-white rounded-full" />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-base sm:text-lg md:text-2xl font-['Quicksand'] font-bold text-[#ed145b] tracking-tight leading-tight flex items-center gap-1 sm:gap-1.5 truncate">
-              <span>Jardim Escola da Mayelin</span>
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD13B] fill-[#FFD13B] shrink-0" />
-            </span>
             <span className="text-[11px] sm:text-xs font-['Nunito_Sans'] text-[#5c3f42] font-semibold tracking-wide truncate">
               Educação Infantil & Creche • Luanda
             </span>
@@ -233,7 +229,7 @@ export default function Header({ onOpenPortal, onOpenMenu, onNavigateToSchedule 
             className="text-[#ed145b] hover:text-pink-700 transition-colors py-1 flex items-center gap-1 font-extrabold"
           >
             <Camera className="w-4 h-4 text-[#ed145b]" />
-            <span>Fotos Reais</span>
+            <span>Galeria</span>
           </a>
           <a
             href="#agendar-visita"
@@ -252,7 +248,7 @@ export default function Header({ onOpenPortal, onOpenMenu, onNavigateToSchedule 
             className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-2.5 rounded-full bg-[#ed145b] text-white font-['Nunito_Sans'] font-bold text-xs sm:text-sm shadow-md hover:bg-pink-600 hover:shadow-lg active:scale-95 transition-all duration-150"
           >
             <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="hidden sm:inline">Portal da Família</span>
+            <span className="hidden sm:inline">Portal Escolar</span>
             <span className="sm:hidden">Portal</span>
           </button>
 
@@ -387,7 +383,7 @@ export default function Header({ onOpenPortal, onOpenMenu, onNavigateToSchedule 
               className="w-full min-h-[48px] py-3 px-4 rounded-2xl bg-[#ed145b] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:bg-pink-600 active:scale-98 transition-all"
             >
               <Smartphone className="w-4 h-4" />
-              <span>Acessar Diário & Portal da Família</span>
+              <span>Acessar Portal Escolar (Gestão, Professor e Pais)</span>
             </button>
             <a
               href={`https://wa.me/${SCHOOL_CONTACT.phoneClean}`}

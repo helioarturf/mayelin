@@ -22,9 +22,6 @@ export default function Footer({ onOpenPortal, onOpenMenu }: FooterProps) {
                   referrerPolicy="no-referrer"
                 />
               </div>
-              <span className="text-xl font-['Quicksand'] font-bold text-[#ed145b]">
-                Jardim Escola da Mayelin
-              </span>
             </div>
 
             <p className="text-xs sm:text-sm font-['Nunito_Sans'] text-[#5c3f42] max-w-sm leading-relaxed">
@@ -108,7 +105,7 @@ export default function Footer({ onOpenPortal, onOpenMenu }: FooterProps) {
                   onClick={onOpenPortal}
                   className="text-[#5c3f42] hover:text-[#fd9924] transition-colors text-left"
                 >
-                  Portal da Família
+                  Portal Escolar (3 Perfis)
                 </button>
               </li>
               <li>

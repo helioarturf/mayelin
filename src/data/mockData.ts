@@ -1,4 +1,4 @@
-import { Classroom, Facility, Workshop, Student, FAQItem, Testimonial } from '../types';
+import { Classroom, Facility, Workshop, Student, FAQItem, Testimonial, SchoolAnnouncement, UserProfileInfo } from '../types';
 
 export const SCHOOL_IMAGES = {
   mayelinRealProfile: '/mayelin_real_profile.jpg',
@@ -428,3 +428,58 @@ export const WEEKLY_MENU = [
     dinner: 'Creme de abóbora com gengibre suave e torradinhas integrais'
   }
 ];
+
+export const PROFILE_OPTIONS: UserProfileInfo[] = [
+  {
+    role: 'admin',
+    label: 'Administração e Gestão Escolar',
+    name: 'Dra. Mayelin & Direção Pedagógica',
+    description: 'Painel executivo, gestão de matrículas, autorizações de saída e comunicados oficiais',
+    avatarBadge: 'ADM'
+  },
+  {
+    role: 'professor',
+    label: 'Professor',
+    name: 'Profa. Juliana & Equipe Docente',
+    description: 'Diário de bordo das turmas, chamada diária, registro de rotina e fotos pedagógicas',
+    avatarBadge: 'PROF'
+  },
+  {
+    role: 'pais',
+    label: 'Pais/Encarregados',
+    name: 'Família Mayelin (Helena & Arthur)',
+    description: 'Acompanhamento em tempo real, diário do aluno, fotos, saúde e autorizações de retirada',
+    avatarBadge: 'PAIS'
+  }
+];
+
+export const INITIAL_ANNOUNCEMENTS: SchoolAnnouncement[] = [
+  {
+    id: 'anc-1',
+    title: 'Reunião Pedagógica Trimestral & Apresentação de Portfólios',
+    content: 'Convidamos todas as famílias para o nosso encontro pedagógico no próximo sábado às 09:30. Teremos exposição dos projetos artísticos e momento individual com as educadoras.',
+    date: 'Hoje',
+    target: 'pais',
+    priority: 'importante',
+    author: 'Direção Geral'
+  },
+  {
+    id: 'anc-2',
+    title: 'Campanha de Vacinação Infantil e Atualização do Cartão de Saúde',
+    content: 'Lembramos a todos os encarregados de submeter a cópia atualizada do cartão de vacinas das crianças na secretaria escolar ou pelo portal até o fim da próxima semana.',
+    date: 'Ontem',
+    target: 'todos',
+    priority: 'normal',
+    author: 'Secretaria & Enfermagem'
+  },
+  {
+    id: 'anc-3',
+    title: 'Oficina Sensorial da Primavera: Dia da Fruta na Horta',
+    content: 'Na quarta-feira as turmas do Berçário e Maternal farão colheita assistida e piquenique de frutas frescas colhidas em nossa horta agroecológica.',
+    date: '02 de Outubro',
+    target: 'professores',
+    priority: 'normal',
+    author: 'Coordenação Pedagógica'
+  }
+];
+

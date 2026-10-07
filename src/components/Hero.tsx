@@ -25,7 +25,7 @@ export default function Hero({ onOpenPortal }: HeroProps) {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-pink-100 shadow-sm text-xs md:text-sm font-['Nunito_Sans'] text-[#ed145b] font-bold"
           >
             <span className="w-2.5 h-2.5 rounded-full bg-[#ed145b] animate-ping" />
-            <span>✨ Matrículas Abertas para 2026 • Vagas Limitadas</span>
+            <span>Matrículas Abertas para 2026 • Vagas Limitadas</span>
           </div>
 
           {/* Headline */}
