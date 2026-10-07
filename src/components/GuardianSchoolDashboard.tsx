@@ -26,6 +26,7 @@ import {
   BookOpen,
   Award,
   ArrowRight,
+  ArrowLeft,
   Lock,
   RefreshCw,
   Baby,
@@ -233,33 +234,33 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
     <div
       role="region"
       aria-label="Painel do Responsável - Portal dos Encarregados de Educação"
-      className="bg-[#f8fafc] text-slate-800 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col min-h-[720px] max-h-[92vh] font-['Nunito_Sans'] antialiased"
+      className="bg-[#fff8f5] text-[#211a14] w-full flex-1 flex flex-col overflow-hidden font-['Nunito_Sans'] antialiased min-h-0"
     >
       {/* ========================================================================= */}
       {/* 1. TOPNAVBAR: IDENTIFICAÇÃO DO ENCARREGADO & CONTEXTO DO EDUCANDO ATIVO  */}
       {/* ========================================================================= */}
       <header
-        className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
+        className="bg-white border-b border-[#eee0d6] px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
         role="banner"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#fd9924] text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 text-[#fd9924] flex items-center justify-center font-bold shadow-xs shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-sm sm:text-base font-bold font-['Quicksand'] text-slate-900 leading-tight">
+              <h1 className="text-sm sm:text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
                 Portal dos Encarregados de Educação & Tutores
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-[#8c4f00] flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 Sessão Segura Encriptada
               </span>
-              <span className="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+              <span className="text-[10px] font-semibold bg-[#faebe1] text-[#5c3f42] px-2 py-0.5 rounded border border-[#eee0d6]">
                 RGPD • WCAG 2.1 AA
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-[#5c3f42] mt-0.5">
               Encarregado Autenticado: <strong>Dr. António Ferreira Silva</strong> • NIF: 5418409382 • Luanda
             </p>
           </div>
@@ -279,10 +280,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           <button
             type="button"
             onClick={() => setActiveSection('comms')}
-            className="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+            className="relative p-2 rounded-xl text-[#5c3f42] hover:bg-[#faebe1] transition-colors"
             aria-label="Mensagens e Notificações"
           >
-            <Send className="w-4 h-4 text-slate-700" />
+            <Send className="w-4 h-4 text-[#5c3f42]" />
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#ed145b] rounded-full ring-2 ring-white" />
           </button>
 
@@ -290,10 +291,12 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-1"
-              aria-label="Fechar portal do encarregado"
+              className="px-3 py-1.5 rounded-xl text-[#5c3f42] hover:text-[#211a14] hover:bg-[#faebe1] transition-colors flex items-center gap-1.5 text-xs font-bold ml-1"
+              aria-label="Voltar ao Website"
+              title="Voltar ao Website"
             >
-              <X className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 text-amber-600" />
+              <span className="hidden sm:inline">Voltar ao Website</span>
             </button>
           )}
         </div>
@@ -313,7 +316,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-base font-bold font-['Quicksand'] text-slate-900 leading-tight">
+              <h2 className="text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
                 {activeChild.name}
               </h2>
               <span className="text-xs font-bold text-[#fd9924] bg-white px-2.5 py-0.5 rounded-full border border-amber-200 shadow-2xs">
@@ -324,13 +327,13 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 {activeChild.status}
               </span>
             </div>
-            <p className="text-xs text-slate-600 mt-1">
+            <p className="text-xs text-[#5c3f42] mt-1">
               Professora Titular: <strong>{activeChild.leadTeacher}</strong> • {activeChild.cycle}
             </p>
 
             {/* Alternador de Irmãos */}
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[11px] font-semibold text-slate-500">Irmãos Matriculados:</span>
+              <span className="text-[11px] font-semibold text-[#5c3f42]">Irmãos Matriculados:</span>
               {childrenList.map((ch) => (
                 <button
                   key={ch.id}
@@ -342,7 +345,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all ${
                     activeChildId === ch.id
                       ? 'bg-[#fd9924] text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:border-amber-400'
+                      : 'bg-white border border-[#eee0d6] text-[#5c3f42] hover:border-amber-400'
                   }`}
                 >
                   {ch.name.split(' ')[0]} ({ch.classroom.split(' ')[0]})
@@ -355,15 +358,15 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
         {/* 4 Métricas Executivas Rápidas do Estudante */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs shrink-0">
           <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-slate-500 block font-semibold">Taxa de Presença</span>
+            <span className="text-[11px] text-[#5c3f42] block font-semibold">Taxa de Presença</span>
             <p className="text-lg font-bold font-['Quicksand'] text-emerald-700 mt-0.5">
               {activeChild.presenceRate}%
             </p>
-            <span className="text-[10px] text-slate-400">0 faltas injustificadas</span>
+            <span className="text-[10px] text-[#8c6b6d]">0 faltas injustificadas</span>
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-slate-500 block font-semibold">Média Global</span>
+            <span className="text-[11px] text-[#5c3f42] block font-semibold">Média Global</span>
             <p className="text-lg font-bold font-['Quicksand'] text-[#00a6c0] mt-0.5">
               {activeChild.averageGrade}%
             </p>
@@ -371,15 +374,15 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-slate-500 block font-semibold">Situação Financeira</span>
+            <span className="text-[11px] text-[#5c3f42] block font-semibold">Situação Financeira</span>
             <p className="text-lg font-bold font-['Quicksand'] text-emerald-700 mt-0.5">
               Regularizada
             </p>
-            <span className="text-[10px] text-slate-400">Multicaixa Express Ativo</span>
+            <span className="text-[10px] text-[#8c6b6d]">Multicaixa Express Ativo</span>
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-slate-500 block font-semibold">Comunicação</span>
+            <span className="text-[11px] text-[#5c3f42] block font-semibold">Comunicação</span>
             <p className="text-lg font-bold font-['Quicksand'] text-[#ed145b] mt-0.5">
               {activeChild.newMessagesCount} Nova
             </p>
@@ -394,21 +397,21 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* SideNavBar Lateral */}
         <nav
-          className="w-full md:w-64 bg-slate-900 text-slate-300 p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-slate-800"
+          className="w-full md:w-64 bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-[#eee0d6]"
           aria-label="Módulos do encarregado de educação"
         >
           <div className="flex md:flex-col gap-1 w-full">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 py-1.5 hidden md:block">
+            <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#8c6b6d] px-3 py-1.5 hidden md:block">
               Área do Encarregado
             </span>
 
             <button
               type="button"
               onClick={() => setActiveSection('overview')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'overview'
-                  ? 'bg-[#fd9924] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Smile className="w-4 h-4 shrink-0" />
@@ -418,10 +421,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <button
               type="button"
               onClick={() => setActiveSection('routine')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'routine'
-                  ? 'bg-[#fd9924] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Calendar className="w-4 h-4 shrink-0" />
@@ -431,10 +434,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <button
               type="button"
               onClick={() => setActiveSection('finance')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'finance'
-                  ? 'bg-[#fd9924] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <DollarSign className="w-4 h-4 shrink-0" />
@@ -444,10 +447,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <button
               type="button"
               onClick={() => setActiveSection('comms')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'comms'
-                  ? 'bg-[#fd9924] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Send className="w-4 h-4 shrink-0" />
@@ -457,10 +460,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <button
               type="button"
               onClick={() => setActiveSection('authorizations')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'authorizations'
-                  ? 'bg-[#fd9924] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <ShieldCheck className="w-4 h-4 shrink-0" />
@@ -468,10 +471,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             </button>
           </div>
 
-          <div className="pt-3 border-t border-slate-800 hidden md:block">
-            <div className="p-2.5 rounded-xl bg-slate-800/80 text-[11px] space-y-1">
-              <p className="font-bold text-slate-200">Proteção de Dados do Menor</p>
-              <p className="text-slate-400">
+          <div className="pt-3 border-t border-[#eee0d6] hidden md:block">
+            <div className="p-2.5 rounded-xl bg-[#faebe1] text-[11px] space-y-1 border border-[#eee0d6]">
+              <p className="font-bold text-[#211a14]">Proteção de Dados do Menor</p>
+              <p className="text-[#5c3f42]">
                 Acesso encriptado auditado em conformidade com o RGPD.
               </p>
             </div>
@@ -480,7 +483,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
 
         {/* Main Workspace Area */}
         <main
-          className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-slate-50 focus:outline-none"
+          className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-[#fff8f5] focus:outline-none"
           tabIndex={-1}
         >
           {/* Toast Notification */}
@@ -488,7 +491,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <div
               role="status"
               aria-live="polite"
-              className="p-3.5 bg-slate-900 text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-slate-700 animate-in fade-in slide-in-from-top-2"
+              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-[#5c3f42] animate-in fade-in slide-in-from-top-2"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{toastMessage}</span>
@@ -528,9 +531,9 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               {/* Grid Resumo do Dia e Próximos Passos */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 {/* Resumo de Assiduidade Hoje */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-['Quicksand'] font-bold text-sm text-slate-900 flex items-center gap-2">
+                    <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
                       <Clock className="w-4 h-4 text-[#fd9924]" />
                       <span>Registo de Assiduidade de Hoje</span>
                     </h3>
@@ -539,12 +542,12 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     </span>
                   </div>
 
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1.5">
-                    <p className="font-bold text-slate-800">Portaria Central • Validação Biométrica</p>
-                    <p className="text-slate-600">
+                  <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
+                    <p className="font-bold text-[#211a14]">Portaria Central • Validação Biométrica</p>
+                    <p className="text-[#5c3f42]">
                       Chegada acolhedora às 08:24 com apresentação do cartão escolar seguro.
                     </p>
-                    <p className="text-slate-600">
+                    <p className="text-[#5c3f42]">
                       Almoço servido às 12:15 com porção integral de peixe e salada da horta.
                     </p>
                   </div>
@@ -560,9 +563,9 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 </div>
 
                 {/* Próxima Cobrança Agendada */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-['Quicksand'] font-bold text-sm text-slate-900 flex items-center gap-2">
+                    <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-[#00a6c0]" />
                       <span>Próxima Cobrança Agendada</span>
                     </h3>
@@ -571,12 +574,12 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     </span>
                   </div>
 
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
+                  <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1">
                     <div className="flex justify-between items-center font-bold">
-                      <span className="text-slate-900">Mensalidade Escolar - Março de 2025</span>
-                      <span className="text-base text-slate-900">150.000,00 Kz</span>
+                      <span className="text-[#211a14]">Mensalidade Escolar - Março de 2025</span>
+                      <span className="text-base text-[#211a14]">150.000,00 Kz</span>
                     </div>
-                    <p className="text-slate-500">Vencimento a 08/03/2025 via Multicaixa / Débito em Conta</p>
+                    <p className="text-[#5c3f42]">Vencimento a 08/03/2025 via Multicaixa / Débito em Conta</p>
                     <p className="text-emerald-700 font-semibold">IBAN Registado: AO06 0040 0000 8291 0281 9283 1</p>
                   </div>
 
@@ -600,10 +603,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <div className="space-y-6 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Acompanhamento de Rotina & Boletim Escolar • {activeChild.name}
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     Assiduidade com confirmação biométrica, refeições biológicas e pauta trimestral oficial
                   </p>
                 </div>
@@ -619,18 +622,18 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </div>
 
               {/* Assiduidade Semanal Cronológica */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+              <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2">
                   <Clock className="w-4 h-4 text-emerald-600" />
                   <span>Registo Diário Cronológico da Semana</span>
                 </h4>
 
-                <div className="divide-y divide-slate-100 text-xs">
+                <div className="divide-y divide-[#eee0d6] text-xs">
                   {routineHistory.map((item, idx) => (
                     <div key={idx} className="py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-2">
-                      <span className="font-bold text-slate-900 w-44">{item.day}</span>
-                      <span className="text-slate-600 flex-1">{item.entry}</span>
-                      <span className="text-slate-500 flex-1">{item.meal}</span>
+                      <span className="font-bold text-[#211a14] w-44">{item.day}</span>
+                      <span className="text-[#5c3f42] flex-1">{item.entry}</span>
+                      <span className="text-[#5c3f42] flex-1">{item.meal}</span>
                       <span className="text-[#00a6c0] font-semibold flex-1">{item.activity}</span>
                     </div>
                   ))}
@@ -638,13 +641,13 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </div>
 
               {/* Boletim Trimestral Detalhado */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-                <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
+                <div className="p-4 bg-[#fff8f5] border-b border-[#eee0d6] flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-sm text-slate-900">
+                    <h4 className="font-bold text-sm text-[#211a14]">
                       Boletim de Avaliação Trimestral Discriminado
                     </h4>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-[#5c3f42]">
                       Rubricas: Trabalhos Maker (25%), Formativa (25%), Exame Sumativo (35%), Participação (15%)
                     </p>
                   </div>
@@ -655,7 +658,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3">Disciplina Curricular</th>
                         <th className="p-3 text-center">Trabalho Maker</th>
@@ -666,14 +669,14 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                         <th className="p-3">Apreciação Individualizada da Docente</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#eee0d6]">
                       {academicReport.map((rep, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="p-3 font-bold text-slate-900">{rep.subject}</td>
-                          <td className="p-3 text-center font-semibold text-slate-700">{rep.maker}%</td>
-                          <td className="p-3 text-center font-semibold text-slate-700">{rep.formative}%</td>
-                          <td className="p-3 text-center font-semibold text-slate-700">{rep.summative}%</td>
-                          <td className="p-3 text-center font-extrabold text-sm text-slate-900">
+                        <tr key={idx} className="hover:bg-[#fff1e7]/70 transition-colors">
+                          <td className="p-3 font-bold text-[#211a14]">{rep.subject}</td>
+                          <td className="p-3 text-center font-semibold text-[#5c3f42]">{rep.maker}%</td>
+                          <td className="p-3 text-center font-semibold text-[#5c3f42]">{rep.formative}%</td>
+                          <td className="p-3 text-center font-semibold text-[#5c3f42]">{rep.summative}%</td>
+                          <td className="p-3 text-center font-extrabold text-sm text-[#211a14]">
                             {rep.finalAverage}%
                           </td>
                           <td className="p-3 text-center">
@@ -687,7 +690,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                               {rep.assessment}
                             </span>
                           </td>
-                          <td className="p-3 text-slate-600 leading-relaxed max-w-xs">{rep.feedback}</td>
+                          <td className="p-3 text-[#5c3f42] leading-relaxed max-w-xs">{rep.feedback}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -704,10 +707,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <div className="space-y-6 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Painel Financeiro, Propinas & Faturação Certificada (Kz)
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     Documentos fiscais comunicados à Administração Geral Tributária (AGT) com assinatura digital
                   </p>
                 </div>
@@ -717,7 +720,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   <button
                     type="button"
                     onClick={() => setTaxDeclarationModal(true)}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#211a14] hover:bg-[#382b22] text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
                   >
                     <FileText className="w-3.5 h-3.5" />
                     <span>Declaração AGT 2024</span>
@@ -735,7 +738,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   <button
                     type="button"
                     onClick={() => setIbanModal(true)}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#faebe1] hover:bg-[#f4e6db] text-[#211a14] font-bold text-xs flex items-center gap-1.5 transition-colors"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>Alterar IBAN (AO06)</span>
@@ -744,9 +747,9 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </div>
 
               {/* Tabela de Histórico de Liquidações */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-                <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                  <h4 className="font-bold text-sm text-slate-900">
+              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
+                <div className="p-4 bg-[#fff8f5] border-b border-[#eee0d6] flex items-center justify-between">
+                  <h4 className="font-bold text-sm text-[#211a14]">
                     Histórico de Mensalidades & Documentos Fiscais (Kz)
                   </h4>
                   <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
@@ -756,7 +759,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3.5">Fatura Certificada</th>
                         <th className="p-3.5">Descrição</th>
@@ -766,14 +769,14 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                         <th className="p-3.5 text-right">Recibo Oficial AGT</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#eee0d6]">
                       {financialHistory.map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="p-3.5 font-bold font-mono text-slate-900">{item.ref}</td>
-                          <td className="p-3.5 text-slate-700">{item.desc}</td>
-                          <td className="p-3.5 font-extrabold text-slate-900">Kz {item.amount.toLocaleString('pt-PT')},00</td>
-                          <td className="p-3.5 text-slate-600">{item.method}</td>
-                          <td className="p-3.5 text-slate-500">{item.date}</td>
+                        <tr key={item.id} className="hover:bg-[#fff1e7]/70 transition-colors">
+                          <td className="p-3.5 font-bold font-mono text-[#211a14]">{item.ref}</td>
+                          <td className="p-3.5 text-[#5c3f42]">{item.desc}</td>
+                          <td className="p-3.5 font-extrabold text-[#211a14]">Kz {item.amount.toLocaleString('pt-PT')},00</td>
+                          <td className="p-3.5 text-[#5c3f42]">{item.method}</td>
+                          <td className="p-3.5 text-[#5c3f42]">{item.date}</td>
                           <td className="p-3.5 text-right">
                             <button
                               type="button"
@@ -800,10 +803,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <div className="space-y-6 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Canal Direto de Comunicação Segura • Segmentado por Polos
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     Diálogo direto com a Professora Titular, Coordenação Pedagógica e Secretaria Geral
                   </p>
                 </div>
@@ -824,23 +827,23 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   <div
                     key={msg.id}
                     className={`bg-white p-5 rounded-2xl border shadow-xs space-y-2.5 transition-all ${
-                      msg.unread ? 'border-amber-300 ring-2 ring-amber-100/60' : 'border-slate-200'
+                      msg.unread ? 'border-amber-300 ring-2 ring-amber-100/60' : 'border-[#eee0d6]'
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#faebe1] text-[#5c3f42]">
                           {msg.senderRole}
                         </span>
-                        <h4 className="font-bold text-sm text-slate-900">{msg.senderName}</h4>
+                        <h4 className="font-bold text-sm text-[#211a14]">{msg.senderName}</h4>
                       </div>
-                      <span className="text-xs text-slate-400 font-semibold">{msg.date}</span>
+                      <span className="text-xs text-[#8c6b6d] font-semibold">{msg.date}</span>
                     </div>
 
-                    <p className="font-bold text-xs text-slate-800">{msg.subject}</p>
-                    <p className="text-xs text-slate-600 leading-relaxed">{msg.preview}</p>
+                    <p className="font-bold text-xs text-[#211a14]">{msg.subject}</p>
+                    <p className="text-xs text-[#5c3f42] leading-relaxed">{msg.preview}</p>
 
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#eee0d6]">
                       <button
                         type="button"
                         onClick={() => {
@@ -864,10 +867,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           {activeSection === 'authorizations' && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div>
-                <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                   Autorizações Digitais de Saída & Consentimentos (eIDAS & RGPD)
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#5c3f42]">
                   Assinaturas digitais juridicamente vinculativas com registo de hash criptográfico
                 </p>
               </div>
@@ -880,7 +883,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     : 'bg-white border-rose-300 ring-2 ring-rose-100 shadow-md'
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#eee0d6]/60">
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -889,22 +892,22 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     >
                       {urgentAuth.signed ? 'Assinado Digitalmente' : 'Consentimento Pendente'}
                     </span>
-                    <h4 className="font-bold text-sm text-slate-900">{urgentAuth.title}</h4>
+                    <h4 className="font-bold text-sm text-[#211a14]">{urgentAuth.title}</h4>
                   </div>
-                  <span className="text-xs text-slate-500 font-semibold">{urgentAuth.date}</span>
+                  <span className="text-xs text-[#5c3f42] font-semibold">{urgentAuth.date}</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-3 text-xs text-slate-700">
-                  <div className="p-2.5 bg-slate-50 rounded-xl">
-                    <span className="font-bold block text-slate-900 mb-0.5">Transporte:</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-3 text-xs text-[#5c3f42]">
+                  <div className="p-2.5 bg-[#fff8f5] rounded-xl">
+                    <span className="font-bold block text-[#211a14] mb-0.5">Transporte:</span>
                     {urgentAuth.transport}
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl">
-                    <span className="font-bold block text-slate-900 mb-0.5">Alimentação:</span>
+                  <div className="p-2.5 bg-[#fff8f5] rounded-xl">
+                    <span className="font-bold block text-[#211a14] mb-0.5">Alimentação:</span>
                     {urgentAuth.meal}
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl">
-                    <span className="font-bold block text-slate-900 mb-0.5">Salvaguardas Médicas:</span>
+                  <div className="p-2.5 bg-[#fff8f5] rounded-xl">
+                    <span className="font-bold block text-[#211a14] mb-0.5">Salvaguardas Médicas:</span>
                     {urgentAuth.medicalCheck}
                   </div>
                 </div>
@@ -935,21 +938,21 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </div>
 
               {/* Histórico de Autorizações Assinadas */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                <h4 className="font-bold text-sm text-slate-900">
+              <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                <h4 className="font-bold text-sm text-[#211a14]">
                   Histórico de Autorizações Assinadas & Consentimentos
                 </h4>
 
-                <div className="divide-y divide-slate-100 text-xs">
+                <div className="divide-y divide-[#eee0d6] text-xs">
                   {signedAuthHistory.map((item) => (
                     <div key={item.id} className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
                       <div>
-                        <p className="font-bold text-slate-900">{item.title}</p>
-                        <p className="text-slate-500 text-[11px] mt-0.5">
+                        <p className="font-bold text-[#211a14]">{item.title}</p>
+                        <p className="text-[#5c3f42] text-[11px] mt-0.5">
                           Assinado por {item.signer} • {item.date}
                         </p>
                       </div>
-                      <span className="font-mono text-[11px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md">
+                      <span className="font-mono text-[11px] bg-[#faebe1] text-[#5c3f42] px-2.5 py-1 rounded-md">
                         {item.hash}
                       </span>
                     </div>
@@ -971,31 +974,31 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="sign-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <div className="flex items-center gap-2">
                 <KeyRound className="w-5 h-5 text-[#ed145b]" />
-                <h3 id="sign-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+                <h3 id="sign-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                   Assinatura Digital de Consentimento
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSignAuthorizationModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar modal"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-[#5c3f42] leading-relaxed">
               Está a autorizar a deslocação de <strong>{activeChild.name}</strong> para a <strong>{urgentAuth.title}</strong> no dia 14 de Março de 2025.
             </p>
 
             <form onSubmit={handleSignAuthorization} className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-slate-700 block mb-1">
+                <label className="font-bold text-[#5c3f42] block mb-1">
                   Código PIN de Segurança do Encarregado (4 dígitos)
                 </label>
                 <input
@@ -1005,11 +1008,11 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
                   placeholder="••••"
-                  className="w-full text-center text-lg tracking-widest p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#ed145b]"
+                  className="w-full text-center text-lg tracking-widest p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#ed145b]"
                 />
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-500">
+              <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-[11px] text-[#5c3f42]">
                 A aposição do PIN gera um carimbo temporal e hash criptográfico nos termos do Regulamento eIDAS da União Europeia.
               </div>
 
@@ -1017,7 +1020,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 <button
                   type="button"
                   onClick={() => setSignAuthorizationModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
                 >
                   Cancelar
                 </button>
@@ -1044,29 +1047,29 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="report-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#fd9924]" />
-                <h3 id="report-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+                <h3 id="report-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                   Boletim Trimestral Oficial (PDF)
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setReportCardModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-1.5">
-              <p className="font-bold text-slate-900 text-sm">
+            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-1.5">
+              <p className="font-bold text-[#211a14] text-sm">
                 Boletim_Oficial_{activeChild.name.replace(/\s+/g, '_')}_2ºTrimestre_2024-2025.pdf
               </p>
-              <p className="text-slate-600">Turma: {activeChild.classroom} • Média Ponderada: {activeChild.averageGrade}%</p>
+              <p className="text-[#5c3f42]">Turma: {activeChild.classroom} • Média Ponderada: {activeChild.averageGrade}%</p>
               <p className="text-emerald-700 font-semibold">Chave de Homologação Pedagógica Válida</p>
             </div>
 
@@ -1074,7 +1077,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <button
                 type="button"
                 onClick={() => setReportCardModal(false)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
               >
                 Fechar
               </button>
@@ -1104,30 +1107,30 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="tax-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-emerald-600" />
-                <h3 id="tax-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+                <h3 id="tax-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                   Declaração Anual de Propinas & Despesas (AGT 2024)
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setTaxDeclarationModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2">
-              <p className="font-bold text-slate-900">Declaracao_Despesas_Educacao_AGT_2024.pdf</p>
-              <p className="text-slate-600">
+            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-2">
+              <p className="font-bold text-[#211a14]">Declaracao_Despesas_Educacao_AGT_2024.pdf</p>
+              <p className="text-[#5c3f42]">
                 Total Faturado e Comunicado à AGT em 2024: <strong>1.500.000,00 Kz</strong>
               </p>
-              <p className="text-slate-500 text-[11px]">
+              <p className="text-[#5c3f42] text-[11px]">
                 NIF do Encarregado: 218 409 382 (Dr. António Ferreira Silva)
               </p>
             </div>
@@ -1136,7 +1139,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <button
                 type="button"
                 onClick={() => setTaxDeclarationModal(false)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
               >
                 Cancelar
               </button>
@@ -1166,33 +1169,33 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="mb-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="mb-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="mb-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Emissão de Referência Multicaixa / MCX Express
               </h3>
               <button
                 type="button"
                 onClick={() => setMultibancoModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2">
+            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-slate-500">Entidade:</span>
-                <span className="font-bold font-mono text-slate-900">00192 (EMIS)</span>
+                <span className="text-[#5c3f42]">Entidade:</span>
+                <span className="font-bold font-mono text-[#211a14]">00192 (EMIS)</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Referência:</span>
-                <span className="font-bold font-mono text-slate-900">829 102 918</span>
+                <span className="text-[#5c3f42]">Referência:</span>
+                <span className="font-bold font-mono text-[#211a14]">829 102 918</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Montante:</span>
-                <span className="font-bold text-slate-900">150.000,00 Kz</span>
+                <span className="text-[#5c3f42]">Montante:</span>
+                <span className="font-bold text-[#211a14]">150.000,00 Kz</span>
               </div>
             </div>
 
@@ -1200,7 +1203,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <button
                 type="button"
                 onClick={() => setMultibancoModal(false)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
               >
                 Fechar
               </button>
@@ -1230,15 +1233,15 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="iban-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="iban-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="iban-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Atualizar IBAN para Débito em Conta Bancária
               </h3>
               <button
                 type="button"
                 onClick={() => setIbanModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1254,16 +1257,16 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Novo IBAN (Angola - AO06)</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Novo IBAN (Angola - AO06)</label>
                 <input
                   type="text"
                   required
                   defaultValue="AO06 0040 0000 8291 0281 9283 1"
-                  className="w-full p-2.5 font-mono text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#fd9924]"
+                  className="w-full p-2.5 font-mono text-xs rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#fd9924]"
                 />
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-500">
+              <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-[11px] text-[#5c3f42]">
                 A alteração entra em vigor no ciclo de faturação subsequente após validação com a entidade bancária.
               </div>
 
@@ -1271,7 +1274,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 <button
                   type="button"
                   onClick={() => setIbanModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
                 >
                   Cancelar
                 </button>
@@ -1297,34 +1300,34 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="rec-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="rec-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="rec-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Recibo de Quitação Certificado (AGT / Geral)
               </h3>
               <button
                 type="button"
                 onClick={() => setReceiptPreviewRecord(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-1.5">
-              <p className="font-bold text-slate-900">{receiptPreviewRecord.ref}</p>
-              <p className="text-slate-600">{receiptPreviewRecord.desc}</p>
-              <p className="text-slate-900 font-bold">Valor: {receiptPreviewRecord.amount.toLocaleString('pt-AO', { minimumFractionDigits: 2 })} Kz</p>
+            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-1.5">
+              <p className="font-bold text-[#211a14]">{receiptPreviewRecord.ref}</p>
+              <p className="text-[#5c3f42]">{receiptPreviewRecord.desc}</p>
+              <p className="text-[#211a14] font-bold">Valor: {receiptPreviewRecord.amount.toLocaleString('pt-AO', { minimumFractionDigits: 2 })} Kz</p>
               <p className="text-emerald-700 font-semibold">Liquidado via {receiptPreviewRecord.method}</p>
-              <p className="text-slate-400 font-mono text-[10px]">Hash Fiscal: AGT-48192-2025</p>
+              <p className="text-[#8c6b6d] font-mono text-[10px]">Hash Fiscal: AGT-48192-2025</p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setReceiptPreviewRecord(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
               >
                 Fechar
               </button>
@@ -1334,7 +1337,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   showToast('Recibo impresso em formato oficial certificado.');
                   setReceiptPreviewRecord(null);
                 }}
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#211a14] text-white rounded-xl font-bold text-xs hover:bg-[#382b22] flex items-center gap-1.5"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Imprimir / PDF</span>
@@ -1354,15 +1357,15 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="msg-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="msg-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="msg-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Enviar Mensagem Encriptada
               </h3>
               <button
                 type="button"
                 onClick={() => setNewMessageModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1378,8 +1381,8 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Destinatário Institucional</label>
-                <select className="w-full p-2.5 rounded-xl border border-slate-200 bg-white">
+                <label className="font-bold text-[#5c3f42] block mb-1">Destinatário Institucional</label>
+                <select className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white">
                   <option>Profª Maria Clara Marques (Educadora Titular - Jardim de Infância)</option>
                   <option>Prof. Carlos Esteves (Coordenação Pedagógica)</option>
                   <option>Dra. Manuela Castro (Secretaria Geral)</option>
@@ -1387,22 +1390,22 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Assunto</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Assunto</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Dúvida sobre o trabalho da Feira da Ciência"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#00a6c0]"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#00a6c0]"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Mensagem</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Mensagem</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Escreva a mensagem confidencial..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#00a6c0]"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#00a6c0]"
                 />
               </div>
 
@@ -1410,7 +1413,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 <button
                   type="button"
                   onClick={() => setNewMessageModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
                 >
                   Cancelar
                 </button>

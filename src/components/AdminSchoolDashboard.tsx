@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Filter,
   ArrowUpRight,
+  ArrowLeft,
   Check,
   Plus,
   Phone,
@@ -414,23 +415,23 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
     <div
       role="region"
       aria-label="Painel de Administração e Gestão Escolar"
-      className="bg-[#f8fafc] text-slate-800 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col min-h-[680px] max-h-[90vh] font-['Nunito_Sans'] antialiased"
+      className="bg-[#fff8f5] text-[#211a14] w-full flex-1 flex flex-col overflow-hidden font-['Nunito_Sans'] antialiased min-h-0"
     >
       {/* ========================================================================= */}
       {/* 1. TOPNAVBAR - NAVEGAÇÃO EXECUTIVA & BARRA SUPERIOR INTEGRADA            */}
       {/* ========================================================================= */}
       <header
-        className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
+        className="bg-white border-b border-[#eee0d6] px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
         role="banner"
       >
         {/* Brand & Active School Year */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0f172a] text-white flex items-center justify-center font-bold shadow-sm shrink-0">
-            <Building2 className="w-5 h-5 text-pink-400" />
+          <div className="w-10 h-10 rounded-xl bg-pink-100 text-[#ed145b] flex items-center justify-center font-bold shadow-xs shrink-0">
+            <Building2 className="w-5 h-5 text-[#ed145b]" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-sm sm:text-base font-bold font-['Quicksand'] text-slate-900 leading-tight">
+              <h1 className="text-sm sm:text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
                 Administração & Gestão Escolar
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
@@ -438,13 +439,13 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 Ano Letivo {selectedYear} Ativo
               </span>
               <span
-                className="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200"
+                className="text-[10px] font-semibold bg-[#faebe1] text-[#5c3f42] px-2 py-0.5 rounded border border-[#eee0d6]"
                 title="Conforme o Regulamento Geral sobre a Proteção de Dados e diretrizes WCAG 2.1 AA"
               >
                 RGPD • WCAG 2.1 AA
               </span>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-[#5c3f42]">
               Jardim Escola da Mayelin • Educação Infantil & Creche • Luanda, Angola
             </p>
           </div>
@@ -456,20 +457,20 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             Barra de pesquisa global de alunos, turmas, NIF ou processos
           </label>
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#8c6b6d] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               id="admin-global-search"
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Pesquisar por educando, turma (Berçário, Maternal, Jardim), NIF ou processo..."
-              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#ed145b] focus:ring-2 focus:ring-pink-100 focus:outline-none transition-all placeholder:text-slate-400"
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-[#fff8f5] border border-[#eee0d6] focus:bg-white focus:border-[#ed145b] focus:ring-2 focus:ring-pink-100 focus:outline-none transition-all placeholder:text-[#8c6b6d]"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8c6b6d] hover:text-[#5c3f42] text-xs"
                 aria-label="Limpar pesquisa"
               >
                 <X className="w-3.5 h-3.5" />
@@ -485,7 +486,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <button
               type="button"
               onClick={() => setNotificationOpen(!notificationOpen)}
-              className="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#ed145b] transition-colors"
+              className="relative p-2 rounded-xl text-[#5c3f42] hover:bg-[#faebe1] focus:outline-none focus:ring-2 focus:ring-[#ed145b] transition-colors"
               aria-label="Central de notificações executivas"
               aria-expanded={notificationOpen}
             >
@@ -495,12 +496,12 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
 
             {notificationOpen && (
               <div
-                className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-3 z-50 text-xs animate-in fade-in zoom-in-95"
+                className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-[#eee0d6] p-3 z-50 text-xs animate-in fade-in zoom-in-95"
                 role="dialog"
                 aria-label="Notificações"
               >
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
-                  <span className="font-bold text-slate-900">Alertas Executivos</span>
+                <div className="flex items-center justify-between pb-2 border-b border-[#eee0d6] mb-2">
+                  <span className="font-bold text-[#211a14]">Alertas Executivos</span>
                   <span className="text-[10px] bg-pink-100 text-[#ed145b] font-bold px-1.5 py-0.5 rounded">
                     2 Pendentes
                   </span>
@@ -524,17 +525,17 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
           </div>
 
           {/* Profile: Dra. Manuela Castro (Directora da Secretaria Geral) */}
-          <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+          <div className="flex items-center gap-2.5 pl-2 border-l border-[#eee0d6]">
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#ed145b] to-purple-600 p-0.5 shadow-sm">
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-bold text-xs text-[#ed145b]">
                 MC
               </div>
             </div>
             <div className="text-left hidden sm:block">
-              <span className="text-xs font-bold text-slate-900 block leading-tight">
+              <span className="text-xs font-bold text-[#211a14] block leading-tight">
                 Dra. Manuela Castro
               </span>
-              <span className="text-[10px] text-slate-500 block leading-tight">
+              <span className="text-[10px] text-[#5c3f42] block leading-tight">
                 Diretora da Secretaria Geral • 2FA Ativo
               </span>
             </div>
@@ -544,10 +545,12 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-              aria-label="Fechar painel"
+              className="px-3 py-1.5 rounded-xl text-[#5c3f42] hover:text-[#211a14] hover:bg-[#faebe1] transition-colors flex items-center gap-1.5 text-xs font-bold"
+              aria-label="Voltar ao Website"
+              title="Voltar ao Website"
             >
-              <X className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 text-pink-600" />
+              <span className="hidden sm:inline">Voltar ao Website</span>
             </button>
           )}
         </div>
@@ -559,21 +562,21 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* SideNavBar Lateral */}
         <nav
-          className="w-full md:w-64 bg-slate-900 text-slate-300 p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-slate-800"
+          className="w-full md:w-64 bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-[#eee0d6]"
           aria-label="Menu principal de gestão"
         >
           <div className="flex md:flex-col gap-1 w-full">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 py-1.5 hidden md:block">
+            <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#8c6b6d] px-3 py-1.5 hidden md:block">
               Módulos Institucionais
             </span>
 
             <button
               type="button"
               onClick={() => setActiveSection('overview')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'overview'
-                  ? 'bg-[#ed145b] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Activity className="w-4 h-4 shrink-0" />
@@ -583,10 +586,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <button
               type="button"
               onClick={() => setActiveSection('classes')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'classes'
-                  ? 'bg-[#ed145b] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <GraduationCap className="w-4 h-4 shrink-0" />
@@ -596,10 +599,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <button
               type="button"
               onClick={() => setActiveSection('finance')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'finance'
-                  ? 'bg-[#ed145b] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <DollarSign className="w-4 h-4 shrink-0" />
@@ -609,10 +612,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <button
               type="button"
               onClick={() => setActiveSection('hr')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'hr'
-                  ? 'bg-[#ed145b] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Users className="w-4 h-4 shrink-0" />
@@ -622,10 +625,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <button
               type="button"
               onClick={() => setActiveSection('comms')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'comms'
-                  ? 'bg-[#ed145b] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Send className="w-4 h-4 shrink-0" />
@@ -635,10 +638,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <button
               type="button"
               onClick={() => setActiveSection('settings')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'settings'
-                  ? 'bg-[#ed145b] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Settings className="w-4 h-4 shrink-0" />
@@ -646,10 +649,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             </button>
           </div>
 
-          <div className="pt-3 border-t border-slate-800 hidden md:block">
-            <div className="p-2.5 rounded-xl bg-slate-800/80 text-[11px] space-y-1">
-              <p className="font-bold text-slate-200">Segurança de Dados</p>
-              <p className="text-slate-400">
+          <div className="pt-3 border-t border-[#eee0d6] hidden md:block">
+            <div className="p-2.5 rounded-xl bg-[#faebe1] text-[11px] space-y-1 border border-[#eee0d6]">
+              <p className="font-bold text-[#211a14]">Segurança de Dados</p>
+              <p className="text-[#5c3f42]">
                 Auditoria de sessões ativa com encriptação AES-256 e backups horários.
               </p>
             </div>
@@ -658,7 +661,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
 
         {/* Main Content Area */}
         <main
-          className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-slate-50 focus:outline-none"
+          className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-[#fff8f5] focus:outline-none"
           tabIndex={-1}
         >
           {/* Toast Notification */}
@@ -666,7 +669,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <div
               role="status"
               aria-live="polite"
-              className="p-3.5 bg-slate-900 text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-slate-700 animate-in fade-in slide-in-from-top-2"
+              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-[#5c3f42] animate-in fade-in slide-in-from-top-2"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{toastMessage}</span>
@@ -681,14 +684,14 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               {/* Executive Metrics Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Total de Alunos Inscritos */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-pink-200 transition-all">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-pink-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">Total de Alunos Inscritos</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Total de Alunos Inscritos</span>
                     <div className="w-8 h-8 rounded-xl bg-pink-100 text-[#ed145b] flex items-center justify-center">
                       <GraduationCap className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                  <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
                     482
                   </p>
                   <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-600 font-bold">
@@ -698,14 +701,14 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 </div>
 
                 {/* 2. Corpo Docente e Colaboradores */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-sky-200 transition-all">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-sky-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">Corpo Docente & Equipa</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Corpo Docente & Equipa</span>
                     <div className="w-8 h-8 rounded-xl bg-sky-100 text-[#00a6c0] flex items-center justify-center">
                       <Users className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                  <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
                     54
                   </p>
                   <div className="flex items-center gap-1.5 mt-2 text-xs text-sky-700 font-bold">
@@ -715,14 +718,14 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 </div>
 
                 {/* 3. Faturação do Mês */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-emerald-200 transition-all">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-emerald-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">Faturação do Mês</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Faturação do Mês</span>
                     <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
                       <DollarSign className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                  <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
                     Kz 48.250.000
                   </p>
                   <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-700 font-bold">
@@ -732,14 +735,14 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 </div>
 
                 {/* 4. Taxa de Entrega de Comunicados */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-purple-200 transition-all">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-purple-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">Taxa de Abertura Circular</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Taxa de Abertura Circular</span>
                     <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
                       <Send className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                  <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
                     99.1%
                   </p>
                   <div className="flex items-center gap-1.5 mt-2 text-xs text-purple-700 font-bold">
@@ -749,12 +752,12 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               </div>
 
               {/* Quick Actions Panel */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
                     Ações Rápidas de Coordenação Geral
                   </h3>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-[#8c6b6d]">
                     Operações certificadas em lote
                   </span>
                 </div>
@@ -763,7 +766,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   <button
                     type="button"
                     onClick={handleExportSaft}
-                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-pink-50 hover:border-pink-200 text-slate-800 text-xs font-bold flex items-center gap-2.5 transition-all text-left"
+                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-pink-50 hover:border-pink-200 text-[#211a14] text-xs font-bold flex items-center gap-2.5 transition-all text-left"
                   >
                     <FileSpreadsheet className="w-4 h-4 text-[#ed145b] shrink-0" />
                     <span>Exportar SAF-T (AO)</span>
@@ -772,7 +775,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   <button
                     type="button"
                     onClick={handleDispatchReminders}
-                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-amber-50 hover:border-amber-200 text-slate-800 text-xs font-bold flex items-center gap-2.5 transition-all text-left"
+                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-amber-50 hover:border-amber-200 text-[#211a14] text-xs font-bold flex items-center gap-2.5 transition-all text-left"
                   >
                     <RefreshCw className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>Lembretes de Propinas</span>
@@ -781,7 +784,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   <button
                     type="button"
                     onClick={() => setActiveSection('comms')}
-                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-200 text-slate-800 text-xs font-bold flex items-center gap-2.5 transition-all text-left"
+                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-sky-50 hover:border-sky-200 text-[#211a14] text-xs font-bold flex items-center gap-2.5 transition-all text-left"
                   >
                     <Send className="w-4 h-4 text-[#00a6c0] shrink-0" />
                     <span>Emitir Circular Urgente</span>
@@ -790,7 +793,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   <button
                     type="button"
                     onClick={() => setAddClassModalOpen(true)}
-                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-purple-50 hover:border-purple-200 text-slate-800 text-xs font-bold flex items-center gap-2.5 transition-all text-left"
+                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-purple-50 hover:border-purple-200 text-[#211a14] text-xs font-bold flex items-center gap-2.5 transition-all text-left"
                   >
                     <Plus className="w-4 h-4 text-purple-600 shrink-0" />
                     <span>Adicionar Turma</span>
@@ -800,8 +803,8 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
 
               {/* Status de Liquidação & Ciclos Formativos Summary */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                  <h4 className="text-sm font-bold font-['Quicksand'] text-slate-900">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                  <h4 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
                     Distribuição da Faturação do Mês (Kz 48.250.000)
                   </h4>
                   <div className="space-y-2 text-xs">
@@ -812,7 +815,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                       </span>
                       <span className="text-emerald-700 font-bold">94.2%</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-[#faebe1] h-2.5 rounded-full overflow-hidden">
                       <div className="bg-emerald-500 h-full rounded-full" style={{ width: '94.2%' }} />
                     </div>
 
@@ -823,13 +826,13 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                       </span>
                       <span className="text-amber-700 font-bold">5.8%</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-[#faebe1] h-2.5 rounded-full overflow-hidden">
                       <div className="bg-amber-500 h-full rounded-full" style={{ width: '5.8%' }} />
                     </div>
 
-                    <div className="flex justify-between font-semibold pt-2 text-slate-500">
+                    <div className="flex justify-between font-semibold pt-2 text-[#5c3f42]">
                       <span className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#eee0d6]" />
                         Casos em Contencioso Judicial
                       </span>
                       <span className="text-emerald-600 font-bold">0 Casos (0%)</span>
@@ -837,25 +840,25 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                  <h4 className="text-sm font-bold font-['Quicksand'] text-slate-900">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                  <h4 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
                     Segurança e Controlo de Acessos RBAC
                   </h4>
                   <div className="space-y-2 text-xs">
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                    <div className="p-3 rounded-xl bg-[#fff8f5] border border-[#eee0d6] flex items-center justify-between">
                       <div>
-                        <p className="font-bold text-slate-800">Autenticação de Dois Fatores (2FA)</p>
-                        <p className="text-slate-500 text-[11px]">Obrigatória para todos os 54 colaboradores</p>
+                        <p className="font-bold text-[#211a14]">Autenticação de Dois Fatores (2FA)</p>
+                        <p className="text-[#5c3f42] text-[11px]">Obrigatória para todos os 54 colaboradores</p>
                       </div>
                       <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
                         100% Conforme
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                    <div className="p-3 rounded-xl bg-[#fff8f5] border border-[#eee0d6] flex items-center justify-between">
                       <div>
-                        <p className="font-bold text-slate-800">Proteção de Dados de Saúde (SPO)</p>
-                        <p className="text-slate-500 text-[11px]">Acesso estritamente restrito à Dra. Sofia Ramos</p>
+                        <p className="font-bold text-[#211a14]">Proteção de Dados de Saúde (SPO)</p>
+                        <p className="text-[#5c3f42] text-[11px]">Acesso estritamente restrito à Dra. Sofia Ramos</p>
                       </div>
                       <span className="px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 font-bold text-[10px]">
                         Nível Máximo
@@ -874,10 +877,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Gestão de Turmas, Lotação & Matriz Curricular
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     Supervisão pedagógica dos 3 ciclos de desenvolvimento: Berçário, Maternal I & II, Pré-Escolar & Jardim de Infância
                   </p>
                 </div>
@@ -895,10 +898,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               </div>
 
               {/* Classes Table */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3.5">Turma & Ciclo</th>
                         <th className="p-3.5">Lotação / Rácio</th>
@@ -907,12 +910,12 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                         <th className="p-3.5 text-right">Ações Pedagógicas</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#eee0d6]">
                       {filteredClasses.map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                        <tr key={item.id} className="hover:bg-[#fff1e7]/70 transition-colors">
                           <td className="p-3.5">
-                            <p className="font-bold text-slate-900">{item.name}</p>
-                            <span className="text-[10px] font-semibold text-slate-500 block">
+                            <p className="font-bold text-[#211a14]">{item.name}</p>
+                            <span className="text-[10px] font-semibold text-[#5c3f42] block">
                               {item.cycle} • {item.room}
                             </span>
                           </td>
@@ -921,20 +924,20 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                             <div className="flex items-center gap-2">
                               <span
                                 className={`font-bold ${
-                                  item.enrolled >= item.capacity ? 'text-[#ed145b]' : 'text-slate-800'
+                                  item.enrolled >= item.capacity ? 'text-[#ed145b]' : 'text-[#211a14]'
                                 }`}
                               >
                                 {item.enrolled} / {item.capacity}
                               </span>
-                              <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-semibold">
+                              <span className="text-[10px] bg-[#faebe1] text-[#5c3f42] px-2 py-0.5 rounded-md font-semibold">
                                 {item.ratio}
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-400 block mt-0.5">{item.schedule}</span>
+                            <span className="text-[10px] text-[#8c6b6d] block mt-0.5">{item.schedule}</span>
                           </td>
 
                           <td className="p-3.5">
-                            <span className="font-bold text-slate-800 block">{item.leadTeacher}</span>
+                            <span className="font-bold text-[#211a14] block">{item.leadTeacher}</span>
                             <span className="text-[10px] text-emerald-600 font-semibold">Avaliações em dia</span>
                           </td>
 
@@ -956,7 +959,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                               <button
                                 type="button"
                                 onClick={() => showToast(`Transferência de educando aberta para a turma ${item.name}.`)}
-                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-[11px] transition-colors"
+                                className="px-2.5 py-1 bg-[#faebe1] hover:bg-[#f4e6db] text-[#5c3f42] rounded-lg font-bold text-[11px] transition-colors"
                               >
                                 Transferir
                               </button>
@@ -985,10 +988,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Gestão Financeira, Faturação e Multicaixa Express
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     454 Propinas liquidadas • 28 com aviso enviado • 0 em contencioso • Valores em Kwanza (Kz)
                   </p>
                 </div>
@@ -997,7 +1000,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   <button
                     type="button"
                     onClick={handleExportSaft}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-sm hover:bg-slate-800 transition-colors flex items-center gap-1.5"
+                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#211a14] text-white font-bold text-xs shadow-sm hover:bg-[#382b22] transition-colors flex items-center gap-1.5"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Exportar SAF-T (AO)</span>
@@ -1024,10 +1027,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               </div>
 
               {/* Financial Records Table */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3.5">Aluno & Turma</th>
                         <th className="p-3.5">Responsável Financeiro (NIF)</th>
@@ -1037,32 +1040,32 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                         <th className="p-3.5 text-right">Recibo AGT</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#eee0d6]">
                       {filteredFinance.map((record) => (
-                        <tr key={record.id} className="hover:bg-slate-50/70 transition-colors">
+                        <tr key={record.id} className="hover:bg-[#fff1e7]/70 transition-colors">
                           <td className="p-3.5">
-                            <p className="font-bold text-slate-900">{record.studentName}</p>
-                            <span className="text-[10px] text-slate-500">{record.classGroup}</span>
+                            <p className="font-bold text-[#211a14]">{record.studentName}</p>
+                            <span className="text-[10px] text-[#5c3f42]">{record.classGroup}</span>
                           </td>
 
                           <td className="p-3.5">
-                            <span className="font-bold text-slate-800 block">{record.guardianName}</span>
-                            <span className="text-[10px] text-slate-500 font-mono">NIF: {record.nif}</span>
+                            <span className="font-bold text-[#211a14] block">{record.guardianName}</span>
+                            <span className="text-[10px] text-[#5c3f42] font-mono">NIF: {record.nif}</span>
                           </td>
 
                           <td className="p-3.5">
-                            <span className="font-semibold text-slate-700 flex items-center gap-1">
-                              <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="font-semibold text-[#5c3f42] flex items-center gap-1">
+                              <CreditCard className="w-3.5 h-3.5 text-[#8c6b6d]" />
                               {record.paymentMethod}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-mono">{record.invoiceNumber}</span>
+                            <span className="text-[10px] text-[#8c6b6d] font-mono">{record.invoiceNumber}</span>
                           </td>
 
                           <td className="p-3.5">
-                            <span className="font-bold text-slate-900">
+                            <span className="font-bold text-[#211a14]">
                               Kz {record.amount.toLocaleString('pt-PT')},00
                             </span>
-                            <span className="text-[10px] text-slate-500 block">Venc: {record.dueDate}</span>
+                            <span className="text-[10px] text-[#5c3f42] block">Venc: {record.dueDate}</span>
                           </td>
 
                           <td className="p-3.5">
@@ -1103,10 +1106,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Recursos Humanos & Gestão de Acessos com Privilégios (RBAC)
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     54 Profissionais ativos • Política estrita de Duplo Fator (2FA) • Segregação de funções
                   </p>
                 </div>
@@ -1122,10 +1125,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               </div>
 
               {/* Staff Table */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3.5">Colaborador</th>
                         <th className="p-3.5">Departamento & Função</th>
@@ -1135,17 +1138,17 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                         <th className="p-3.5 text-right">Ação Preventiva</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#eee0d6]">
                       {filteredStaff.map((staff) => (
-                        <tr key={staff.id} className="hover:bg-slate-50/70 transition-colors">
+                        <tr key={staff.id} className="hover:bg-[#fff1e7]/70 transition-colors">
                           <td className="p-3.5">
-                            <p className="font-bold text-slate-900">{staff.name}</p>
-                            <span className="text-[10px] text-slate-500">{staff.email}</span>
+                            <p className="font-bold text-[#211a14]">{staff.name}</p>
+                            <span className="text-[10px] text-[#5c3f42]">{staff.email}</span>
                           </td>
 
                           <td className="p-3.5">
-                            <span className="font-semibold text-slate-800 block">{staff.role}</span>
-                            <span className="text-[10px] text-slate-500">{staff.department}</span>
+                            <span className="font-semibold text-[#211a14] block">{staff.role}</span>
+                            <span className="text-[10px] text-[#5c3f42]">{staff.department}</span>
                           </td>
 
                           <td className="p-3.5">
@@ -1176,7 +1179,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                           </td>
 
                           <td className="p-3.5">
-                            <span className="text-slate-600 font-mono text-[11px]">{staff.lastAccess}</span>
+                            <span className="text-[#5c3f42] font-mono text-[11px]">{staff.lastAccess}</span>
                           </td>
 
                           <td className="p-3.5 text-right">
@@ -1220,10 +1223,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Comunicação Geral & Disparo de Circulares em Massa
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     28 Circulares emitidas • 99.1% Taxa de Abertura • Assinaturas Digitais Auditadas
                   </p>
                 </div>
@@ -1243,20 +1246,20 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 {announcementsList.map((ann) => (
                   <div
                     key={ann.id}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3 hover:border-pink-200 transition-colors"
+                    className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3 hover:border-pink-200 transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h4 className="font-bold text-sm font-['Quicksand'] text-slate-900">
+                      <h4 className="font-bold text-sm font-['Quicksand'] text-[#211a14]">
                         {ann.title}
                       </h4>
-                      <span className="text-xs text-slate-400">{ann.date}</span>
+                      <span className="text-xs text-[#8c6b6d]">{ann.date}</span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
                       {ann.channels.map((ch, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold"
+                          className="px-2 py-0.5 rounded-md bg-[#faebe1] text-[#5c3f42] text-[10px] font-bold"
                         >
                           {ch}
                         </span>
@@ -1266,7 +1269,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                         Taxa de Leitura: {ann.openRate}%
                       </span>
 
-                      <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-[#5c3f42] bg-[#faebe1] px-2 py-0.5 rounded-md">
                         {ann.recipientCount} Encarregados Destinatários
                       </span>
                     </div>
@@ -1277,7 +1280,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                           <p className="text-xs font-bold text-[#ed145b]">
                             Autorizações Digitais de Saída: {ann.authorizationsSignedCount} de {ann.authorizationsTotal} Colhidas
                           </p>
-                          <p className="text-[11px] text-slate-600">
+                          <p className="text-[11px] text-[#5c3f42]">
                             93.5% de adesão assinada com autenticação digital pela App.
                           </p>
                         </div>
@@ -1301,17 +1304,17 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
           {/* ========================================================================= */}
           {activeSection === 'settings' && (
             <div className="space-y-4 animate-in fade-in duration-150">
-              <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+              <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                 Configurações da Instituição, Conformidade RGPD & Acessibilidade
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
-                  <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] space-y-3">
+                  <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     <span>Conformidade com o RGPD (Regulamento UE 2016/679)</span>
                   </h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-xs text-[#5c3f42] leading-relaxed">
                     Todos os dados pessoais de alunos e encarregados são anonimizados nos relatórios estatísticos. O consentimento informado para captura fotográfica e saídas pedagógicas é auditado e armazenado com data/hora.
                   </p>
                   <div className="pt-2">
@@ -1321,12 +1324,12 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
-                  <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] space-y-3">
+                  <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2">
                     <SlidersHorizontal className="w-4 h-4 text-[#00a6c0]" />
                     <span>Padrões de Acessibilidade WCAG 2.1 AA</span>
                   </h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-xs text-[#5c3f42] leading-relaxed">
                     A interface garante suporte completo para leitores de ecrã (VoiceOver, NVDA), rácio de contraste cromático superior a 4.5:1, foco visível de teclado e áreas tácteis mínimas de 44px.
                   </p>
                   <div className="pt-2">
@@ -1351,17 +1354,17 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
           aria-labelledby="receipt-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
                   AGT
                 </div>
                 <div>
-                  <h3 id="receipt-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+                  <h3 id="receipt-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                     Recibo de Quitação Certificado (AGT)
                   </h3>
-                  <p className="text-[10px] text-slate-500 font-mono">
+                  <p className="text-[10px] text-[#5c3f42] font-mono">
                     {receiptModalRecord.invoiceNumber} • Software Certificado nº 1482/AGT • Luanda
                   </p>
                 </div>
@@ -1369,34 +1372,34 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               <button
                 type="button"
                 onClick={() => setReceiptModalRecord(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar recibo"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2 text-xs">
+            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-500">Educando:</span>
-                <span className="font-bold text-slate-900">{receiptModalRecord.studentName}</span>
+                <span className="text-[#5c3f42]">Educando:</span>
+                <span className="font-bold text-[#211a14]">{receiptModalRecord.studentName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Encarregado / NIF:</span>
-                <span className="font-bold text-slate-900">
+                <span className="text-[#5c3f42]">Encarregado / NIF:</span>
+                <span className="font-bold text-[#211a14]">
                   {receiptModalRecord.guardianName} (NIF {receiptModalRecord.nif})
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Turma (Ciclo):</span>
-                <span className="font-bold text-slate-900">{receiptModalRecord.classGroup}</span>
+                <span className="text-[#5c3f42]">Turma (Ciclo):</span>
+                <span className="font-bold text-[#211a14]">{receiptModalRecord.classGroup}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Método de Liquidação:</span>
-                <span className="font-bold text-slate-900">{receiptModalRecord.paymentMethod}</span>
+                <span className="text-[#5c3f42]">Método de Liquidação:</span>
+                <span className="font-bold text-[#211a14]">{receiptModalRecord.paymentMethod}</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-slate-200 text-sm">
-                <span className="font-bold text-slate-800">Total Liquidado (Moeda Nacional):</span>
+              <div className="flex justify-between pt-2 border-t border-[#eee0d6] text-sm">
+                <span className="font-bold text-[#211a14]">Total Liquidado (Moeda Nacional):</span>
                 <span className="font-extrabold text-emerald-700">
                   Kz {receiptModalRecord.amount.toLocaleString('pt-PT')},00
                 </span>
@@ -1415,7 +1418,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   showToast('Recibo AGT impresso com formato oficial certificado em Kwanza.');
                   setReceiptModalRecord(null);
                 }}
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#211a14] text-white rounded-xl text-xs font-bold hover:bg-[#382b22] flex items-center gap-1.5"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Imprimir / PDF</span>
@@ -1435,31 +1438,31 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
           aria-labelledby="saft-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <div className="flex items-center gap-2">
                 <FileCode className="w-5 h-5 text-[#ed145b]" />
-                <h3 id="saft-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+                <h3 id="saft-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                   Exportação de Ficheiro Fiscal SAF-T (AO)
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSaftModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar modal SAF-T"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-[#5c3f42] leading-relaxed">
               O ficheiro XML padrão da Administração Geral Tributária (AGT - Angola) inclui todos os lançamentos de faturação, recibos emitidos e auditoria de propinas em Kwanzas (Kz) do período corrente.
             </p>
 
-            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs space-y-1.5">
-              <p className="font-bold text-slate-800">SAF-T_AO_Mayelin_2024-10.xml</p>
-              <p className="text-[11px] text-slate-500">Tamanho estimado: 1.2 MB • 482 Registos em Kwanzas</p>
+            <div className="bg-[#fff8f5] p-3.5 rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
+              <p className="font-bold text-[#211a14]">SAF-T_AO_Mayelin_2024-10.xml</p>
+              <p className="text-[11px] text-[#5c3f42]">Tamanho estimado: 1.2 MB • 482 Registos em Kwanzas</p>
               <p className="text-[11px] text-emerald-700 font-bold">Validação de Schema AGT: Aprovada</p>
             </div>
 
@@ -1467,7 +1470,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               <button
                 type="button"
                 onClick={() => setSaftModalOpen(false)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl text-xs font-bold hover:bg-[#f4e6db]"
               >
                 Cancelar
               </button>
@@ -1497,15 +1500,15 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
           aria-labelledby="addclass-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="addclass-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="addclass-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Criar Nova Turma de Educação Infantil
               </h3>
               <button
                 type="button"
                 onClick={() => setAddClassModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1521,41 +1524,41 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Nome da Turma</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Nome da Turma</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Maternal II - Sala dos Girassóis ou Berçário B"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#ed145b]"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#ed145b]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Ciclo de Desenvolvimento</label>
-                  <select className="w-full p-2.5 rounded-xl border border-slate-200 bg-white">
+                  <label className="font-bold text-[#5c3f42] block mb-1">Ciclo de Desenvolvimento</label>
+                  <select className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white">
                     <option>Berçário (3 meses a 1 ano)</option>
                     <option>Maternal I & II (1 a 3 anos)</option>
                     <option>Pré-Escolar & Jardim de Infância (3 a 5 anos)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Lotação Máxima</label>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Lotação Máxima</label>
                   <input
                     type="number"
                     defaultValue={18}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Professor Titular / Educador</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Professor Titular / Educador</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Profa. Beatriz Lima"
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                 />
               </div>
 
@@ -1563,7 +1566,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 <button
                   type="button"
                   onClick={() => setAddClassModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
                 >
                   Cancelar
                 </button>
@@ -1589,15 +1592,15 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
           aria-labelledby="addstaff-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="addstaff-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="addstaff-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Convidar Colaborador com Privilégios (RBAC)
               </h3>
               <button
                 type="button"
                 onClick={() => setAddStaffModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1613,28 +1616,28 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Nome Completo</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Nome Completo</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Prof. Gonçalo Ferreira"
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">E-mail Institucional</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">E-mail Institucional</label>
                 <input
                   type="email"
                   required
                   placeholder="nome@escolamayelin.pt"
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Nível de Acesso (RBAC)</label>
-                <select className="w-full p-2.5 rounded-xl border border-slate-200 bg-white">
+                <label className="font-bold text-[#5c3f42] block mb-1">Nível de Acesso (RBAC)</label>
+                <select className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white">
                   <option value="Docente">Docente (Diário e Frequência)</option>
                   <option value="Portaria">Portaria / Segurança (Apenas Saídas)</option>
                   <option value="SPO">SPO (Psicologia e Dados Sensíveis)</option>
@@ -1642,7 +1645,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 </select>
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600">
+              <div className="p-3 bg-[#fff8f5] border border-[#eee0d6] rounded-xl text-[11px] text-[#5c3f42]">
                 O colaborador receberá um link seguro de ativação com chave OTP para configuração mandatória de 2FA.
               </div>
 
@@ -1650,7 +1653,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 <button
                   type="button"
                   onClick={() => setAddStaffModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
                 >
                   Cancelar
                 </button>
@@ -1676,15 +1679,15 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
           aria-labelledby="comms-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="comms-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="comms-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Emitir Circular em Massa (Push, E-mail & SMS)
               </h3>
               <button
                 type="button"
                 onClick={() => setCommsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1700,17 +1703,17 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Título da Circular</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Título da Circular</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Circular Geral: Preparação para as Férias de Natal"
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Canais de Disparo Simultâneo</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Canais de Disparo Simultâneo</label>
                 <div className="flex items-center gap-4 pt-1">
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <input type="checkbox" defaultChecked className="rounded text-[#ed145b]" />
@@ -1728,18 +1731,18 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Conteúdo da Circular</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Conteúdo da Circular</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Escreva a mensagem oficial que será enviada aos encarregados..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                 />
               </div>
 
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="auth-req" className="rounded text-[#ed145b]" />
-                <label htmlFor="auth-req" className="font-semibold text-slate-700 cursor-pointer">
+                <label htmlFor="auth-req" className="font-semibold text-[#5c3f42] cursor-pointer">
                   Exigir assinatura digital de autorização do encarregado
                 </label>
               </div>
@@ -1748,7 +1751,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 <button
                   type="button"
                   onClick={() => setCommsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
                 >
                   Cancelar
                 </button>

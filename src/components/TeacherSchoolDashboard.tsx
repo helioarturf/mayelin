@@ -28,6 +28,7 @@ import {
   UserX,
   Activity,
   Award,
+  ArrowLeft,
   HelpCircle
 } from 'lucide-react';
 
@@ -309,26 +310,26 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
     <div
       role="region"
       aria-label="Painel do Professor"
-      className="bg-[#f8fafc] text-slate-800 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col min-h-[700px] max-h-[92vh] font-['Nunito_Sans'] antialiased"
+      className="bg-[#fff8f5] text-[#211a14] w-full flex-1 flex flex-col overflow-hidden font-['Nunito_Sans'] antialiased min-h-0"
     >
       {/* ========================================================================= */}
       {/* TOPNAVBAR - NAVEGAÇÃO SUPERIOR DO PROFESSOR (RBAC DOCENTE)                */}
       {/* ========================================================================= */}
       <header
-        className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
+        className="bg-white border-b border-[#eee0d6] px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
         role="banner"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#00a6c0] text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-sky-100 text-[#00a6c0] flex items-center justify-center font-bold shadow-xs shrink-0">
             <GraduationCap className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-sm sm:text-base font-bold font-['Quicksand'] text-slate-900 leading-tight">
+              <h1 className="text-sm sm:text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
                 Espaço do Professor Titular
               </h1>
               {/* Seletor rápido de turma ativa */}
-              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+              <div className="flex items-center gap-1 bg-[#faebe1] rounded-lg p-0.5 border border-[#eee0d6]">
                 {(['Berçário (Ninho)', 'Maternal I (Passinhos)', 'Maternal II (Exploradores)', 'Pré-Escolar (Descobertas)', 'Jardim de Infância (Estrelinhas)'] as string[]).map((turma) => (
                   <button
                     key={turma}
@@ -337,10 +338,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                       setActiveClass(turma);
                       showToast(`Turma ativa alterada para ${turma}.`);
                     }}
-                    className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all ${
+                    className={`px-2 py-0.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
                       activeClass === turma
-                        ? 'bg-white text-[#00a6c0] shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white text-[#00a6c0] shadow-2xs'
+                        : 'text-[#5c3f42] hover:text-[#211a14]'
                     }`}
                   >
                     {turma}
@@ -352,7 +353,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 {currentTerm}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-[#5c3f42] mt-0.5">
               Prof. António Silva • Sessão Autenticada • {currentDate}
             </p>
           </div>
@@ -363,7 +364,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           <button
             type="button"
             onClick={() => showToast('Rascunho de pauta e sumários salvo com sucesso.')}
-            className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs flex items-center gap-1.5 transition-colors"
+            className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#faebe1] text-[#5c3f42] hover:bg-[#f4e6db] font-bold text-xs flex items-center gap-1.5 transition-colors"
           >
             <Save className="w-3.5 h-3.5" />
             <span>Guardar Rascunho</span>
@@ -382,10 +383,12 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-1"
-              aria-label="Fechar painel do professor"
+              className="px-3 py-1.5 rounded-xl text-[#5c3f42] hover:text-[#211a14] hover:bg-[#faebe1] transition-colors flex items-center gap-1.5 text-xs font-bold ml-1"
+              aria-label="Voltar ao Website"
+              title="Voltar ao Website"
             >
-              <X className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 text-sky-600" />
+              <span className="hidden sm:inline">Voltar ao Website</span>
             </button>
           )}
         </div>
@@ -397,21 +400,21 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* SideNavBar Lateral */}
         <nav
-          className="w-full md:w-64 bg-slate-900 text-slate-300 p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-slate-800"
+          className="w-full md:w-64 bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-[#eee0d6]"
           aria-label="Fluxos de trabalho do professor"
         >
           <div className="flex md:flex-col gap-1 w-full">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-3 py-1.5 hidden md:block">
+            <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#8c6b6d] px-3 py-1.5 hidden md:block">
               Gestão Pedagógica
             </span>
 
             <button
               type="button"
               onClick={() => setActiveSection('overview')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'overview'
-                  ? 'bg-[#00a6c0] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Activity className="w-4 h-4 shrink-0" />
@@ -421,10 +424,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <button
               type="button"
               onClick={() => setActiveSection('attendance')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'attendance'
-                  ? 'bg-[#00a6c0] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Users className="w-4 h-4 shrink-0" />
@@ -434,10 +437,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <button
               type="button"
               onClick={() => setActiveSection('grades')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'grades'
-                  ? 'bg-[#00a6c0] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Award className="w-4 h-4 shrink-0" />
@@ -447,10 +450,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <button
               type="button"
               onClick={() => setActiveSection('lessons')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'lessons'
-                  ? 'bg-[#00a6c0] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <BookOpen className="w-4 h-4 shrink-0" />
@@ -460,10 +463,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <button
               type="button"
               onClick={() => setActiveSection('incidents')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap ${
+              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeSection === 'incidents'
-                  ? 'bg-[#00a6c0] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
               <Heart className="w-4 h-4 shrink-0" />
@@ -471,10 +474,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             </button>
           </div>
 
-          <div className="pt-3 border-t border-slate-800 hidden md:block">
-            <div className="p-2.5 rounded-xl bg-slate-800/80 text-[11px] space-y-1">
-              <p className="font-bold text-slate-200">Conselho Pedagógico</p>
-              <p className="text-slate-400">
+          <div className="pt-3 border-t border-[#eee0d6] hidden md:block">
+            <div className="p-2.5 rounded-xl bg-[#faebe1] text-[11px] space-y-1 border border-[#eee0d6]">
+              <p className="font-bold text-[#211a14]">Conselho Pedagógico</p>
+              <p className="text-[#5c3f42]">
                 Pauta oficial do 2º Trimestre sujeita a homologação até 20 de Outubro.
               </p>
             </div>
@@ -483,7 +486,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
 
         {/* Main Workspace Area */}
         <main
-          className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-slate-50 focus:outline-none"
+          className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-[#fff8f5] focus:outline-none"
           tabIndex={-1}
         >
           {/* Toast Notification */}
@@ -491,7 +494,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <div
               role="status"
               aria-live="polite"
-              className="p-3.5 bg-slate-900 text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-slate-700 animate-in fade-in slide-in-from-top-2"
+              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-[#5c3f42] animate-in fade-in slide-in-from-top-2"
             >
               <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
               <span>{toastMessage}</span>
@@ -506,14 +509,14 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               {/* Indicadores Rápidos da Turma Ativa */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Taxa de Presença Hoje */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-sky-200 transition-all">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-sky-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">Taxa de Presença Hoje</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Taxa de Presença Hoje</span>
                     <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
                       <Users className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                  <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
                     95.8%
                   </p>
                   <p className="text-xs text-emerald-700 font-bold mt-2">
@@ -522,14 +525,14 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 </div>
 
                 {/* 2. Avaliações Lançadas */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-sky-200 transition-all">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-sky-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">Avaliações Lançadas</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Avaliações Lançadas</span>
                     <div className="w-8 h-8 rounded-xl bg-sky-100 text-[#00a6c0] flex items-center justify-center">
                       <Award className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                  <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
                     18/24
                   </p>
                   <p className="text-xs text-sky-700 font-bold mt-2">
@@ -538,14 +541,14 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 </div>
 
                 {/* 3. Planos de Aula & Sumários */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-sky-200 transition-all">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-sky-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">Aulas Planeadas</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Aulas Planeadas</span>
                     <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
                       <BookOpen className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                  <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
                     8
                   </p>
                   <p className="text-xs text-purple-700 font-bold mt-2">
@@ -554,14 +557,14 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 </div>
 
                 {/* 4. Ocorrências & Apoio */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-sky-200 transition-all">
+                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-sky-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500">Ocorrências & Apoio</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Ocorrências & Apoio</span>
                     <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
                       <Heart className="w-4 h-4" />
                     </div>
                   </div>
-                  <p className="text-3xl font-extrabold font-['Quicksand'] text-slate-900 mt-2">
+                  <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
                     2
                   </p>
                   <p className="text-xs text-amber-800 font-bold mt-2">
@@ -571,15 +574,15 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               </div>
 
               {/* Ações Rápidas de Início de Aula */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                <h3 className="text-sm font-bold font-['Quicksand'] text-slate-900">
+              <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                <h3 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
                   Rotinas Letivas Diárias • {activeClass}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveSection('attendance')}
-                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-200 text-slate-800 text-xs font-bold flex items-center justify-between transition-all"
+                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-sky-50 hover:border-sky-200 text-[#211a14] text-xs font-bold flex items-center justify-between transition-all"
                   >
                     <span>Fazer Chamada da Sessão</span>
                     <Users className="w-4 h-4 text-[#00a6c0]" />
@@ -588,7 +591,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                   <button
                     type="button"
                     onClick={() => setActiveSection('grades')}
-                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-sky-50 hover:border-sky-200 text-slate-800 text-xs font-bold flex items-center justify-between transition-all"
+                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-sky-50 hover:border-sky-200 text-[#211a14] text-xs font-bold flex items-center justify-between transition-all"
                   >
                     <span>Digitar Notas e Trabalhos Maker</span>
                     <Award className="w-4 h-4 text-[#00a6c0]" />
@@ -597,7 +600,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                   <button
                     type="button"
                     onClick={() => setNewIncidentModal(true)}
-                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-amber-50 hover:border-amber-200 text-slate-800 text-xs font-bold flex items-center justify-between transition-all"
+                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-amber-50 hover:border-amber-200 text-[#211a14] text-xs font-bold flex items-center justify-between transition-all"
                   >
                     <span>Registar Ocorrência / Mérito</span>
                     <Heart className="w-4 h-4 text-amber-600" />
@@ -606,12 +609,12 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               </div>
 
               {/* Próximas Sessões da Turma Hoje */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold font-['Quicksand'] text-slate-900">
+                  <h4 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
                     Cronograma de Hoje na Turma ({activeClass})
                   </h4>
-                  <span className="text-xs text-slate-500 font-semibold">Sala Climatizada 102</span>
+                  <span className="text-xs text-[#5c3f42] font-semibold">Sala Climatizada 102</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
@@ -619,24 +622,24 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                     <span className="text-[10px] font-bold text-[#00a6c0] bg-white px-2 py-0.5 rounded shadow-2xs">
                       08:30 - 10:00
                     </span>
-                    <p className="font-bold text-slate-900 mt-2">Linguagem Oral & Roda da História</p>
-                    <p className="text-slate-600 text-[11px] mt-0.5">Contação dramatizada, canções em roda e expressão verbal.</p>
+                    <p className="font-bold text-[#211a14] mt-2">Linguagem Oral & Roda da História</p>
+                    <p className="text-[#5c3f42] text-[11px] mt-0.5">Contação dramatizada, canções em roda e expressão verbal.</p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100">
                     <span className="text-[10px] font-bold text-emerald-700 bg-white px-2 py-0.5 rounded shadow-2xs">
                       10:45 - 12:15
                     </span>
-                    <p className="font-bold text-slate-900 mt-2">Estimulação Sensorial & Lógica</p>
-                    <p className="text-slate-600 text-[11px] mt-0.5">Manipulação de peças geométricas, formas e cores com blocos de madeira.</p>
+                    <p className="font-bold text-[#211a14] mt-2">Estimulação Sensorial & Lógica</p>
+                    <p className="text-[#5c3f42] text-[11px] mt-0.5">Manipulação de peças geométricas, formas e cores com blocos de madeira.</p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-pink-50/70 border border-pink-100">
                     <span className="text-[10px] font-bold text-[#ed145b] bg-white px-2 py-0.5 rounded shadow-2xs">
                       14:00 - 15:30
                     </span>
-                    <p className="font-bold text-slate-900 mt-2">Horta Pedagógica & Psicomotricidade</p>
-                    <p className="text-slate-600 text-[11px] mt-0.5">Contacto com a terra, rega das plantas e circuito motor com obstáculos suaves.</p>
+                    <p className="font-bold text-[#211a14] mt-2">Horta Pedagógica & Psicomotricidade</p>
+                    <p className="text-[#5c3f42] text-[11px] mt-0.5">Contacto com a terra, rega das plantas e circuito motor com obstáculos suaves.</p>
                   </div>
                 </div>
               </div>
@@ -650,10 +653,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Registo de Chamadas & Frequência Diária • {activeClass}
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     Sessão da Manhã • 23 Presentes, 1 Ausência Justificada, 1 Atraso Registado
                   </p>
                 </div>
@@ -677,7 +680,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                       );
                       showToast('Todas as ausências foram justificadas em lote.');
                     }}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#faebe1] hover:bg-[#f4e6db] text-[#5c3f42] font-bold text-xs flex items-center gap-1.5 transition-colors"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Justificar Falta em Lote</span>
@@ -695,9 +698,9 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               </div>
 
               {/* Tabela Nominal de Alunos com Seletores de Estado */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-                <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700">
+              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
+                <div className="p-3 bg-[#fff8f5] border-b border-[#eee0d6] flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#5c3f42]">
                     Lista Nominal de Alunos ({attendanceList.length} Inscritos)
                   </span>
                   <div className="w-64">
@@ -706,14 +709,14 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Filtrar por nome de aluno..."
-                      className="w-full text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-[#00a6c0]"
+                      className="w-full text-xs px-3 py-1.5 rounded-xl border border-[#eee0d6] bg-white focus:outline-none focus:border-[#00a6c0]"
                     />
                   </div>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3.5 w-12 text-center">Nº</th>
                         <th className="p-3.5">Nome do Educando</th>
@@ -721,13 +724,13 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                         <th className="p-3.5">Observações / Justificação Oficial</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#eee0d6]">
                       {filteredAttendance.map((student) => (
-                        <tr key={student.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="p-3.5 text-center font-bold text-slate-400">
+                        <tr key={student.id} className="hover:bg-[#fff1e7]/70 transition-colors">
+                          <td className="p-3.5 text-center font-bold text-[#8c6b6d]">
                             {student.number}
                           </td>
-                          <td className="p-3.5 font-bold text-slate-900">
+                          <td className="p-3.5 font-bold text-[#211a14]">
                             {student.name}
                           </td>
                           <td className="p-3.5">
@@ -744,7 +747,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                                   className={`px-3 py-1 rounded-lg font-bold text-xs transition-all ${
                                     student.status === st
                                       ? st === 'Presente'
-                                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                      : 'bg-[#faebe1] text-[#5c3f42] hover:bg-[#f4e6db]'
                                   } ${
                                     student.status === 'Presente' && st === 'Presente'
                                       ? 'bg-emerald-600 text-white shadow-xs'
@@ -764,13 +767,13 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                               ))}
                             </div>
                           </td>
-                          <td className="p-3.5 text-slate-600">
+                          <td className="p-3.5 text-[#5c3f42]">
                             {student.justification ? (
-                              <span className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] block text-slate-700">
+                              <span className="p-1.5 bg-[#fff8f5] border border-[#eee0d6] rounded-lg text-[11px] block text-[#5c3f42]">
                                 📋 {student.justification}
                               </span>
                             ) : (
-                              <span className="text-[11px] text-slate-400 italic">
+                              <span className="text-[11px] text-[#8c6b6d] italic">
                                 Sem anotações pendentes
                               </span>
                             )}
@@ -791,16 +794,16 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Pauta Ponderada Oficial de Educação Infantil • {activeClass}
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     Cálculo Automático: Observação Contínua (25%) + Projetos Sensoriais / Horta (25%) + Psicomotricidade & Cognitivo (35%) + Autonomia (15%)
                   </p>
                 </div>
 
                 {/* Seletor de Disciplinas */}
-                <div className="flex items-center gap-1.5 overflow-x-auto bg-white p-1 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-1.5 overflow-x-auto bg-white p-1 rounded-xl border border-[#eee0d6]">
                   {(
                     [
                       'Linguagem e Expressão Oral',
@@ -816,7 +819,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                         selectedSubject === disc
                           ? 'bg-[#00a6c0] text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          : 'text-[#5c3f42] hover:text-[#211a14]'
                       }`}
                     >
                       {disc}
@@ -826,10 +829,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               </div>
 
               {/* Tabela de Pauta Ponderada */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
                         <th className="p-3 w-10 text-center">Nº</th>
                         <th className="p-3">Nome do Aluno</th>
@@ -841,17 +844,17 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                         <th className="p-3 text-center">Parecer Qualitativo</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-[#eee0d6]">
                       {gradesList.map((grade) => {
                         const finalScore = calculateFinalAverage(grade);
                         const assessment = getQualitativeAssessment(finalScore);
 
                         return (
-                          <tr key={grade.id} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="p-3 text-center font-bold text-slate-400">
+                          <tr key={grade.id} className="hover:bg-[#fff1e7]/70 transition-colors">
+                            <td className="p-3 text-center font-bold text-[#8c6b6d]">
                               {grade.number}
                             </td>
-                            <td className="p-3 font-bold text-slate-900">
+                            <td className="p-3 font-bold text-[#211a14]">
                               {grade.name}
                             </td>
                             <td className="p-3 text-center">
@@ -863,7 +866,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                                 onChange={(e) =>
                                   handleUpdateGrade(grade.id, 'formative', Number(e.target.value))
                                 }
-                                className="w-16 p-1.5 text-center font-bold bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00a6c0]"
+                                className="w-16 p-1.5 text-center font-bold bg-[#fff8f5] border border-[#eee0d6] rounded-lg focus:outline-none focus:border-[#00a6c0]"
                               />
                             </td>
                             <td className="p-3 text-center">
@@ -875,7 +878,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                                 onChange={(e) =>
                                   handleUpdateGrade(grade.id, 'makerProject', Number(e.target.value))
                                 }
-                                className="w-16 p-1.5 text-center font-bold bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00a6c0]"
+                                className="w-16 p-1.5 text-center font-bold bg-[#fff8f5] border border-[#eee0d6] rounded-lg focus:outline-none focus:border-[#00a6c0]"
                               />
                             </td>
                             <td className="p-3 text-center">
@@ -887,7 +890,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                                 onChange={(e) =>
                                   handleUpdateGrade(grade.id, 'summativeExam', Number(e.target.value))
                                 }
-                                className="w-16 p-1.5 text-center font-bold bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00a6c0]"
+                                className="w-16 p-1.5 text-center font-bold bg-[#fff8f5] border border-[#eee0d6] rounded-lg focus:outline-none focus:border-[#00a6c0]"
                               />
                             </td>
                             <td className="p-3 text-center">
@@ -899,10 +902,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                                 onChange={(e) =>
                                   handleUpdateGrade(grade.id, 'participation', Number(e.target.value))
                                 }
-                                className="w-16 p-1.5 text-center font-bold bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00a6c0]"
+                                className="w-16 p-1.5 text-center font-bold bg-[#fff8f5] border border-[#eee0d6] rounded-lg focus:outline-none focus:border-[#00a6c0]"
                               />
                             </td>
-                            <td className="p-3 text-center font-extrabold text-sm text-slate-900">
+                            <td className="p-3 text-center font-extrabold text-sm text-[#211a14]">
                               {finalScore}%
                             </td>
                             <td className="p-3 text-center">
@@ -929,10 +932,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Cronograma Curricular e Planos de Aula • {activeClass}
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     Gestão das próximas sessões letivas da semana com materiais interativos anexados
                   </p>
                 </div>
@@ -952,35 +955,35 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 {lessonsList.map((lesson) => (
                   <div
                     key={lesson.id}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between space-y-4 hover:border-sky-300 transition-all"
+                    className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs flex flex-col justify-between space-y-4 hover:border-sky-300 transition-all"
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-sky-100 text-[#00a6c0]">
                           {lesson.subject}
                         </span>
-                        <span className="text-xs text-slate-400 font-semibold">{lesson.time}</span>
+                        <span className="text-xs text-[#8c6b6d] font-semibold">{lesson.time}</span>
                       </div>
 
-                      <h4 className="font-bold text-sm text-slate-900 leading-snug">
+                      <h4 className="font-bold text-sm text-[#211a14] leading-snug">
                         {lesson.title}
                       </h4>
 
-                      <p className="text-xs text-slate-500 flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <p className="text-xs text-[#5c3f42] flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-[#8c6b6d]" />
                         <span>{lesson.date}</span> • <span>{lesson.room}</span>
                       </p>
 
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-600 leading-relaxed">
-                        <span className="font-bold block text-slate-700 mb-0.5">Sumário & Metodologia:</span>
+                      <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42] leading-relaxed">
+                        <span className="font-bold block text-[#5c3f42] mb-0.5">Sumário & Metodologia:</span>
                         {lesson.summary}
                       </div>
                     </div>
 
                     {/* Anexos */}
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                      <p className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-                        <Paperclip className="w-3.5 h-3.5 text-slate-400" />
+                    <div className="space-y-2 pt-2 border-t border-[#eee0d6]">
+                      <p className="text-[11px] font-bold text-[#5c3f42] flex items-center gap-1">
+                        <Paperclip className="w-3.5 h-3.5 text-[#8c6b6d]" />
                         <span>Materiais & Fichas Anexadas ({lesson.attachments.length}):</span>
                       </p>
 
@@ -994,7 +997,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                             <span className="font-semibold text-[#00a6c0] truncate max-w-[200px]">
                               {att.name}
                             </span>
-                            <span className="text-[10px] text-slate-500 font-mono">{att.size}</span>
+                            <span className="text-[10px] text-[#5c3f42] font-mono">{att.size}</span>
                           </div>
                         ))}
                       </div>
@@ -1003,7 +1006,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                         <button
                           type="button"
                           onClick={() => showToast(`Sumário de "${lesson.title}" aberto para edição.`)}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors"
+                          className="px-2.5 py-1 bg-[#faebe1] hover:bg-[#f4e6db] text-[#5c3f42] rounded-lg text-xs font-bold transition-colors"
                         >
                           Editar Sumário
                         </button>
@@ -1022,10 +1025,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-slate-900">
+                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
                     Registo de Ocorrências Pedagógicas & Apoio Socioemocional
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#5c3f42]">
                     Gestão confidencial em conformidade com o RGPD e proteção do menor • Méritos e Articulação SPO
                   </p>
                 </div>
@@ -1045,7 +1048,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 {incidentsList.map((inc) => (
                   <div
                     key={inc.id}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3 hover:border-sky-300 transition-all"
+                    className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3 hover:border-sky-300 transition-all"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -1058,19 +1061,19 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                         >
                           {inc.type}
                         </span>
-                        <h4 className="font-bold text-sm text-slate-900">{inc.title}</h4>
+                        <h4 className="font-bold text-sm text-[#211a14]">{inc.title}</h4>
                       </div>
-                      <span className="text-xs text-slate-400 font-semibold">{inc.date}</span>
+                      <span className="text-xs text-[#8c6b6d] font-semibold">{inc.date}</span>
                     </div>
 
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed">
+                    <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42] leading-relaxed">
                       <p>
-                        <strong className="text-slate-900">Educando:</strong> {inc.studentName}
+                        <strong className="text-[#211a14]">Educando:</strong> {inc.studentName}
                       </p>
                       <p className="mt-1">{inc.description}</p>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#eee0d6] text-xs">
                       <div className="flex items-center gap-2">
                         {inc.spoReferral && (
                           <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-800 font-bold text-[10px] flex items-center gap-1 border border-purple-200">
@@ -1086,7 +1089,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                         )}
                       </div>
 
-                      <span className="text-slate-400 text-[11px] italic">
+                      <span className="text-[#8c6b6d] text-[11px] italic">
                         {inc.teacherNote}
                       </span>
                     </div>
@@ -1108,15 +1111,15 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           aria-labelledby="incident-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="incident-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="incident-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Registar Ocorrência / Mérito Positivo
               </h3>
               <button
                 type="button"
                 onClick={() => setNewIncidentModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar modal"
               >
                 <X className="w-4 h-4" />
@@ -1126,11 +1129,11 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <form onSubmit={handleCreateIncident} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Educando</label>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Educando</label>
                   <select
                     value={newIncStudent}
                     onChange={(e) => setNewIncStudent(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-white"
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white"
                   >
                     {attendanceList.map((st) => (
                       <option key={st.id} value={st.name}>
@@ -1141,11 +1144,11 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Tipo de Registo</label>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Tipo de Registo</label>
                   <select
                     value={newIncType}
                     onChange={(e) => setNewIncType(e.target.value as any)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-white"
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white"
                   >
                     <option value="Mérito Positivo">Mérito Positivo (Elogio)</option>
                     <option value="Apoio Socioemocional">Apoio Socioemocional (SPO)</option>
@@ -1154,31 +1157,31 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Título do Registo</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Título do Registo</label>
                 <input
                   type="text"
                   required
                   value={newIncTitle}
                   onChange={(e) => setNewIncTitle(e.target.value)}
                   placeholder="Ex: Cooperação exemplar ou Queixa de fadiga com choro"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#00a6c0]"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#00a6c0]"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Descrição Detalhada do Episódio</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Descrição Detalhada do Episódio</label>
                 <textarea
                   rows={3}
                   required
                   value={newIncDesc}
                   onChange={(e) => setNewIncDesc(e.target.value)}
                   placeholder="Descreva o contexto, a atitude da criança e as medidas imediatas aplicadas na sala..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#00a6c0]"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#00a6c0]"
                 />
               </div>
 
-              <div className="space-y-2 pt-1 border-t border-slate-100">
-                <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+              <div className="space-y-2 pt-1 border-t border-[#eee0d6]">
+                <label className="flex items-center gap-2 cursor-pointer font-semibold text-[#5c3f42]">
                   <input
                     type="checkbox"
                     checked={newIncSpo}
@@ -1188,7 +1191,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                   <span>Encaminhar cópia ao Gabinete de Psicologia (Dra. Sofia Ramos - SPO)</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                <label className="flex items-center gap-2 cursor-pointer font-semibold text-[#5c3f42]">
                   <input
                     type="checkbox"
                     checked={newIncNotify}
@@ -1203,7 +1206,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 <button
                   type="button"
                   onClick={() => setNewIncidentModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
                 >
                   Cancelar
                 </button>
@@ -1230,25 +1233,25 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           aria-labelledby="att-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="att-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand'] flex items-center gap-2">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="att-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand'] flex items-center gap-2">
                 <Paperclip className="w-4 h-4 text-[#00a6c0]" />
                 <span>Anexo Pedagógico da Aula</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setPreviewAttachment(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs space-y-2">
-              <p className="font-bold text-slate-900 text-sm">{previewAttachment.name}</p>
-              <p className="text-slate-500">Tipo de Documento: {previewAttachment.type}</p>
+            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-2">
+              <p className="font-bold text-[#211a14] text-sm">{previewAttachment.name}</p>
+              <p className="text-[#5c3f42]">Tipo de Documento: {previewAttachment.type}</p>
               <p className="text-emerald-700 font-semibold">Validado para Projeção no Painel Interativo</p>
             </div>
 
@@ -1256,7 +1259,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               <button
                 type="button"
                 onClick={() => setPreviewAttachment(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
               >
                 Fechar
               </button>
@@ -1286,36 +1289,36 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           aria-labelledby="pdf-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="pdf-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand'] flex items-center gap-2">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="pdf-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand'] flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#00a6c0]" />
                 <span>Exportar Pauta e Folha de Presença (PDF)</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setPdfExportModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-[#5c3f42] leading-relaxed">
               O documento oficial será gerado com cabeçalho institucional do <strong>{activeClass}</strong>, discriminação ponderada das 4 rubricas de avaliação e folha de assiduidade do {currentTerm}.
             </p>
 
-            <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs space-y-1">
-              <p className="font-bold text-slate-800">Pauta_Oficial_{activeClass.replace(/\s+/g, '_')}_2ºTrimestre.pdf</p>
-              <p className="text-slate-500 text-[11px]">Assinado digitalmente por: Prof. António Silva</p>
+            <div className="p-3 bg-[#fff8f5] border border-[#eee0d6] rounded-xl text-xs space-y-1">
+              <p className="font-bold text-[#211a14]">Pauta_Oficial_{activeClass.replace(/\s+/g, '_')}_2ºTrimestre.pdf</p>
+              <p className="text-[#5c3f42] text-[11px]">Assinado digitalmente por: Prof. António Silva</p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setPdfExportModal(false)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
               >
                 Cancelar
               </button>
@@ -1345,15 +1348,15 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           aria-labelledby="lesson-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 id="lesson-modal-title" className="font-bold text-sm text-slate-900 font-['Quicksand']">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="lesson-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
                 Criar Novo Plano de Aula
               </h3>
               <button
                 type="button"
                 onClick={() => setNewLessonModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1369,8 +1372,8 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Disciplina</label>
-                <select className="w-full p-2.5 rounded-xl border border-slate-200 bg-white">
+                <label className="font-bold text-[#5c3f42] block mb-1">Disciplina</label>
+                <select className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white">
                   <option>Matemática e Cálculo</option>
                   <option>Português e Literacia</option>
                   <option>Estudo do Meio / Ciências</option>
@@ -1379,41 +1382,41 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Título da Sessão</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Título da Sessão</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Introdução à Multiplicação e Jogos de Mesa"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#00a6c0]"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#00a6c0]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Data</label>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Data</label>
                   <input
                     type="text"
                     defaultValue="Segunda-feira, 14 de Outubro"
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Horário</label>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Horário</label>
                   <input
                     type="text"
                     defaultValue="09:00 - 10:30"
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Sumário & Metodologia</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Sumário & Metodologia</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Objetivos pedagógicos, dinâmicas e materiais necessários..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#00a6c0]"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#00a6c0]"
                 />
               </div>
 
@@ -1421,7 +1424,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 <button
                   type="button"
                   onClick={() => setNewLessonModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
                 >
                   Cancelar
                 </button>

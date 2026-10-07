@@ -174,6 +174,33 @@ export default function App() {
 
   const activeStudent = students.find((s) => s.id === activeStudentId) || students[0];
 
+  // Render Portal as a Full Dedicated Page instead of a modal
+  if (isPortalOpen) {
+    return (
+      <ParentPortalModal
+        isOpen={true}
+        onClose={() => {
+          setIsPortalOpen(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        students={students}
+        activeStudentId={activeStudentId}
+        onSelectStudent={setActiveStudentId}
+        authorizations={authorizations}
+        onAddAuthorization={handleAddAuthorization}
+        onUpdateAuthorizationStatus={handleUpdateAuthorizationStatus}
+        appointments={appointments}
+        onUpdateAppointmentStatus={handleUpdateAppointmentStatus}
+        announcements={announcements}
+        onAddAnnouncement={handleAddAnnouncement}
+        onAddDailyLog={handleAddDailyLog}
+        onUpdateStudentStatus={handleUpdateStudentStatus}
+        currentRole={portalRole}
+        onChangeRole={setPortalRole}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#fff8f5] text-[#211a14] font-['Nunito_Sans'] antialiased selection:bg-pink-200 selection:text-[#ed145b]">
       {/* 1. Top Utility Notification Strip */}
@@ -228,26 +255,6 @@ export default function App() {
         onOpenMenu={() => setIsMenuOpen(true)}
       />
 
-      {/* Interactive School Portal Modal (3 Profiles) */}
-      <ParentPortalModal
-        isOpen={isPortalOpen}
-        onClose={() => setIsPortalOpen(false)}
-        students={students}
-        activeStudentId={activeStudentId}
-        onSelectStudent={setActiveStudentId}
-        authorizations={authorizations}
-        onAddAuthorization={handleAddAuthorization}
-        onUpdateAuthorizationStatus={handleUpdateAuthorizationStatus}
-        appointments={appointments}
-        onUpdateAppointmentStatus={handleUpdateAppointmentStatus}
-        announcements={announcements}
-        onAddAnnouncement={handleAddAnnouncement}
-        onAddDailyLog={handleAddDailyLog}
-        onUpdateStudentStatus={handleUpdateStudentStatus}
-        currentRole={portalRole}
-        onChangeRole={setPortalRole}
-      />
-
       {/* Nutritional Weekly Menu Modal */}
       <MealMenuModal
         isOpen={isMenuOpen}
@@ -270,11 +277,11 @@ export default function App() {
         <button
           type="button"
           onClick={() => handleOpenPortalWithRole()}
-          aria-label="Abrir Portal Escolar"
+          aria-label="Aceder ao Portal"
           className="min-h-[44px] min-w-[44px] px-3 sm:px-4 py-2.5 rounded-full bg-[#ed145b] text-white text-xs sm:text-sm font-bold shadow-lg hover:bg-pink-600 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
         >
           <Smartphone className="w-4 h-4 shrink-0" />
-          <span className="hidden sm:inline">Portal Escolar</span>
+          <span className="hidden sm:inline">Aceder Portal</span>
         </button>
 
         <a

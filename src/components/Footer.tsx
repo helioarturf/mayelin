@@ -105,7 +105,7 @@ export default function Footer({ onOpenPortal, onOpenMenu }: FooterProps) {
                   onClick={onOpenPortal}
                   className="text-[#5c3f42] hover:text-[#fd9924] transition-colors text-left"
                 >
-                  Portal Escolar (3 Perfis)
+                  Aceder ao Portal (3 Perfis)
                 </button>
               </li>
               <li>

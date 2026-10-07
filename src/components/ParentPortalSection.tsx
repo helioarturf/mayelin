@@ -258,7 +258,7 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
               onClick={() => onOpenPortal('admin')}
               className="min-h-[48px] inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3.5 rounded-full bg-[#ed145b] text-white font-['Nunito_Sans'] font-bold text-sm sm:text-base ninos-shadow-lg hover:bg-pink-600 hover:scale-105 active:scale-95 transition-all"
             >
-              <span>Abrir Portal Escolar (3 Perfis)</span>
+              <span>Aceder ao Portal (3 Perfis)</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 

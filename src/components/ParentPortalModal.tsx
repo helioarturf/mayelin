@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
-  X,
-  Smartphone,
+  ArrowLeft,
   Building2,
   GraduationCap,
-  Users
+  Users,
+  LogOut,
+  School,
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import {
   Student,
@@ -14,10 +17,11 @@ import {
   SchoolAnnouncement,
   VisitAppointment
 } from '../types';
-import { PROFILE_OPTIONS } from '../data/mockData';
+import { PROFILE_OPTIONS, SCHOOL_IMAGES } from '../data/mockData';
 import AdminSchoolDashboard from './AdminSchoolDashboard';
 import TeacherSchoolDashboard from './TeacherSchoolDashboard';
 import GuardianSchoolDashboard from './GuardianSchoolDashboard';
+import PortalLoginView, { AuthUser } from './PortalLoginView';
 
 interface ParentPortalModalProps {
   isOpen: boolean;
@@ -44,144 +48,226 @@ export default function ParentPortalModal({
   currentRole = 'pais',
   onChangeRole
 }: ParentPortalModalProps) {
-  // Active Profile State synchronized with currentRole prop
-  const [activeRole, setActiveRole] = useState<UserRole>(currentRole);
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('mayelin_auth_logged_in') === 'true';
+  });
+
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    const saved = localStorage.getItem('mayelin_auth_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  // Active Profile State synchronized with currentRole prop or authenticated user
+  const [activeRole, setActiveRole] = useState<UserRole>(() => {
+    if (currentUser?.role) return currentUser.role;
+    return currentRole;
+  });
 
   useEffect(() => {
-    setActiveRole(currentRole);
-  }, [currentRole]);
+    if (currentRole && !currentUser) {
+      setActiveRole(currentRole);
+    }
+  }, [currentRole, currentUser]);
+
+  const handleLoginSuccess = (user: AuthUser) => {
+    setIsAuthenticated(true);
+    setCurrentUser(user);
+    setActiveRole(user.role);
+    localStorage.setItem('mayelin_auth_logged_in', 'true');
+    localStorage.setItem('mayelin_auth_user', JSON.stringify(user));
+    if (onChangeRole) onChangeRole(user.role);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    localStorage.removeItem('mayelin_auth_logged_in');
+    localStorage.removeItem('mayelin_auth_user');
+  };
 
   const handleRoleChange = (role: UserRole) => {
     setActiveRole(role);
     if (onChangeRole) onChangeRole(role);
+    // Update local profile title if changed
+    if (currentUser) {
+      const updatedUser: AuthUser = {
+        ...currentUser,
+        role
+      };
+      setCurrentUser(updatedUser);
+      localStorage.setItem('mayelin_auth_user', JSON.stringify(updatedUser));
+    }
   };
 
   if (!isOpen) return null;
 
+  // 1. Se o utilizador não estiver autenticado, apresenta o Ecrã de Login em Página Inteira
+  if (!isAuthenticated) {
+    return (
+      <PortalLoginView
+        initialRole={currentRole}
+        onLoginSuccess={handleLoginSuccess}
+        onBackToWebsite={onClose}
+      />
+    );
+  }
+
+  // 2. Se autenticado, apresenta o Portal Completo com a respetiva sessão ativa
   return (
     <div
-      id="school-portal-modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="portal-modal-title"
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      id="school-portal-fullpage-root"
+      className="min-h-screen w-full flex flex-col bg-[#fff8f5] text-[#211a14] font-['Nunito_Sans'] antialiased overflow-x-hidden selection:bg-pink-200 selection:text-[#ed145b]"
     >
-      <div
-        id="school-portal-modal-container"
-        className="bg-[#fff8f5] w-full max-w-7xl rounded-3xl border-2 border-[#eee0d6] shadow-2xl flex flex-col max-h-[96vh] overflow-hidden transition-all duration-200"
+      {/* Barra Superior Institucional do Portal Autenticado (Padrão do Website) */}
+      <header
+        role="banner"
+        className="bg-white border-b border-[#eee0d6] px-3 sm:px-6 py-2.5 sm:py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-30 shadow-2xs"
       >
-        {/* Top Header Bar */}
-        <div className="bg-white border-b border-[#eee0d6] px-4 sm:px-6 py-3 sm:py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-[#ed145b] to-[#fd9924] flex items-center justify-center text-white shadow-sm shrink-0">
-              <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />
+        {/* Esquerda: Identificação da Escola & Botão de Retorno ao Site */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3.5 py-2 rounded-xl bg-[#faebe1] hover:bg-[#f4e6db] text-[#5c3f42] hover:text-[#211a14] font-bold text-xs flex items-center gap-2 transition-all shrink-0 border border-[#eee0d6] shadow-2xs active:scale-95 cursor-pointer"
+            title="Voltar ao Website Principal da Escola"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#ed145b]" />
+            <span>Voltar ao Website</span>
+          </button>
+
+          <div className="h-6 w-px bg-[#eee0d6] hidden sm:block" />
+
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-xs shrink-0 relative bg-pink-100">
+              <img
+                src={SCHOOL_IMAGES.mayelinRealProfile}
+                alt="Logo do Jardim Escola da Mayelin"
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border border-white rounded-full" />
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 id="portal-modal-title" className="text-base sm:text-lg font-['Quicksand'] text-[#211a14] font-bold">
-                  Mayelin Kids • Portal Integrado da Escola
-                </h2>
-                <span className="text-[10px] sm:text-[11px] font-['Nunito_Sans'] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Online
+              <div className="flex items-center gap-2">
+                <span className="font-['Quicksand'] font-extrabold text-sm sm:text-base text-[#211a14] tracking-tight">
+                  Jardim Escola da Mayelin
                 </span>
-                <span className="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200 hidden sm:inline-block">
-                  RGPD • WCAG 2.1 AA
+                <span className="hidden lg:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Sessão Autenticada
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs font-['Nunito_Sans'] text-[#5c3f42]">
-                Gestão Executiva, Práticas Pedagógicas e Acompanhamento Familiar
+              <p className="text-[11px] text-[#5c3f42] hidden sm:block">
+                Portal Integrado de Educação Infantil & Creche • Luanda, Angola
               </p>
             </div>
           </div>
-
-          <div className="flex items-center justify-between md:justify-end gap-2 sm:gap-3">
-            {/* Active profile badge */}
-            <div className="text-right hidden sm:block">
-              <span className="text-[11px] text-[#5c3f42] block font-semibold">Perfil Ativo:</span>
-              <span className="text-xs font-bold text-[#ed145b]">
-                {PROFILE_OPTIONS.find((p) => p.role === activeRole)?.label || 'Painel Escolar'}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="min-w-[40px] min-h-[40px] rounded-full bg-[#faebe1] text-[#5c3f42] hover:bg-[#ed145b] hover:text-white flex items-center justify-center transition-colors shrink-0"
-              aria-label="Fechar portal"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
         </div>
 
-        {/* 3 Interactive Profiles Switcher Strip */}
-        <div className="bg-[#faebe1] border-b border-[#eee0d6] px-3 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto shrink-0">
-          <span className="text-xs font-bold text-[#5c3f42] shrink-0 mr-1 hidden sm:inline">
-            Alternar Perfil:
-          </span>
-
-          {/* Profile 1: Administração e Gestão Escolar */}
+        {/* Centro: Alternador dos 3 Perfis Oficiais com Cores do Website */}
+        <div
+          role="tablist"
+          aria-label="Seleção de Perfis do Portal"
+          className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 scrollbar-none bg-[#faebe1]/60 p-1 rounded-2xl border border-[#eee0d6]"
+        >
+          {/* Perfil 1: Administração e Gestão Escolar */}
           <button
             type="button"
+            role="tab"
+            aria-selected={activeRole === 'admin'}
             onClick={() => handleRoleChange('admin')}
-            className={`min-h-[40px] px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-2 transition-all whitespace-nowrap shadow-xs ${
+            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeRole === 'admin'
-                ? 'bg-[#ed145b] text-white shadow-md ring-2 ring-pink-300'
-                : 'bg-white text-[#5c3f42] hover:bg-pink-50 hover:text-[#ed145b]'
+                ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
             }`}
           >
-            <Building2 className="w-4 h-4 shrink-0" />
-            <span>Administração e Gestão Escolar</span>
+            <Building2 className="w-3.5 h-3.5 shrink-0" />
+            <span>Administração & Gestão</span>
           </button>
 
-          {/* Profile 2: Professor */}
+          {/* Perfil 2: Professor */}
           <button
             type="button"
+            role="tab"
+            aria-selected={activeRole === 'professor'}
             onClick={() => handleRoleChange('professor')}
-            className={`min-h-[40px] px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-2 transition-all whitespace-nowrap shadow-xs ${
+            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeRole === 'professor'
-                ? 'bg-[#00a6c0] text-white shadow-md ring-2 ring-sky-300'
-                : 'bg-white text-[#5c3f42] hover:bg-sky-50 hover:text-[#00a6c0]'
+                ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
             }`}
           >
-            <GraduationCap className="w-4 h-4 shrink-0" />
+            <GraduationCap className="w-3.5 h-3.5 shrink-0" />
             <span>Professor</span>
           </button>
 
-          {/* Profile 3: Pais/Encarregados */}
+          {/* Perfil 3: Pais / Encarregados */}
           <button
             type="button"
+            role="tab"
+            aria-selected={activeRole === 'pais'}
             onClick={() => handleRoleChange('pais')}
-            className={`min-h-[40px] px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-['Nunito_Sans'] font-bold flex items-center gap-2 transition-all whitespace-nowrap shadow-xs ${
+            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
               activeRole === 'pais'
-                ? 'bg-[#fd9924] text-white shadow-md ring-2 ring-amber-300'
-                : 'bg-white text-[#5c3f42] hover:bg-amber-50 hover:text-[#8c4f00]'
+                ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
             }`}
           >
-            <Users className="w-4 h-4 shrink-0" />
-            <span>Pais/Encarregados</span>
+            <Users className="w-3.5 h-3.5 shrink-0" />
+            <span>Pais / Encarregados</span>
           </button>
         </div>
 
-        {/* Scrollable Main Body Content for the 3 Dashboards */}
-        <div className="flex-1 overflow-y-auto p-0">
-          {/* PROFILE 1: ADMINISTRAÇÃO E GESTÃO ESCOLAR */}
-          {activeRole === 'admin' && (
-            <AdminSchoolDashboard onClose={onClose} />
-          )}
+        {/* Direita: Identificação do Utilizador Autenticado & Terminar Sessão */}
+        <div className="flex items-center justify-end gap-2.5 shrink-0">
+          <div className="text-right hidden sm:block">
+            <span className="text-[10px] text-[#8c6b6d] block font-extrabold leading-none">
+              Autenticado como:
+            </span>
+            <span className="text-xs font-extrabold text-[#211a14] leading-tight">
+              {currentUser?.name || PROFILE_OPTIONS.find((p) => p.role === activeRole)?.name || 'Utilizador'}
+            </span>
+          </div>
 
-          {/* PROFILE 2: PROFESSOR */}
-          {activeRole === 'professor' && (
-            <TeacherSchoolDashboard onClose={onClose} />
-          )}
-
-          {/* PROFILE 3: PAIS / ENCARREGADOS */}
-          {activeRole === 'pais' && (
-            <GuardianSchoolDashboard onClose={onClose} />
-          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="min-h-[38px] px-3 py-1.5 rounded-xl bg-[#fff1e7] hover:bg-rose-50 text-[#5c3f42] hover:text-rose-600 border border-[#eee0d6] text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+            title="Terminar Sessão e Ir para o Ecrã de Login"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-500" />
+            <span className="hidden sm:inline">Terminar Sessão</span>
+            <span className="sm:hidden">Sair</span>
+          </button>
         </div>
-      </div>
+      </header>
+
+      {/* Área Central da Página Inteira (Dashboard Completo Selecionado) */}
+      <main className="flex-1 w-full flex flex-col overflow-hidden bg-[#fff8f5]">
+        {/* PERFIL 1: ADMINISTRAÇÃO E GESTÃO ESCOLAR */}
+        {activeRole === 'admin' && (
+          <AdminSchoolDashboard />
+        )}
+
+        {/* PERFIL 2: PROFESSOR */}
+        {activeRole === 'professor' && (
+          <TeacherSchoolDashboard />
+        )}
+
+        {/* PERFIL 3: PAIS / ENCARREGADOS DE EDUCAÇÃO */}
+        {activeRole === 'pais' && (
+          <GuardianSchoolDashboard />
+        )}
+      </main>
     </div>
   );
 }

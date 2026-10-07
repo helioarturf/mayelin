@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Smartphone, Menu, X, Utensils, Camera, ChevronDown, GraduationCap, School, ChevronRight } from 'lucide-react';
+import { MessageCircle, Smartphone, Menu, X, Utensils, Camera, ChevronDown, GraduationCap, School, ChevronRight, Calendar } from 'lucide-react';
 import { SCHOOL_IMAGES, SCHOOL_CONTACT } from '../data/mockData';
 
 interface HeaderProps {
@@ -231,16 +231,20 @@ export default function Header({ onOpenPortal, onOpenMenu, onNavigateToSchedule 
             <Camera className="w-4 h-4 text-[#ed145b]" />
             <span>Galeria</span>
           </a>
-          <a
-            href="#agendar-visita"
-            className="text-[#5c3f42] hover:text-[#ed145b] transition-colors py-1 hover:border-b-2 hover:border-[#ed145b]"
-          >
-            Agendar Visita
-          </a>
         </nav>
 
         {/* Trailing Action Buttons */}
-        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 shrink-0">
+          <a
+            id="header-schedule-visit-btn"
+            href="#agendar-visita"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 md:px-4 md:py-2.5 rounded-full bg-[#fd9924] text-white font-['Nunito_Sans'] font-bold text-xs sm:text-sm shadow-sm hover:bg-amber-600 hover:shadow-md active:scale-95 transition-all duration-150"
+          >
+            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="hidden xs:inline sm:inline">Agendar Visita</span>
+            <span className="xs:hidden sm:hidden">Visita</span>
+          </a>
+
           <button
             id="open-parent-portal-header-btn"
             type="button"
@@ -248,7 +252,7 @@ export default function Header({ onOpenPortal, onOpenMenu, onNavigateToSchedule 
             className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 md:px-5 md:py-2.5 rounded-full bg-[#ed145b] text-white font-['Nunito_Sans'] font-bold text-xs sm:text-sm shadow-md hover:bg-pink-600 hover:shadow-lg active:scale-95 transition-all duration-150"
           >
             <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="hidden sm:inline">Portal Escolar</span>
+            <span className="hidden sm:inline">Aceder Portal</span>
             <span className="sm:hidden">Portal</span>
           </button>
 
@@ -374,6 +378,14 @@ export default function Header({ onOpenPortal, onOpenMenu, onNavigateToSchedule 
           </div>
 
           <div className="pt-4 border-t border-[#eee0d6] flex flex-col gap-2.5">
+            <a
+              href="#agendar-visita"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full min-h-[48px] py-3 px-4 rounded-2xl bg-[#fd9924] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:bg-amber-600 active:scale-98 transition-all"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Agendar Visita</span>
+            </a>
             <button
               type="button"
               onClick={() => {
@@ -383,7 +395,7 @@ export default function Header({ onOpenPortal, onOpenMenu, onNavigateToSchedule 
               className="w-full min-h-[48px] py-3 px-4 rounded-2xl bg-[#ed145b] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:bg-pink-600 active:scale-98 transition-all"
             >
               <Smartphone className="w-4 h-4" />
-              <span>Acessar Portal Escolar (Gestão, Professor e Pais)</span>
+              <span>Aceder Portal (3 Perfis)</span>
             </button>
             <a
               href={`https://wa.me/${SCHOOL_CONTACT.phoneClean}`}
