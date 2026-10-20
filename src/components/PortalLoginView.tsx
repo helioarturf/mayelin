@@ -217,7 +217,7 @@ export default function PortalLoginView({
                 Aceder ao Espaço Escolar
               </h1>
               <p className="text-xs sm:text-sm text-[#5c3f42] leading-relaxed max-w-md mx-auto lg:mx-0">
-                Acompanhe o desenvolvimento lúdico dos educandos, as chamadas de presença, avaliações dos 3 ciclos e a gestão financeira em moeda nacional (Kz).
+                Acompanhe o desenvolvimento lúdico dos educandos, as chamadas de presença, a rotina diária e os pagamentos em moeda nacional (Kz).
               </p>
             </div>
 

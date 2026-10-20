@@ -371,7 +371,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </span>
             </div>
             <p className="text-[11px] text-[#5c3f42] mt-0.5">
-              Encarregado Autenticado: <strong>Dr. António Ferreira Silva</strong> • NIF: 5418409382 • Luanda
+              Encarregado Autenticado: <strong>Dr. António Ferreira Silva</strong> • NIF: 218 409 382 • Luanda
             </p>
           </div>
         </div>
@@ -465,7 +465,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           </div>
         </div>
 
-        {/* 4 Métricas Executivas Rápidas do Estudante */}
+        {/* 4 Métricas Rápidas do Estudante */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs shrink-0">
           <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
             <span className="text-[11px] text-[#5c3f42] block font-semibold">Taxa de Presença</span>
@@ -551,7 +551,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               }`}
             >
               <DollarSign className="w-4 h-4 shrink-0" />
-              <span>Propinas & Faturação</span>
+              <span>Propinas & Pagamentos</span>
             </button>
 
             <button
@@ -690,7 +690,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                       <span className="text-base text-[#211a14]">150.000,00 Kz</span>
                     </div>
                     <p className="text-[#5c3f42]">Vencimento a 08/03/2025 via Multicaixa / Débito em Conta</p>
-                    <p className="text-emerald-700 font-semibold">IBAN Registado: AO06 0040 0000 8291 0281 9283 1</p>
+                    <p className="text-emerald-700 font-semibold">O seu IBAN registado: AO06 0040 0000 8291 0281 9283 1</p>
                   </div>
 
                   <button
@@ -698,7 +698,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     onClick={() => setActiveSection('finance')}
                     className="text-xs font-bold text-[#00a6c0] hover:underline flex items-center gap-1"
                   >
-                    <span>Gerir métodos de pagamento e certidão fiscal</span>
+                    <span>Ver os meus recibos e métodos de pagamento</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -883,17 +883,17 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           )}
 
           {/* ========================================================================= */}
-          {/* PILAR 2: PAINEL FINANCEIRO, PROPINAS & FATURAÇÃO                          */}
+          {/* PILAR 2: PROPINAS, PAGAMENTOS & RECIBOS DO ENCARREGADO                    */}
           {/* ========================================================================= */}
           {activeSection === 'finance' && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
-                    Painel Financeiro, Propinas & Faturação Certificada (Kz)
+                    As Minhas Propinas, Pagamentos & Recibos (Kz)
                   </h3>
                   <p className="text-xs text-[#5c3f42]">
-                    Documentos fiscais comunicados à Administração Geral Tributária (AGT) com assinatura digital
+                    Recibos emitidos pela escola a seu favor e documentos para a sua declaração de despesas de educação
                   </p>
                 </div>
 
@@ -905,7 +905,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#211a14] hover:bg-[#382b22] text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>Declaração AGT 2024</span>
+                    <span>Declaração de Despesas (AGT 2024)</span>
                   </button>
 
                   <button
@@ -914,7 +914,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
                   >
                     <CreditCard className="w-3.5 h-3.5" />
-                    <span>2ª Via Multicaixa / MCX</span>
+                    <span>2.ª Via Multicaixa / MCX</span>
                   </button>
 
                   <button
@@ -923,7 +923,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#faebe1] hover:bg-[#f4e6db] text-[#211a14] font-bold text-xs flex items-center gap-1.5 transition-colors"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Alterar IBAN (AO06)</span>
+                    <span>O Meu IBAN (Débito em Conta)</span>
                   </button>
                 </div>
               </div>
@@ -932,7 +932,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
                 <div className="p-4 bg-[#fff8f5] border-b border-[#eee0d6] flex items-center justify-between">
                   <h4 className="font-bold text-sm text-[#211a14]">
-                    Histórico de Mensalidades & Documentos Fiscais (Kz)
+                    Histórico de Mensalidades & Recibos Emitidos pela Escola (Kz)
                   </h4>
                   <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
                     Todas Liquidadas
@@ -943,12 +943,12 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
-                        <th className="p-3.5">Fatura Certificada</th>
+                        <th className="p-3.5">Fatura da Escola</th>
                         <th className="p-3.5">Descrição</th>
                         <th className="p-3.5">Valor Liquidado (Kz)</th>
                         <th className="p-3.5">Método de Liquidação</th>
                         <th className="p-3.5">Data de Liquidação</th>
-                        <th className="p-3.5 text-right">Recibo Oficial AGT</th>
+                        <th className="p-3.5 text-right">Recibo Emitido</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#eee0d6]">
@@ -966,7 +966,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                               className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#8c4f00] font-bold rounded-lg transition-colors inline-flex items-center gap-1"
                             >
                               <Printer className="w-3 h-3" />
-                              <span>Recibo AGT (PDF)</span>
+                              <span>Recibo (PDF)</span>
                             </button>
                           </td>
                         </tr>
@@ -986,7 +986,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
-                    Canal Direto de Comunicação Segura • Segmentado por Polos
+                    Canal Direto de Comunicação Segura • Individual (1:1)
                   </h3>
                   <p className="text-xs text-[#5c3f42]">
                     Diálogo direto com a Tia (Educadora Titular), Coordenação Pedagógica e Secretaria Geral
@@ -1003,7 +1003,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 </button>
               </div>
 
-              {/* Feed Segmentado */}
+              {/* Feed de Mensagens */}
               <div className="space-y-3">
                 {messagesList.map((msg) => (
                   <div
@@ -1315,7 +1315,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-2">
               <p className="font-bold text-[#211a14]">Declaracao_Despesas_Educacao_AGT_2024.pdf</p>
               <p className="text-[#5c3f42]">
-                Total Faturado e Comunicado à AGT em 2024: <strong>1.500.000,00 Kz</strong>
+                Total de propinas liquidadas por si em 2024: <strong>1.500.000,00 Kz</strong>
               </p>
               <p className="text-[#5c3f42] text-[11px]">
                 NIF do Encarregado: 218 409 382 (Dr. António Ferreira Silva)
@@ -1333,13 +1333,13 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Declaração fiscal de educação (AGT) descarregada com sucesso.');
+                  showToast('Declaração de despesas de educação (AGT) descarregada com sucesso.');
                   setTaxDeclarationModal(false);
                 }}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Descarregar Certidão AGT</span>
+                <span>Descarregar Declaração (PDF)</span>
               </button>
             </div>
           </div>
@@ -1359,7 +1359,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <h3 id="mb-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                Emissão de Referência Multicaixa / MCX Express
+                2.ª Via da Referência para Pagamento (Multicaixa / MCX Express)
               </h3>
               <button
                 type="button"
@@ -1411,7 +1411,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 5: ALTERAÇÃO DE IBAN SEPA                                           */}
+      {/* MODAL 5: ATUALIZAÇÃO DO MEU IBAN (DÉBITO EM CONTA)                        */}
       {/* ========================================================================= */}
       {ibanModal && (
         <div
@@ -1423,7 +1423,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <h3 id="iban-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                Atualizar IBAN para Débito em Conta Bancária
+                Atualizar o Meu IBAN para Débito em Conta
               </h3>
               <button
                 type="button"
@@ -1444,7 +1444,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="font-bold text-[#5c3f42] block mb-1">Novo IBAN (Angola - AO06)</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">O seu novo IBAN (Angola - AO06)</label>
                 <input
                   type="text"
                   required
@@ -1454,7 +1454,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </div>
 
               <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-[11px] text-[#5c3f42]">
-                A alteração entra em vigor no ciclo de faturação subsequente após validação com a entidade bancária.
+                A alteração entra em vigor no ciclo de cobrança subsequente após validação com a entidade bancária.
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -1469,7 +1469,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   type="submit"
                   className="px-4 py-2 bg-[#fd9924] text-white rounded-xl font-bold hover:bg-amber-600"
                 >
-                  Confirmar Novo IBAN
+                  Confirmar o Meu IBAN
                 </button>
               </div>
             </form>
@@ -1478,7 +1478,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 6: RECIBO OFICIAL CERTIFICADO AT                                    */}
+      {/* MODAL 6: RECIBO DE PAGAMENTO EMITIDO PELA ESCOLA                          */}
       {/* ========================================================================= */}
       {receiptPreviewRecord && (
         <div
@@ -1490,7 +1490,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <h3 id="rec-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                Recibo de Quitação Certificado (AGT / Geral)
+                Recibo de Pagamento Emitido pela Escola
               </h3>
               <button
                 type="button"
@@ -1507,7 +1507,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <p className="text-[#5c3f42]">{receiptPreviewRecord.desc}</p>
               <p className="text-[#211a14] font-bold">Valor: {receiptPreviewRecord.amount.toLocaleString('pt-AO', { minimumFractionDigits: 2 })} Kz</p>
               <p className="text-emerald-700 font-semibold">Liquidado via {receiptPreviewRecord.method}</p>
-              <p className="text-[#8c6b6d] font-mono text-[10px]">Hash Fiscal: AGT-48192-2025</p>
+              <p className="text-[#8c6b6d] font-mono text-[10px]">Hash de autenticidade: MAY-AGT-48192-2025</p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -1521,7 +1521,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Recibo impresso em formato oficial certificado.');
+                  showToast('Recibo impresso em formato PDF com sucesso.');
                   setReceiptPreviewRecord(null);
                 }}
                 className="px-4 py-2 bg-[#211a14] text-white rounded-xl font-bold text-xs hover:bg-[#382b22] flex items-center gap-1.5"
