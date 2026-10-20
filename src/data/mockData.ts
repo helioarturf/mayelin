@@ -157,7 +157,7 @@ export const INITIAL_STUDENTS: Student[] = [
     avatarLetter: 'L',
     status: 'Presente',
     responsibleName: 'Helena & Arthur Mayelin',
-    teacherName: 'Tia Carol & Profa. Juliana',
+    teacherName: 'Tia Carol & Tia Juliana (Educadoras)',
     allergies: ['Não possui alergias registradas'],
     medications: ['Soro fisiológico 0.9% para higienização nasal se necessário'],
     dailyLogs: [
@@ -165,7 +165,7 @@ export const INITIAL_STUDENTS: Student[] = [
         id: 'log-1',
         time: '08:15',
         title: 'Chegada Acolhedora',
-        description: 'Entrou sorridente com a mochila do elefantinho, abraçou a professora e foi direto ao cantinho das almofadas.',
+        description: 'Entrou sorridente com a mochila do elefantinho, abraçou a Tia e foi direto ao cantinho das almofadas.',
         category: 'activity',
         icon: 'Smile',
         colorClass: 'text-[#ed145b]',
@@ -257,7 +257,7 @@ export const INITIAL_STUDENTS: Student[] = [
     avatarLetter: 'H',
     status: 'Soneca',
     responsibleName: 'Camila & Fernando Rocha',
-    teacherName: 'Profa. Denise & Berçarista Tânia',
+    teacherName: 'Tia Denise & Tia Tânia (Educadoras)',
     allergies: ['APLV em investigação (leite de vaca evitado)'],
     medications: ['Vitamina D3 matinal após o primeiro soninho'],
     dailyLogs: [
@@ -352,7 +352,7 @@ export const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: 'Qual é a proporção de educadores por criança nas salas?',
-    answer: 'No Berçário, mantemos uma rigorosa proporção de 1 educadora/berçarista para cada 3 bebês. No Maternal I & II, temos 1 professora e 1 auxiliar para grupos reduzidos de até 8 a 10 crianças, garantindo atenção individualizada.'
+    answer: 'No Berçário, mantemos uma rigorosa proporção de 1 educadora/berçarista para cada 3 bebês. No Maternal I & II, temos 1 educadora (Tia) e 1 auxiliar carinhosa para grupos reduzidos de até 8 a 10 crianças, garantindo atenção individualizada e afetuosa.'
   }
 ];
 
@@ -439,10 +439,10 @@ export const PROFILE_OPTIONS: UserProfileInfo[] = [
   },
   {
     role: 'professor',
-    label: 'Professor',
-    name: 'Profa. Juliana & Equipe Docente',
-    description: 'Diário de bordo das turmas, chamada diária, registro de rotina e fotos pedagógicas',
-    avatarBadge: 'PROF'
+    label: 'Educadora (Tia)',
+    name: 'Tia Clara Marques & Equipa de Tias',
+    description: 'Diário de rotina, soninho, alimentação, chamada e cuidados afetuosos de creche',
+    avatarBadge: 'TIA'
   },
   {
     role: 'pais',

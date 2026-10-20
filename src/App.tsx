@@ -23,7 +23,7 @@ export default function App() {
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Active portal role state (admin, professor, pais)
+  // Active portal role state (admin, educador/professor, pais)
   const [portalRole, setPortalRole] = useState<UserRole>('pais');
 
   // Selected age group for classroom & visit scheduler
@@ -229,7 +229,7 @@ export default function App() {
         {/* 6.5. Galeria de Fotos Reais & Facebook Oficial */}
         <RealPhotosGallery />
 
-        {/* 7. Gestão Integrada & Portal Escolar (3 Perfis: Gestão, Professor, Pais) */}
+        {/* 7. Gestão Integrada & Portal Escolar (3 Perfis: Gestão, Educadora (Tia), Pais) */}
         <ParentPortalSection
           onOpenPortal={handleOpenPortalWithRole}
           activeStudent={activeStudent}

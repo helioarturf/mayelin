@@ -107,14 +107,14 @@ export interface Testimonial {
   rating: number;
 }
 
-export type UserRole = 'admin' | 'professor' | 'pais';
+export type UserRole = 'admin' | 'professor' | 'educador' | 'pais';
 
 export interface SchoolAnnouncement {
   id: string;
   title: string;
   content: string;
   date: string;
-  target: 'todos' | 'pais' | 'professores';
+  target: 'todos' | 'pais' | 'educadoras' | 'professores';
   priority: 'normal' | 'importante' | 'urgente';
   author: string;
 }

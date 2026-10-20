@@ -18,6 +18,7 @@ import {
   VisitAppointment
 } from '../types';
 import { PROFILE_OPTIONS, SCHOOL_IMAGES } from '../data/mockData';
+import { formatEducatorName } from '../utils/formatters';
 import AdminSchoolDashboard from './AdminSchoolDashboard';
 import TeacherSchoolDashboard from './TeacherSchoolDashboard';
 import GuardianSchoolDashboard from './GuardianSchoolDashboard';
@@ -194,20 +195,20 @@ export default function ParentPortalModal({
             <span>Administração & Gestão</span>
           </button>
 
-          {/* Perfil 2: Professor */}
+          {/* Perfil 2: Educadora (Tia) */}
           <button
             type="button"
             role="tab"
-            aria-selected={activeRole === 'professor'}
+            aria-selected={activeRole === 'professor' || (activeRole as string) === 'educador'}
             onClick={() => handleRoleChange('professor')}
             className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeRole === 'professor'
+              activeRole === 'professor' || (activeRole as string) === 'educador'
                 ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
                 : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
             }`}
           >
             <GraduationCap className="w-3.5 h-3.5 shrink-0" />
-            <span>Professor</span>
+            <span>Educadora (Tia)</span>
           </button>
 
           {/* Perfil 3: Pais / Encarregados */}
@@ -234,7 +235,9 @@ export default function ParentPortalModal({
               Autenticado como:
             </span>
             <span className="text-xs font-extrabold text-[#211a14] leading-tight">
-              {currentUser?.name || PROFILE_OPTIONS.find((p) => p.role === activeRole)?.name || 'Utilizador'}
+              {(activeRole === 'professor' || (activeRole as string) === 'educador')
+                ? formatEducatorName(currentUser?.name || PROFILE_OPTIONS.find((p) => p.role === activeRole)?.name || 'Tia Clara Marques')
+                : (currentUser?.name || PROFILE_OPTIONS.find((p) => p.role === activeRole)?.name || 'Utilizador')}
             </span>
           </div>
 
@@ -258,8 +261,8 @@ export default function ParentPortalModal({
           <AdminSchoolDashboard />
         )}
 
-        {/* PERFIL 2: PROFESSOR */}
-        {activeRole === 'professor' && (
+        {/* PERFIL 2: EDUCADORA (TIA) */}
+        {(activeRole === 'professor' || (activeRole as string) === 'educador') && (
           <TeacherSchoolDashboard />
         )}
 

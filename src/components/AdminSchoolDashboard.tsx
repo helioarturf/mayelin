@@ -40,6 +40,7 @@ import {
   Eye,
   SlidersHorizontal
 } from 'lucide-react';
+import { formatEducatorName } from '../utils/formatters';
 
 interface AdminSchoolDashboardProps {
   onClose?: () => void;
@@ -82,7 +83,7 @@ interface StaffMember {
   twoFactorEnabled: boolean;
   status: 'Ativo' | 'Revogado' | 'Pendente';
   lastAccess: string;
-  accessLevel: 'Super Admin' | 'Docente' | 'SPO (Dados Sensíveis)' | 'Portaria / Segurança';
+  accessLevel: 'Super Admin' | 'Educadora (Tia)' | 'Docente' | 'SPO (Dados Sensíveis)' | 'Portaria / Segurança';
   email: string;
 }
 
@@ -117,6 +118,9 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   const [saftModalOpen, setSaftModalOpen] = useState(false);
   const [addClassModalOpen, setAddClassModalOpen] = useState(false);
   const [addStaffModalOpen, setAddStaffModalOpen] = useState(false);
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [newStaffRole, setNewStaffRole] = useState<'Educadora (Tia)' | 'Portaria' | 'SPO' | 'Admin'>('Educadora (Tia)');
   const [commsModalOpen, setCommsModalOpen] = useState(false);
 
   // Data: Turmas (Apenas Educação Infantil e Creche - 3 Ciclos de Desenvolvimento)
@@ -127,8 +131,8 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       cycle: 'Berçário',
       capacity: 14,
       enrolled: 14,
-      ratio: '1:3 (Educadora + 2 Auxiliares)',
-      leadTeacher: 'Educadora Denise Santos',
+      ratio: '1:3 (Tia Educadora + 2 Auxiliares)',
+      leadTeacher: 'Tia Denise Santos',
       subjects: ['Estimulação Sensorial', 'Psicomotricidade Inicial', 'Massagem Shantala', 'Lactário & Acolhimento'],
       room: 'Ala dos Bebés - Sala 01 (Climatizada & Acústica)',
       schedule: '07:30 - 18:30 (Integral/Semi)'
@@ -139,8 +143,8 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       cycle: 'Maternal I & II',
       capacity: 16,
       enrolled: 16,
-      ratio: '1:5 (Educadora + Auxiliar)',
-      leadTeacher: 'Educadora Carla Mendes',
+      ratio: '1:5 (Tia Educadora + Auxiliar)',
+      leadTeacher: 'Tia Carla Mendes',
       subjects: ['Linguagem Oral', 'Exploração Sensorial', 'Primeiros Passos', 'Musicalização Infantil'],
       room: 'Pavilhão Baby - Sala 02',
       schedule: '07:30 - 18:30 (Integral/Semi)'
@@ -151,8 +155,8 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       cycle: 'Maternal I & II',
       capacity: 18,
       enrolled: 18,
-      ratio: '1:7 (Educadora + Auxiliar)',
-      leadTeacher: 'Educadora Teresa Melo',
+      ratio: '1:7 (Tia Educadora + Auxiliar)',
+      leadTeacher: 'Tia Teresa Melo',
       subjects: ['Expressão Corporal', 'Iniciação ao Desfralde', 'Socialização Lúdica', 'Pintura & Texturas'],
       room: 'Pavilhão Baby - Sala 03',
       schedule: '07:30 - 18:30 (Integral/Semi)'
@@ -163,8 +167,8 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       cycle: 'Pré-Escolar & Jardim de Infância',
       capacity: 20,
       enrolled: 20,
-      ratio: '1:8 (Educadora + Auxiliar)',
-      leadTeacher: 'Profª Maria Clara Marques',
+      ratio: '1:8 (Tia Educadora + Auxiliar)',
+      leadTeacher: 'Tia Clara Marques',
       subjects: ['Pré-Letramento Lúdico', 'Raciocínio Concreto', 'Natureza & Horta', 'Inglês Lúdico'],
       room: 'Pavilhão A - Sala 02',
       schedule: '07:30 - 18:30 (Integral/Semi)'
@@ -175,8 +179,8 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
       cycle: 'Pré-Escolar & Jardim de Infância',
       capacity: 22,
       enrolled: 21,
-      ratio: '1:10 (Educador + Auxiliar)',
-      leadTeacher: 'Prof. António Silva',
+      ratio: '1:10 (Tia Educadora + Auxiliar)',
+      leadTeacher: 'Tia Sofia Neves',
       subjects: ['Literacia Emergente', 'Pensamento Matemático Concreto', 'Oficinas Maker', 'Autonomia & Cidadania'],
       room: 'Pavilhão A - Sala 01',
       schedule: '07:30 - 18:30 (Integral/Semi)'
@@ -254,25 +258,25 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   const [staffList, setStaffList] = useState<StaffMember[]>([
     {
       id: 'staff-1',
-      name: 'Prof. António Silva',
-      role: 'Professor Titular 1º Ciclo',
-      department: 'Corpo Docente',
+      name: 'Tia Clara Marques',
+      role: 'Educadora Titular (Jardim de Infância)',
+      department: 'Corpo de Educadoras (Tias)',
       twoFactorEnabled: true,
       status: 'Ativo',
       lastAccess: 'Hoje, 09:18 (IP Institucional)',
-      accessLevel: 'Docente',
-      email: 'a.silva@escolamayelin.pt'
+      accessLevel: 'Educadora (Tia)',
+      email: 'tia.clara@escolamayelin.pt'
     },
     {
       id: 'staff-2',
-      name: 'Educadora Teresa Melo',
-      role: 'Educadora de Infância',
-      department: 'Educação Pré-Escolar',
+      name: 'Tia Teresa Melo',
+      role: 'Educadora de Infância (Maternal)',
+      department: 'Corpo de Educadoras (Tias)',
       twoFactorEnabled: true,
       status: 'Ativo',
       lastAccess: 'Hoje, 08:04 (Mobile App)',
-      accessLevel: 'Docente',
-      email: 't.melo@escolamayelin.pt'
+      accessLevel: 'Educadora (Tia)',
+      email: 'tia.teresa@escolamayelin.pt'
     },
     {
       id: 'staff-3',
@@ -700,10 +704,10 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                   </div>
                 </div>
 
-                {/* 2. Corpo Docente e Colaboradores */}
+                {/* 2. Corpo de Educadoras (Tias) & Equipa */}
                 <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-sky-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#5c3f42]">Corpo Docente & Equipa</span>
+                    <span className="text-xs font-bold text-[#5c3f42]">Corpo de Educadoras (Tias) & Equipa</span>
                     <div className="w-8 h-8 rounded-xl bg-sky-100 text-[#00a6c0] flex items-center justify-center">
                       <Users className="w-4 h-4" />
                     </div>
@@ -905,7 +909,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                       <tr>
                         <th className="p-3.5">Turma & Ciclo</th>
                         <th className="p-3.5">Lotação / Rácio</th>
-                        <th className="p-3.5">Professor Titular / Coordenador</th>
+                        <th className="p-3.5">Educadora Titular (Tia) / Coordenadora</th>
                         <th className="p-3.5">Matriz de Disciplinas</th>
                         <th className="p-3.5 text-right">Ações Pedagógicas</th>
                       </tr>
@@ -1553,11 +1557,11 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
               </div>
 
               <div>
-                <label className="font-bold text-[#5c3f42] block mb-1">Professor Titular / Educador</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Educadora Titular (Tia) / Coordenadora</label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Profa. Beatriz Lima"
+                  placeholder="Ex: Tia Beatriz Lima (Educadora)"
                   className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                 />
               </div>
@@ -1610,19 +1614,78 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                showToast('Convite institucional enviado com ativação mandatória de 2FA.');
+                if (!newStaffName.trim() || !newStaffEmail.trim()) return;
+
+                const isEducadora = newStaffRole === 'Educadora (Tia)';
+                const processedName = isEducadora ? formatEducatorName(newStaffName) : newStaffName.trim();
+
+                const newStaffItem: StaffMember = {
+                  id: `staff-${Date.now()}`,
+                  name: processedName,
+                  role: isEducadora
+                    ? 'Educadora de Infância (Tia)'
+                    : newStaffRole === 'Portaria'
+                    ? 'Agente de Portaria & Segurança'
+                    : newStaffRole === 'SPO'
+                    ? 'Técnico de Psicologia (SPO)'
+                    : 'Secretaria Geral & Gestão',
+                  department: isEducadora
+                    ? 'Corpo de Educadoras (Tias)'
+                    : newStaffRole === 'Portaria'
+                    ? 'Operações e Segurança'
+                    : newStaffRole === 'SPO'
+                    ? 'SPO (Serviço de Psicologia e Orientação)'
+                    : 'Secretaria e Conselho Executivo',
+                  twoFactorEnabled: true,
+                  status: 'Ativo',
+                  lastAccess: 'Convite enviado (Pendente 2FA)',
+                  accessLevel: isEducadora
+                    ? 'Educadora (Tia)'
+                    : newStaffRole === 'Portaria'
+                    ? 'Portaria / Segurança'
+                    : newStaffRole === 'SPO'
+                    ? 'SPO (Dados Sensíveis)'
+                    : 'Super Admin',
+                  email: newStaffEmail.trim()
+                };
+
+                setStaffList([newStaffItem, ...staffList]);
+                setNewStaffName('');
+                setNewStaffEmail('');
                 setAddStaffModalOpen(false);
+
+                showToast(
+                  isEducadora
+                    ? `Educadora cadastrada com sucesso como "${processedName}" com o prefixo 'Tia'!`
+                    : `Colaborador ${processedName} adicionado à equipa com sucesso.`
+                );
               }}
-              className="space-y-3 text-xs"
+              className="space-y-3.5 text-xs"
             >
               <div>
-                <label className="font-bold text-[#5c3f42] block mb-1">Nome Completo</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">
+                  Nome Completo {newStaffRole === 'Educadora (Tia)' && <span className="text-[#ed145b] font-normal">• Prefixo "Tia" aplicado automaticamente</span>}
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Prof. Gonçalo Ferreira"
-                  className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
+                  value={newStaffName}
+                  onChange={(e) => setNewStaffName(e.target.value)}
+                  placeholder={
+                    newStaffRole === 'Educadora (Tia)'
+                      ? 'Ex: Paula Santos (ficará registada como Tia Paula Santos)'
+                      : 'Ex: Gonçalo Ferreira'
+                  }
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#ed145b] text-[#211a14] bg-[#fff8f5]"
                 />
+                {newStaffRole === 'Educadora (Tia)' && newStaffName.trim() && (
+                  <p className="text-[11px] text-[#ed145b] font-bold mt-1 flex items-center gap-1">
+                    <span>Nome oficial no portal:</span>
+                    <span className="bg-pink-100 text-[#ed145b] px-2 py-0.5 rounded-md">
+                      {formatEducatorName(newStaffName)}
+                    </span>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1630,20 +1693,36 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 <input
                   type="email"
                   required
+                  value={newStaffEmail}
+                  onChange={(e) => setNewStaffEmail(e.target.value)}
                   placeholder="nome@escolamayelin.pt"
-                  className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#ed145b] text-[#211a14] bg-[#fff8f5]"
                 />
               </div>
 
               <div>
                 <label className="font-bold text-[#5c3f42] block mb-1">Nível de Acesso (RBAC)</label>
-                <select className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white">
-                  <option value="Docente">Docente (Diário e Frequência)</option>
+                <select
+                  value={newStaffRole}
+                  onChange={(e) => setNewStaffRole(e.target.value as any)}
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white text-[#211a14] focus:outline-none focus:border-[#ed145b]"
+                >
+                  <option value="Educadora (Tia)">Educadora (Tia - Diário de Cuidados, Observações & Frequência)</option>
                   <option value="Portaria">Portaria / Segurança (Apenas Saídas)</option>
                   <option value="SPO">SPO (Psicologia e Dados Sensíveis)</option>
                   <option value="Admin">Administrativo / Secretaria</option>
                 </select>
               </div>
+
+              {newStaffRole === 'Educadora (Tia)' && (
+                <div className="p-3 bg-pink-50 border border-pink-200 rounded-xl text-[11px] text-[#5c3f42] flex items-start gap-2">
+                  <span className="text-base leading-none">🌸</span>
+                  <div>
+                    <strong className="text-[#ed145b] block font-bold">Norma Pedagógica da Creche:</strong>
+                    Por se tratar de uma creche acolhedora, todas as educadoras e berçaristas são tratadas carinhosamente por <strong>"Tia"</strong>. O prefixo é padronizado em todo o portal escolar, diários e comunicações às famílias.
+                  </div>
+                </div>
+              )}
 
               <div className="p-3 bg-[#fff8f5] border border-[#eee0d6] rounded-xl text-[11px] text-[#5c3f42]">
                 O colaborador receberá um link seguro de ativação com chave OTP para configuração mandatória de 2FA.
@@ -1653,15 +1732,15 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 <button
                   type="button"
                   onClick={() => setAddStaffModalOpen(false)}
-                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold cursor-pointer hover:bg-[#eee0d6]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#ed145b] text-white rounded-xl font-bold hover:bg-pink-600"
+                  className="px-4 py-2 bg-[#ed145b] text-white rounded-xl font-bold hover:bg-pink-600 cursor-pointer shadow-xs active:scale-95"
                 >
-                  Enviar Convite
+                  Cadastrar Colaborador
                 </button>
               </div>
             </form>

@@ -53,15 +53,27 @@ const DEFAULT_CREDENTIALS: Record<UserRole, { email: string; pass: string; user:
     }
   },
   professor: {
-    email: 'antonio.silva@mayelinkids.com',
-    pass: 'Docente2025!',
+    email: 'tia.clara@mayelinkids.com',
+    pass: 'Educadora2025!',
     user: {
       id: 'usr-prof-1',
-      name: 'Prof. António Silva',
-      email: 'antonio.silva@mayelinkids.com',
+      name: 'Tia Clara Marques',
+      email: 'tia.clara@mayelinkids.com',
       role: 'professor',
-      title: 'Educador Titular - Jardim de Infância',
-      avatarLetter: 'A'
+      title: 'Educadora de Infância (Tia Clara)',
+      avatarLetter: 'C'
+    }
+  },
+  educador: {
+    email: 'tia.clara@mayelinkids.com',
+    pass: 'Educadora2025!',
+    user: {
+      id: 'usr-prof-1',
+      name: 'Tia Clara Marques',
+      email: 'tia.clara@mayelinkids.com',
+      role: 'educador',
+      title: 'Educadora de Infância (Tia Clara)',
+      avatarLetter: 'C'
     }
   },
   pais: {
@@ -226,8 +238,8 @@ export default function PortalLoginView({
                   <GraduationCap className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-xs font-bold text-[#211a14]">Espaço do Professor Titular</h2>
-                  <p className="text-[11px] text-[#5c3f42]">Chamada diária da manhã, pauta qualitativa e planos curriculares.</p>
+                  <h2 className="text-xs font-bold text-[#211a14]">Espaço da Educadora (Tia)</h2>
+                  <p className="text-[11px] text-[#5c3f42]">Rotina de cuidados, soninho, chamadas da manhã e estímulo afetivo.</p>
                 </div>
               </div>
 
@@ -279,7 +291,7 @@ export default function PortalLoginView({
                     <span>Administração</span>
                   </button>
 
-                  {/* Teacher Tab */}
+                  {/* Educadora (Tia) Tab */}
                   <button
                     type="button"
                     onClick={() => handleRoleTabChange('professor')}
@@ -290,7 +302,7 @@ export default function PortalLoginView({
                     }`}
                   >
                     <GraduationCap className="w-3.5 h-3.5 shrink-0" />
-                    <span>Professor</span>
+                    <span>Educadora (Tia)</span>
                   </button>
 
                   {/* Parents Tab */}
@@ -460,13 +472,13 @@ export default function PortalLoginView({
                     className="p-2.5 rounded-xl bg-[#fff8f5] hover:bg-[#faebe1] border border-[#eee0d6] text-left transition-colors flex items-center gap-2 group cursor-pointer"
                   >
                     <div className="w-7 h-7 rounded-lg bg-sky-100 text-[#00a6c0] flex items-center justify-center text-[10px] font-extrabold">
-                      PROF
+                      TIA
                     </div>
                     <div className="min-w-0">
                       <span className="text-[11px] font-bold text-[#211a14] block truncate group-hover:text-[#00a6c0]">
-                        Prof. António
+                        Tia Clara
                       </span>
-                      <span className="text-[10px] text-[#5c3f42] block truncate">Jardim de Infância</span>
+                      <span className="text-[10px] text-[#5c3f42] block truncate">Educadora de Infância</span>
                     </div>
                   </button>
 

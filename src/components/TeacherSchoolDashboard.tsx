@@ -36,7 +36,7 @@ interface TeacherSchoolDashboardProps {
   onClose?: () => void;
 }
 
-type TeacherSection = 'overview' | 'attendance' | 'grades' | 'lessons' | 'incidents' | 'settings';
+type TeacherSection = 'overview' | 'attendance' | 'observations' | 'lessons' | 'incidents' | 'settings';
 
 type AttendanceStatus = 'Presente' | 'Ausente' | 'Atrasado';
 
@@ -49,14 +49,17 @@ interface StudentAttendance {
   note?: string;
 }
 
-interface StudentGrade {
+interface ChildObservation {
   id: string;
-  name: string;
-  number: number;
-  formative: number; // 25%
-  makerProject: number; // 25%
-  summativeExam: number; // 35%
-  participation: number; // 15%
+  studentNumber: number;
+  studentName: string;
+  classroom: string;
+  date: string;
+  category: 'Adaptação & Emoções' | 'Alimentação & Apetite' | 'Soninho & Repouso' | 'Desenvolvimento Motor' | 'Linguagem & Interação' | 'Saúde & Cuidados';
+  priority: 'Rotina' | 'Importante' | 'Conquista / Marco';
+  text: string;
+  recordedBy: string;
+  notifiedParents: boolean;
 }
 
 interface LessonPlan {
@@ -158,37 +161,104 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
     showToast('Folha de presenças sincronizada e enviada para a Secretaria Geral com sucesso.');
   };
 
-  // 2. Pilar de Notas e Pautas de Educação Infantil
-  const [selectedSubject, setSelectedSubject] = useState<'Linguagem e Expressão Oral' | 'Estimulação Sensorial e Lógica' | 'Psicomotricidade & Esquema Corporal' | 'Expressão Plástica & Criatividade'>('Linguagem e Expressão Oral');
-
-  const [gradesList, setGradesList] = useState<StudentGrade[]>([
-    { id: 'g-1', number: 1, name: 'Afonso Magalhães', formative: 84, makerProject: 90, summativeExam: 82, participation: 88 },
-    { id: 'g-2', number: 2, name: 'Beatriz Alcantara', formative: 92, makerProject: 95, summativeExam: 94, participation: 96 },
-    { id: 'g-3', number: 3, name: 'Carolina Neves', formative: 78, makerProject: 82, summativeExam: 75, participation: 80 },
-    { id: 'g-4', number: 4, name: 'Diogo Figueiredo', formative: 70, makerProject: 75, summativeExam: 68, participation: 72 },
-    { id: 'g-5', number: 5, name: 'Eduardo Silveira', formative: 88, makerProject: 85, summativeExam: 86, participation: 90 },
-    { id: 'g-6', number: 6, name: 'Francisca Lopes', formative: 80, makerProject: 88, summativeExam: 78, participation: 85 },
-    { id: 'g-7', number: 7, name: 'Lucas Oliveira Mayelin', formative: 95, makerProject: 98, summativeExam: 92, participation: 95 },
-    { id: 'g-8', number: 8, name: 'Sofia Rocha Ramos', formative: 88, makerProject: 92, summativeExam: 85, participation: 90 }
+  // 2. Pilar de Observações & Diário de Desenvolvimento da Criança (Sem notas numéricas)
+  const [observationsList, setObservationsList] = useState<ChildObservation[]>([
+    {
+      id: 'obs-1',
+      studentNumber: 7,
+      studentName: 'Lucas Oliveira Mayelin',
+      classroom: 'Jardim de Infância (Estrelinhas)',
+      date: 'Hoje, às 10:30',
+      category: 'Alimentação & Apetite',
+      priority: 'Conquista / Marco',
+      text: 'O Lucas almoçou toda a sopinha de legumes e o peixinho sem necessidade de incentivo. Demonstrou autonomia exemplar ao segurar a colher e bebeu todo o sumo natural.',
+      recordedBy: 'Tia Clara Marques',
+      notifiedParents: true
+    },
+    {
+      id: 'obs-2',
+      studentNumber: 8,
+      studentName: 'Sofia Rocha Ramos',
+      classroom: 'Jardim de Infância (Estrelinhas)',
+      date: 'Hoje, às 09:45',
+      category: 'Desenvolvimento Motor',
+      priority: 'Conquista / Marco',
+      text: 'Na oficina de psicomotricidade, completou o percurso dos blocos de equilíbrio com muita confiança e ajudou os coleguinhas a guardar os brinquedos na cesta.',
+      recordedBy: 'Tia Clara Marques',
+      notifiedParents: true
+    },
+    {
+      id: 'obs-3',
+      studentNumber: 2,
+      studentName: 'Beatriz Alcantara',
+      classroom: 'Jardim de Infância (Estrelinhas)',
+      date: 'Hoje, às 08:30',
+      category: 'Adaptação & Emoções',
+      priority: 'Rotina',
+      text: 'Chegada muito alegre e comunicativa! Abraçou as Tias e foi diretamente para a roda de canções infantis.',
+      recordedBy: 'Tia Clara Marques',
+      notifiedParents: false
+    },
+    {
+      id: 'obs-4',
+      studentNumber: 1,
+      studentName: 'Afonso Magalhães',
+      classroom: 'Jardim de Infância (Estrelinhas)',
+      date: 'Ontem, às 13:15',
+      category: 'Soninho & Repouso',
+      priority: 'Importante',
+      text: 'Dormiu um sono tranquilo de 1 hora e meia na soneca da tarde ao som de música ambiente de ninar. Acordou bem disposto e sem febre.',
+      recordedBy: 'Tia Clara Marques',
+      notifiedParents: true
+    },
+    {
+      id: 'obs-5',
+      studentNumber: 3,
+      studentName: 'Carolina Neves',
+      classroom: 'Jardim de Infância (Estrelinhas)',
+      date: 'Ontem, às 11:00',
+      category: 'Linguagem & Interação',
+      priority: 'Conquista / Marco',
+      text: 'Contou uma historinha com fantoches aos coleguinhas, gesticulando e sorrindo. Excelente progresso de expressão oral.',
+      recordedBy: 'Tia Clara Marques',
+      notifiedParents: true
+    }
   ]);
 
-  // Função para cálculo ponderado oficial de Educação Infantil:
-  // Observação Contínua (25%), Projetos Sensoriais / Horta (25%), Psicomotricidade & Cognitivo (35%), Autonomia (15%)
-  const calculateFinalAverage = (g: StudentGrade) => {
-    const avg = g.formative * 0.25 + g.makerProject * 0.25 + g.summativeExam * 0.35 + g.participation * 0.15;
-    return Math.round(avg);
-  };
+  const [newObsModal, setNewObsModal] = useState(false);
+  const [obsStudentName, setObsStudentName] = useState('Lucas Oliveira Mayelin');
+  const [obsCategory, setObsCategory] = useState<ChildObservation['category']>('Adaptação & Emoções');
+  const [obsPriority, setObsPriority] = useState<ChildObservation['priority']>('Rotina');
+  const [obsText, setObsText] = useState('');
+  const [obsNotifyParents, setObsNotifyParents] = useState(true);
+  const [filterStudent, setFilterStudent] = useState<string>('todos');
+  const [filterCategory, setFilterCategory] = useState<string>('todas');
 
-  const getQualitativeAssessment = (score: number) => {
-    if (score >= 90) return { label: 'Excelente', color: 'bg-emerald-100 text-emerald-800' };
-    if (score >= 75) return { label: 'Muito Bom', color: 'bg-sky-100 text-sky-800' };
-    if (score >= 60) return { label: 'Suficiente', color: 'bg-amber-100 text-amber-800' };
-    return { label: 'Suficiente com Apoio', color: 'bg-rose-100 text-rose-800' };
-  };
+  const handleAddObservation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!obsText.trim()) return;
 
-  const handleUpdateGrade = (id: string, field: keyof StudentGrade, value: number) => {
-    setGradesList((prev) =>
-      prev.map((g) => (g.id === id ? { ...g, [field]: value } : g))
+    const targetStudent = attendanceList.find((s) => s.name === obsStudentName);
+    const newObs: ChildObservation = {
+      id: `obs-${Date.now()}`,
+      studentNumber: targetStudent?.number || 1,
+      studentName: obsStudentName,
+      classroom: activeClass,
+      date: 'Hoje, há momentos',
+      category: obsCategory,
+      priority: obsPriority,
+      text: obsText.trim(),
+      recordedBy: 'Tia Clara Marques',
+      notifiedParents: obsNotifyParents
+    };
+
+    setObservationsList([newObs, ...observationsList]);
+    setObsText('');
+    setNewObsModal(false);
+    showToast(
+      obsNotifyParents
+        ? `Observação registada por Tia Clara e notificada aos pais de ${obsStudentName}!`
+        : `Observação interna registada com sucesso para ${obsStudentName}.`
     );
   };
 
@@ -309,11 +379,11 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
   return (
     <div
       role="region"
-      aria-label="Painel do Professor"
+      aria-label="Painel da Educadora (Tia)"
       className="bg-[#fff8f5] text-[#211a14] w-full flex-1 flex flex-col overflow-hidden font-['Nunito_Sans'] antialiased min-h-0"
     >
       {/* ========================================================================= */}
-      {/* TOPNAVBAR - NAVEGAÇÃO SUPERIOR DO PROFESSOR (RBAC DOCENTE)                */}
+      {/* TOPNAVBAR - NAVEGAÇÃO SUPERIOR DA EDUCADORA (RBAC INFANTIL)                */}
       {/* ========================================================================= */}
       <header
         className="bg-white border-b border-[#eee0d6] px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
@@ -326,7 +396,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-sm sm:text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
-                Espaço do Professor Titular
+                Espaço da Educadora Titular (Tia)
               </h1>
               {/* Seletor rápido de turma ativa */}
               <div className="flex items-center gap-1 bg-[#faebe1] rounded-lg p-0.5 border border-[#eee0d6]">
@@ -354,17 +424,17 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               </span>
             </div>
             <p className="text-[11px] text-[#5c3f42] mt-0.5">
-              Prof. António Silva • Sessão Autenticada • {currentDate}
+              Tia Clara Marques • Educadora de Infância • Sessão Autenticada • {currentDate}
             </p>
           </div>
         </div>
 
-        {/* Action Buttons: Guardar Rascunho & Exportar Pauta PDF */}
+        {/* Action Buttons: Guardar Rascunho & Exportar Relatório PDF */}
         <div className="flex items-center justify-between md:justify-end gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => showToast('Rascunho de pauta e sumários salvo com sucesso.')}
-            className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#faebe1] text-[#5c3f42] hover:bg-[#f4e6db] font-bold text-xs flex items-center gap-1.5 transition-colors"
+            onClick={() => showToast('Rascunho de observações diárias e sumários salvo com sucesso.')}
+            className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#faebe1] text-[#5c3f42] hover:bg-[#f4e6db] font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Save className="w-3.5 h-3.5" />
             <span>Guardar Rascunho</span>
@@ -373,10 +443,10 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           <button
             type="button"
             onClick={() => setPdfExportModal(true)}
-            className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#00a6c0] text-white hover:bg-sky-700 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+            className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#00a6c0] text-white hover:bg-sky-700 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>Exportar Pauta PDF</span>
+            <span>Exportar Relatório PDF</span>
           </button>
 
           {onClose && (
@@ -401,7 +471,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
         {/* SideNavBar Lateral */}
         <nav
           className="w-full md:w-64 bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-[#eee0d6]"
-          aria-label="Fluxos de trabalho do professor"
+          aria-label="Fluxos de trabalho da educadora"
         >
           <div className="flex md:flex-col gap-1 w-full">
             <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#8c6b6d] px-3 py-1.5 hidden md:block">
@@ -418,7 +488,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
               }`}
             >
               <Activity className="w-4 h-4 shrink-0" />
-              <span>Visão Geral Docente</span>
+              <span>Visão Geral da Educadora</span>
             </button>
 
             <button
@@ -436,15 +506,15 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
 
             <button
               type="button"
-              onClick={() => setActiveSection('grades')}
+              onClick={() => setActiveSection('observations')}
               className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
-                activeSection === 'grades'
+                activeSection === 'observations'
                   ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
                   : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
-              <Award className="w-4 h-4 shrink-0" />
-              <span>Lançamento de Notas & Pautas</span>
+              <Heart className="w-4 h-4 shrink-0" />
+              <span>Observações & Desenvolvimento</span>
             </button>
 
             <button
@@ -476,9 +546,9 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
 
           <div className="pt-3 border-t border-[#eee0d6] hidden md:block">
             <div className="p-2.5 rounded-xl bg-[#faebe1] text-[11px] space-y-1 border border-[#eee0d6]">
-              <p className="font-bold text-[#211a14]">Conselho Pedagógico</p>
+              <p className="font-bold text-[#211a14]">Diário de Desenvolvimento</p>
               <p className="text-[#5c3f42]">
-                Pauta oficial do 2º Trimestre sujeita a homologação até 20 de Outubro.
+                Acompanhamento contínuo e afetuoso sem notas nem exames numéricos. Observações diárias pelas Tias.
               </p>
             </div>
           </div>
@@ -502,7 +572,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           )}
 
           {/* ========================================================================= */}
-          {/* 1. VISÃO GERAL DOCENTE & INDICADORES RÁPIDOS DA TURMA ATIVA               */}
+          {/* 1. VISÃO GERAL DA EDUCADORA & INDICADORES RÁPIDOS DA TURMA ATIVA          */}
           {/* ========================================================================= */}
           {activeSection === 'overview' && (
             <div className="space-y-6 animate-in fade-in duration-150">
@@ -524,19 +594,19 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                   </p>
                 </div>
 
-                {/* 2. Avaliações Lançadas */}
+                {/* 2. Observações Registadas */}
                 <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs hover:border-sky-200 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#5c3f42]">Avaliações Lançadas</span>
-                    <div className="w-8 h-8 rounded-xl bg-sky-100 text-[#00a6c0] flex items-center justify-center">
-                      <Award className="w-4 h-4" />
+                    <span className="text-xs font-bold text-[#5c3f42]">Observações da Turma</span>
+                    <div className="w-8 h-8 rounded-xl bg-pink-100 text-[#ed145b] flex items-center justify-center">
+                      <Heart className="w-4 h-4" />
                     </div>
                   </div>
                   <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
-                    18/24
+                    {observationsList.length} registos
                   </p>
-                  <p className="text-xs text-sky-700 font-bold mt-2">
-                    Média ponderada da turma: 82%
+                  <p className="text-xs text-emerald-700 font-bold mt-2">
+                    100% das crianças com registos afetivos atualizados
                   </p>
                 </div>
 
@@ -590,11 +660,14 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
 
                   <button
                     type="button"
-                    onClick={() => setActiveSection('grades')}
-                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-sky-50 hover:border-sky-200 text-[#211a14] text-xs font-bold flex items-center justify-between transition-all"
+                    onClick={() => {
+                      setActiveSection('observations');
+                      setNewObsModal(true);
+                    }}
+                    className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-sky-50 hover:border-sky-200 text-[#211a14] text-xs font-bold flex items-center justify-between transition-all cursor-pointer"
                   >
-                    <span>Digitar Notas e Trabalhos Maker</span>
-                    <Award className="w-4 h-4 text-[#00a6c0]" />
+                    <span>Escrever Observação sobre Criança</span>
+                    <Heart className="w-4 h-4 text-[#ed145b]" />
                   </button>
 
                   <button
@@ -788,139 +861,216 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
           )}
 
           {/* ========================================================================= */}
-          {/* 3. PILAR 2: LANÇAMENTO E DIGITAÇÃO DE NOTAS & AVALIAÇÕES                  */}
+          {/* 3. PILAR 2: OBSERVAÇÕES PEDAGÓGICAS & DESENVOLVIMENTO DA CRIANÇA           */}
           {/* ========================================================================= */}
-          {activeSection === 'grades' && (
-            <div className="space-y-4 animate-in fade-in duration-150">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {activeSection === 'observations' && (
+            <div className="space-y-5 animate-in fade-in duration-150">
+              {/* Header com Contexto da Creche & Botão de Nova Observação */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
                 <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
-                    Pauta Ponderada Oficial de Educação Infantil • {activeClass}
-                  </h3>
-                  <p className="text-xs text-[#5c3f42]">
-                    Cálculo Automático: Observação Contínua (25%) + Projetos Sensoriais / Horta (25%) + Psicomotricidade & Cognitivo (35%) + Autonomia (15%)
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ed145b]" />
+                    <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
+                      Observações Pedagógicas & Diário de Desenvolvimento • {activeClass}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[#5c3f42] mt-1 max-w-2xl">
+                    Na creche e no jardim de infância <strong>não existem notas nem exames numéricos</strong>. O acompanhamento é contínuo e qualitativo, baseado nas observações atentas das Tias sobre a alimentação, soninho, autonomia, linguagem e afeto de cada criança.
                   </p>
                 </div>
 
-                {/* Seletor de Disciplinas */}
-                <div className="flex items-center gap-1.5 overflow-x-auto bg-white p-1 rounded-xl border border-[#eee0d6]">
-                  {(
-                    [
-                      'Linguagem e Expressão Oral',
-                      'Estimulação Sensorial e Lógica',
-                      'Psicomotricidade & Esquema Corporal',
-                      'Expressão Plástica & Criatividade'
-                    ] as const
-                  ).map((disc) => (
-                    <button
-                      key={disc}
-                      type="button"
-                      onClick={() => setSelectedSubject(disc)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                        selectedSubject === disc
-                          ? 'bg-[#00a6c0] text-white shadow-xs'
-                          : 'text-[#5c3f42] hover:text-[#211a14]'
-                      }`}
-                    >
-                      {disc}
-                    </button>
-                  ))}
+                <button
+                  type="button"
+                  onClick={() => setNewObsModal(true)}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ed145b] to-[#fd9924] hover:from-pink-600 hover:to-amber-500 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all shrink-0 cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Escrever Observação</span>
+                </button>
+              </div>
+
+              {/* Seletor Rápido de Crianças da Turma Ativa */}
+              <div className="bg-white p-4 rounded-2xl border border-[#eee0d6] shadow-xs space-y-2.5">
+                <span className="text-[11px] font-bold text-[#8c6b6d] uppercase tracking-wider block">
+                  Filtrar por Criança da Turma ({attendanceList.length} matriculados):
+                </span>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  <button
+                    type="button"
+                    onClick={() => setFilterStudent('todos')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      filterStudent === 'todos'
+                        ? 'bg-[#00a6c0] text-white shadow-xs'
+                        : 'bg-[#fff8f5] text-[#5c3f42] hover:bg-[#faebe1] border border-[#eee0d6]'
+                    }`}
+                  >
+                    Todas as Crianças ({observationsList.length})
+                  </button>
+
+                  {attendanceList.map((st) => {
+                    const count = observationsList.filter((o) => o.studentName === st.name).length;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => setFilterStudent(st.name)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                          filterStudent === st.name
+                            ? 'bg-[#ed145b] text-white shadow-xs'
+                            : 'bg-[#fff8f5] text-[#5c3f42] hover:bg-[#faebe1] border border-[#eee0d6]'
+                        }`}
+                      >
+                        <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-extrabold">
+                          {st.name.charAt(0)}
+                        </span>
+                        <span>{st.name.split(' ')[0]}</span>
+                        {count > 0 && (
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${filterStudent === st.name ? 'bg-white text-[#ed145b]' : 'bg-pink-100 text-[#ed145b]'}`}>
+                            {count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Tabela de Pauta Ponderada */}
-              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
-                      <tr>
-                        <th className="p-3 w-10 text-center">Nº</th>
-                        <th className="p-3">Nome do Aluno</th>
-                        <th className="p-3 text-center">Ficha Formativa (25%)</th>
-                        <th className="p-3 text-center">Trabalho Maker/Horta (25%)</th>
-                        <th className="p-3 text-center">Exame Sumativo (35%)</th>
-                        <th className="p-3 text-center">Participação (15%)</th>
-                        <th className="p-3 text-center">Média Ponderada</th>
-                        <th className="p-3 text-center">Parecer Qualitativo</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#eee0d6]">
-                      {gradesList.map((grade) => {
-                        const finalScore = calculateFinalAverage(grade);
-                        const assessment = getQualitativeAssessment(finalScore);
+              {/* Filtro por Categoria / Âmbito de Desenvolvimento */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+                {[
+                  { id: 'todas', label: 'Todas as Áreas' },
+                  { id: 'Adaptação & Emoções', label: 'Adaptação & Emoções' },
+                  { id: 'Alimentação & Apetite', label: 'Alimentação & Apetite' },
+                  { id: 'Soninho & Repouso', label: 'Soninho & Repouso' },
+                  { id: 'Desenvolvimento Motor', label: 'Desenvolvimento Motor' },
+                  { id: 'Linguagem & Interação', label: 'Linguagem & Interação' },
+                  { id: 'Saúde & Cuidados', label: 'Saúde & Cuidados' }
+                ].map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setFilterCategory(cat.id)}
+                    className={`px-3 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      filterCategory === cat.id
+                        ? 'bg-[#211a14] text-white shadow-2xs'
+                        : 'bg-white text-[#5c3f42] hover:bg-[#fff1e7] border border-[#eee0d6]'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
 
-                        return (
-                          <tr key={grade.id} className="hover:bg-[#fff1e7]/70 transition-colors">
-                            <td className="p-3 text-center font-bold text-[#8c6b6d]">
-                              {grade.number}
-                            </td>
-                            <td className="p-3 font-bold text-[#211a14]">
-                              {grade.name}
-                            </td>
-                            <td className="p-3 text-center">
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={grade.formative}
-                                onChange={(e) =>
-                                  handleUpdateGrade(grade.id, 'formative', Number(e.target.value))
-                                }
-                                className="w-16 p-1.5 text-center font-bold bg-[#fff8f5] border border-[#eee0d6] rounded-lg focus:outline-none focus:border-[#00a6c0]"
-                              />
-                            </td>
-                            <td className="p-3 text-center">
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={grade.makerProject}
-                                onChange={(e) =>
-                                  handleUpdateGrade(grade.id, 'makerProject', Number(e.target.value))
-                                }
-                                className="w-16 p-1.5 text-center font-bold bg-[#fff8f5] border border-[#eee0d6] rounded-lg focus:outline-none focus:border-[#00a6c0]"
-                              />
-                            </td>
-                            <td className="p-3 text-center">
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={grade.summativeExam}
-                                onChange={(e) =>
-                                  handleUpdateGrade(grade.id, 'summativeExam', Number(e.target.value))
-                                }
-                                className="w-16 p-1.5 text-center font-bold bg-[#fff8f5] border border-[#eee0d6] rounded-lg focus:outline-none focus:border-[#00a6c0]"
-                              />
-                            </td>
-                            <td className="p-3 text-center">
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={grade.participation}
-                                onChange={(e) =>
-                                  handleUpdateGrade(grade.id, 'participation', Number(e.target.value))
-                                }
-                                className="w-16 p-1.5 text-center font-bold bg-[#fff8f5] border border-[#eee0d6] rounded-lg focus:outline-none focus:border-[#00a6c0]"
-                              />
-                            </td>
-                            <td className="p-3 text-center font-extrabold text-sm text-[#211a14]">
-                              {finalScore}%
-                            </td>
-                            <td className="p-3 text-center">
-                              <span
-                                className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${assessment.color}`}
-                              >
-                                {assessment.label}
+              {/* Feed de Cartões de Observações */}
+              <div className="space-y-3.5">
+                {observationsList
+                  .filter((obs) => filterStudent === 'todos' || obs.studentName === filterStudent)
+                  .filter((obs) => filterCategory === 'todas' || obs.category === filterCategory)
+                  .map((obs) => (
+                    <div
+                      key={obs.id}
+                      className="bg-white rounded-2xl p-4 sm:p-5 border border-[#eee0d6] shadow-xs hover:border-[#00a6c0]/40 transition-all space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#eee0d6]">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#fd9924] to-[#ed145b] text-white flex items-center justify-center font-extrabold text-sm shadow-2xs shrink-0">
+                            {obs.studentName.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-bold text-sm text-[#211a14] font-['Quicksand']">
+                                {obs.studentName}
+                              </h4>
+                              <span className="text-[10px] bg-[#faebe1] text-[#5c3f42] px-2 py-0.5 rounded-md font-bold">
+                                Nº {obs.studentNumber}
                               </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                  obs.priority === 'Conquista / Marco'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : obs.priority === 'Importante'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-sky-100 text-sky-800'
+                                }`}
+                              >
+                                {obs.priority}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-[#8c6b6d]">{obs.date}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-start sm:self-auto">
+                          <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-[#fff8f5] text-[#00a6c0] border border-[#eee0d6]">
+                            {obs.category}
+                          </span>
+                          {obs.notifiedParents ? (
+                            <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1 border border-emerald-200">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Enviado à Família</span>
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-[#8c6b6d] bg-[#faebe1] px-2.5 py-1 rounded-xl font-bold">
+                              Registo Interno
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-xs sm:text-sm text-[#211a14] leading-relaxed bg-[#fff8f5] p-3.5 rounded-xl border border-[#eee0d6]/70">
+                        "{obs.text}"
+                      </p>
+
+                      <div className="flex items-center justify-between text-[11px] text-[#5c3f42] pt-1">
+                        <span className="flex items-center gap-1.5 font-bold">
+                          <Smile className="w-3.5 h-3.5 text-[#fd9924]" />
+                          <span>Registado com carinho por <strong>{obs.recordedBy}</strong></span>
+                        </span>
+
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setObsStudentName(obs.studentName);
+                              setNewObsModal(true);
+                            }}
+                            className="text-[#00a6c0] hover:text-sky-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Nova observação para esta criança</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setObservationsList((prev) => prev.filter((o) => o.id !== obs.id));
+                              showToast(`Observação de ${obs.studentName} removida.`);
+                            }}
+                            className="text-rose-400 hover:text-rose-600 font-semibold hover:underline cursor-pointer text-[10px]"
+                            title="Remover registo"
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                {observationsList
+                  .filter((obs) => filterStudent === 'todos' || obs.studentName === filterStudent)
+                  .filter((obs) => filterCategory === 'todas' || obs.category === filterCategory).length === 0 && (
+                  <div className="p-8 text-center bg-white rounded-2xl border border-[#eee0d6] space-y-2">
+                    <p className="text-sm font-bold text-[#211a14]">Nenhuma observação encontrada para este filtro.</p>
+                    <p className="text-xs text-[#5c3f42]">Clique no botão abaixo para adicionar a primeira observação para esta criança.</p>
+                    <button
+                      type="button"
+                      onClick={() => setNewObsModal(true)}
+                      className="px-4 py-2 bg-[#00a6c0] text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition-colors"
+                    >
+                      Escrever Observação
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1280,7 +1430,7 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: EXPORTAÇÃO FORMAL DE DOCUMENTOS EM PDF                           */}
+      {/* MODAL 3: EXPORTAÇÃO DE RELATÓRIO DE OBSERVAÇÕES E PRESENÇAS EM PDF       */}
       {/* ========================================================================= */}
       {pdfExportModal && (
         <div
@@ -1293,12 +1443,12 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <h3 id="pdf-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand'] flex items-center gap-2">
                 <Printer className="w-4 h-4 text-[#00a6c0]" />
-                <span>Exportar Pauta e Folha de Presença (PDF)</span>
+                <span>Exportar Relatório de Observações e Presenças (PDF)</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setPdfExportModal(false)}
-                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42] cursor-pointer"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1306,29 +1456,29 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
             </div>
 
             <p className="text-xs text-[#5c3f42] leading-relaxed">
-              O documento oficial será gerado com cabeçalho institucional do <strong>{activeClass}</strong>, discriminação ponderada das 4 rubricas de avaliação e folha de assiduidade do {currentTerm}.
+              O documento oficial será gerado com cabeçalho institucional do <strong>{activeClass}</strong>, compilação de todas as observações qualitativas das Tias, diário de desenvolvimento e folha de assiduidade do {currentTerm}.
             </p>
 
             <div className="p-3 bg-[#fff8f5] border border-[#eee0d6] rounded-xl text-xs space-y-1">
-              <p className="font-bold text-[#211a14]">Pauta_Oficial_{activeClass.replace(/\s+/g, '_')}_2ºTrimestre.pdf</p>
-              <p className="text-[#5c3f42] text-[11px]">Assinado digitalmente por: Prof. António Silva</p>
+              <p className="font-bold text-[#211a14]">Relatorio_Observacoes_{activeClass.replace(/\s+/g, '_')}_2ºTrimestre.pdf</p>
+              <p className="text-[#5c3f42] text-[11px]">Assinado digitalmente por: Tia Clara Marques (Educadora Titular)</p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setPdfExportModal(false)}
-                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs cursor-pointer hover:bg-[#eee0d6]"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Documento oficial em PDF gerado e pronto para impressão.');
+                  showToast('Relatório de observações e presenças em PDF gerado com sucesso.');
                   setPdfExportModal(false);
                 }}
-                className="px-4 py-2 bg-[#00a6c0] text-white rounded-xl font-bold text-xs hover:bg-sky-700 flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#00a6c0] text-white rounded-xl font-bold text-xs hover:bg-sky-700 flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Exportar PDF Certificado</span>
@@ -1424,15 +1574,200 @@ export default function TeacherSchoolDashboard({ onClose }: TeacherSchoolDashboa
                 <button
                   type="button"
                   onClick={() => setNewLessonModal(false)}
-                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold cursor-pointer hover:bg-[#eee0d6]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#00a6c0] text-white rounded-xl font-bold hover:bg-sky-700"
+                  className="px-4 py-2 bg-[#00a6c0] text-white rounded-xl font-bold hover:bg-sky-700 cursor-pointer"
                 >
                   Registar Plano
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 5: NOVA OBSERVAÇÃO IMPORTANTE DA CRIANÇA (CRECHE / EDUCADORA TIA)   */}
+      {/* ========================================================================= */}
+      {newObsModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="obs-modal-title"
+          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
+        >
+          <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-pink-100 text-[#ed145b] flex items-center justify-center shrink-0">
+                  <Heart className="w-5 h-5 fill-current" />
+                </div>
+                <div>
+                  <h3 id="obs-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
+                    Nova Observação Importante sobre a Criança
+                  </h3>
+                  <p className="text-[11px] text-[#5c3f42]">
+                    Diário qualitativo da Creche • Acompanhamento afetivo e individual pelas Tias
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNewObsModal(false)}
+                className="p-1.5 rounded-xl text-[#8c6b6d] hover:text-[#5c3f42] hover:bg-[#fff1e7] cursor-pointer"
+                aria-label="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddObservation} className="space-y-4 text-xs">
+              {/* Seleção da Criança */}
+              <div>
+                <label className="font-bold text-[#5c3f42] block mb-1">Criança / Aluno(a)</label>
+                <select
+                  value={obsStudentName}
+                  onChange={(e) => setObsStudentName(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white text-[#211a14] font-semibold focus:outline-none focus:border-[#ed145b]"
+                >
+                  {attendanceList.map((st) => (
+                    <option key={st.id} value={st.name}>
+                      Nº {st.number} - {st.name} ({activeClass.split(' ')[0]})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Categoria da Observação */}
+              <div>
+                <label className="font-bold text-[#5c3f42] block mb-1.5">Dimensão do Desenvolvimento / Categoria</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: 'Alimentação & Apetite', icon: '🍎' },
+                    { label: 'Soninho & Repouso', icon: '😴' },
+                    { label: 'Desenvolvimento Motor', icon: '🏃' },
+                    { label: 'Linguagem & Interação', icon: '💬' },
+                    { label: 'Adaptação & Emoções', icon: '❤️' },
+                    { label: 'Saúde & Cuidados', icon: '🩺' }
+                  ].map((cat) => (
+                    <button
+                      key={cat.label}
+                      type="button"
+                      onClick={() => setObsCategory(cat.label as any)}
+                      className={`p-2.5 rounded-xl text-left font-semibold border flex items-center gap-2 cursor-pointer transition-all ${
+                        obsCategory === cat.label
+                          ? 'bg-[#faebe1] border-[#ed145b] text-[#ed145b] shadow-2xs'
+                          : 'bg-[#fff8f5] border-[#eee0d6] text-[#5c3f42] hover:bg-[#fff1e7]'
+                      }`}
+                    >
+                      <span className="text-base">{cat.icon}</span>
+                      <span className="truncate">{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Destaque / Prioridade */}
+              <div>
+                <label className="font-bold text-[#5c3f42] block mb-1">Tipo de Registo / Destaque</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: 'Rotina', desc: 'Diário e rotina' },
+                    { label: 'Conquista / Marco', desc: 'Progresso especial' },
+                    { label: 'Importante', desc: 'Atenção especial' }
+                  ].map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => setObsPriority(p.label as any)}
+                      className={`p-2 rounded-xl text-center border cursor-pointer transition-all ${
+                        obsPriority === p.label
+                          ? 'bg-[#211a14] border-[#211a14] text-white shadow-xs'
+                          : 'bg-[#fff8f5] border-[#eee0d6] text-[#5c3f42] hover:bg-[#faebe1]'
+                      }`}
+                    >
+                      <p className="font-bold text-xs">{p.label}</p>
+                      <p className="text-[10px] opacity-80">{p.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sugestões Rápidas (Chips de inspiração) */}
+              <div>
+                <span className="text-[11px] font-bold text-[#8c6b6d] block mb-1">Sugestões rápidas da Tia (clique para inserir):</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'Comeu toda a sopinha com prazer e boa autonomia.',
+                    'Dormiu uma soneca tranquila de 1h30 com música instrumental suave.',
+                    'Completou o circuito psicomotor com muita confiança e alegria.',
+                    'Expressão oral muito participativa na roda de canções e histórias.',
+                    'Muito afetuoso(a) com os amiguinhos e ajudou a arrumar os brinquedos.',
+                    'Lembrar os pais de enviar muda de roupa extra para amanhã.'
+                  ].map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setObsText((prev) => (prev ? `${prev} ${chip}` : chip))}
+                      className="px-2.5 py-1 rounded-lg bg-[#fff8f5] hover:bg-[#faebe1] border border-[#eee0d6] text-[11px] text-[#5c3f42] text-left cursor-pointer transition-colors"
+                    >
+                      + {chip.slice(0, 32)}...
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Texto da Observação */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="font-bold text-[#5c3f42] block">Texto da Observação da Tia</label>
+                  <span className="text-[10px] text-[#8c6b6d]">{obsText.length} caracteres</span>
+                </div>
+                <textarea
+                  rows={4}
+                  required
+                  value={obsText}
+                  onChange={(e) => setObsText(e.target.value)}
+                  placeholder="Descreva aqui o comportamento, apetite, soninho, conquistas ou cuidados da criança de forma afetuosa e detalhada..."
+                  className="w-full p-3 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#ed145b] bg-[#fff8f5] text-[#211a14] placeholder:text-[#8c6b6d] text-xs leading-relaxed"
+                />
+              </div>
+
+              {/* Autoria da Educadora & Notificação */}
+              <div className="p-3.5 bg-pink-50/70 border border-pink-200/80 rounded-2xl space-y-2 text-[11px]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#5c3f42] font-semibold">Educadora Responsável:</span>
+                  <span className="font-bold text-[#ed145b]">Tia Clara Marques (Educadora Titular)</span>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-[#211a14] pt-1.5 border-t border-pink-100">
+                  <input
+                    type="checkbox"
+                    checked={obsNotifyParents}
+                    onChange={(e) => setObsNotifyParents(e.target.checked)}
+                    className="accent-[#ed145b] w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span>Notificar encarregados de educação via App e Diário Digital em tempo real</span>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setNewObsModal(false)}
+                  className="px-4 py-2.5 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold cursor-pointer hover:bg-[#eee0d6]"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 bg-gradient-to-r from-[#ed145b] to-[#fd9924] hover:from-pink-600 hover:to-amber-500 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-sm cursor-pointer active:scale-95"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Guardar Observação da Tia</span>
                 </button>
               </div>
             </form>

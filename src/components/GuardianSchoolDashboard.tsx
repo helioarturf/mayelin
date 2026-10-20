@@ -49,9 +49,21 @@ interface ChildProfile {
   avatarLetter: string;
   status: string;
   presenceRate: number;
-  averageGrade: number;
+  developmentStatus: string;
   financialStatus: 'Regularizada' | 'Pendente';
   newMessagesCount: number;
+}
+
+export interface GuardianObservation {
+  id: string;
+  childId: string;
+  date: string;
+  category: 'Alimentação & Apetite' | 'Soninho & Repouso' | 'Desenvolvimento Motor' | 'Linguagem & Expressão' | 'Adaptação & Emoções' | 'Higiene & Cuidados';
+  icon: string;
+  priority: 'Conquista / Marco' | 'Rotina' | 'Importante';
+  title: string;
+  text: string;
+  recordedBy: string;
 }
 
 export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashboardProps) {
@@ -65,11 +77,11 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       name: 'Rodrigo Silva',
       classroom: 'Jardim de Infância - Sala das Estrelinhas',
       cycle: 'Pré-Escolar & Jardim de Infância (4 a 5 anos)',
-      leadTeacher: 'Profª Maria Clara Marques',
+      leadTeacher: 'Tia Clara Marques (Educadora de Infância)',
       avatarLetter: 'R',
       status: 'Presente na Atividade da Horta & Expressão',
       presenceRate: 98.2,
-      averageGrade: 92.5,
+      developmentStatus: 'Pleno & Autônomo',
       financialStatus: 'Regularizada',
       newMessagesCount: 1
     },
@@ -78,11 +90,11 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       name: 'Sofia Silva',
       classroom: 'Maternal I - Sala dos Primeiros Passos',
       cycle: 'Maternal I & II (1 a 2 anos)',
-      leadTeacher: 'Educadora Teresa Melo',
+      leadTeacher: 'Tia Teresa Melo (Educadora de Infância)',
       avatarLetter: 'S',
       status: 'Em Atividade Sensorial no Pátio',
       presenceRate: 99.0,
-      averageGrade: 95.0,
+      developmentStatus: 'Adaptação Serena & Afetuosa',
       financialStatus: 'Regularizada',
       newMessagesCount: 0
     }
@@ -90,6 +102,112 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
 
   const [activeChildId, setActiveChildId] = useState('rodrigo-silva');
   const activeChild = childrenList.find((c) => c.id === activeChildId) || childrenList[0];
+  const [obsCategoryFilter, setObsCategoryFilter] = useState<string>('todas');
+
+  // Observações Carinhosas das Tias (Sem notas nem pautas numéricas)
+  const childObservations: GuardianObservation[] = [
+    // Rodrigo Silva (Tia Clara)
+    {
+      id: 'g-obs-1',
+      childId: 'rodrigo-silva',
+      date: 'Hoje, às 12:30',
+      category: 'Alimentação & Apetite',
+      icon: '🍎',
+      priority: 'Conquista / Marco',
+      title: 'Almoço com excelente autonomia e apetite',
+      text: 'O Rodrigo comeu com muito gosto toda a sopa de legumes biológicos e o peixinho fresco. Segurou os talheres com firmeza, bebeu o sumo natural e levou o pratinho à bancada com orgulho.',
+      recordedBy: 'Tia Clara Marques (Educadora Titular)'
+    },
+    {
+      id: 'g-obs-2',
+      childId: 'rodrigo-silva',
+      date: 'Hoje, às 10:15',
+      category: 'Linguagem & Expressão',
+      icon: '💬',
+      priority: 'Rotina',
+      title: 'Expressão oral rica na roda de histórias',
+      text: 'Participou ativamente na roda da manhã. Expressou-se com vocabulário rico, partilhou as vivências em família com os amiguinhos e cantou as cantigas de roda gesticulando alegremente.',
+      recordedBy: 'Tia Clara Marques (Educadora Titular)'
+    },
+    {
+      id: 'g-obs-3',
+      childId: 'rodrigo-silva',
+      date: 'Ontem, às 15:40',
+      category: 'Desenvolvimento Motor',
+      icon: '🏃',
+      priority: 'Conquista / Marco',
+      title: 'Superação no circuito psicomotor de equilíbrio',
+      text: 'Completou o percurso com blocos de madeira e saltou com os dois pezinhos juntos com muita segurança. Demonstrou coordenação motora ampla exemplar e incentivou os colegas.',
+      recordedBy: 'Tia Clara Marques (Educadora Titular)'
+    },
+    {
+      id: 'g-obs-4',
+      childId: 'rodrigo-silva',
+      date: 'Ontem, às 13:30',
+      category: 'Soninho & Repouso',
+      icon: '😴',
+      priority: 'Rotina',
+      title: 'Soneca tranquila de 1h30',
+      text: 'Dormiu um sono tranquilo e reparador no ambiente climatizado ao som de música instrumental relaxante. Acordou bem disposto e com sorriso nos lábios.',
+      recordedBy: 'Tia Clara Marques (Educadora Titular)'
+    },
+    {
+      id: 'g-obs-5',
+      childId: 'rodrigo-silva',
+      date: '04 de Outubro, às 11:00',
+      category: 'Adaptação & Emoções',
+      icon: '❤️',
+      priority: 'Conquista / Marco',
+      title: 'Empatia e cooperação exemplar na horta',
+      text: 'Ajudou os colegas a regar as mudinhas de alface na horta agroecológica com regador pequeno e partilhou os materiais com muita generosidade e carinho.',
+      recordedBy: 'Tia Clara Marques (Educadora Titular)'
+    },
+    // Sofia Silva (Tia Teresa)
+    {
+      id: 'g-obs-6',
+      childId: 'sofia-silva',
+      date: 'Hoje, às 09:30',
+      category: 'Adaptação & Emoções',
+      icon: '❤️',
+      priority: 'Conquista / Marco',
+      title: 'Chegada carinhosa sem choro no Maternal',
+      text: 'Chegou sorridente, deu um abraço apertadinho na Tia Teresa e foi diretamente para o tapete sensorial explorar os blocos de tecido e texturas com curiosidade.',
+      recordedBy: 'Tia Teresa Melo (Educadora de Infância)'
+    },
+    {
+      id: 'g-obs-7',
+      childId: 'sofia-silva',
+      date: 'Hoje, às 10:00',
+      category: 'Alimentação & Apetite',
+      icon: '🍎',
+      priority: 'Rotina',
+      title: 'Aceitação plena da frutinha fresca amassada',
+      text: 'Aceitou com muita alegria toda a porção de banana raspadinha com aveia e tomou 160ml de leite materno. Excelente hidratação durante a manhã.',
+      recordedBy: 'Tia Teresa Melo (Educadora de Infância)'
+    },
+    {
+      id: 'g-obs-8',
+      childId: 'sofia-silva',
+      date: 'Ontem, às 16:00',
+      category: 'Desenvolvimento Motor',
+      icon: '🏃',
+      priority: 'Conquista / Marco',
+      title: 'Passinhos firmes empurrando o carrinho',
+      text: 'Deu vários passinhos firmes empurrando o carrinho de madeira de apoio! Riu muito, bateu palmas e manteve o equilíbrio com auxílio afetuoso da Tia.',
+      recordedBy: 'Tia Teresa Melo (Educadora de Infância)'
+    },
+    {
+      id: 'g-obs-9',
+      childId: 'sofia-silva',
+      date: 'Ontem, às 11:15',
+      category: 'Soninho & Repouso',
+      icon: '😴',
+      priority: 'Rotina',
+      title: 'Soneca matinal de 50 minutos',
+      text: 'Adormeceu suavemente com a sua mantinha favorita. Respiração serena e temperatura normal aferida de 36.5°C.',
+      recordedBy: 'Tia Teresa Melo (Educadora de Infância)'
+    }
+  ];
 
   // Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -115,14 +233,6 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
     { day: 'Quinta-feira', entry: '08:30 (Atestado Pediátrico Arquivado)', meal: 'Dieta Ligeira Monitorizada', activity: 'Cantinho de Leitura & Contação de Histórias' }
   ];
 
-  const academicReport = [
-    { subject: 'Linguagem e Expressão Oral', maker: 92, formative: 90, summative: 94, finalAverage: 92, assessment: 'Excelente', feedback: 'Expressão oral fluente, vocabulário rico e participação ativa nas rodas de conversa.' },
-    { subject: 'Estimulação Sensorial e Lógica', maker: 88, formative: 86, summative: 90, finalAverage: 88, assessment: 'Muito Bom', feedback: 'Grande destreza na seriação de blocos lógicos, identificação de formas e texturas.' },
-    { subject: 'Relações com a Natureza & Horta', maker: 95, formative: 92, summative: 93, finalAverage: 94, assessment: 'Excelente', feedback: 'Curiosidade exemplar no cuidado com as mudinhas, rega e preservação ambiental.' },
-    { subject: 'Expressão Plástica & Criatividade', maker: 96, formative: 94, summative: 92, finalAverage: 94, assessment: 'Excelente', feedback: 'Criatividade ímpar na pintura com pigmentos naturais e modelagem de massinhas.' },
-    { subject: 'Psicomotricidade & Autonomia', maker: 90, formative: 88, summative: 92, finalAverage: 90, assessment: 'Excelente', feedback: 'Excelente coordenação motora ampla no circuito e progressiva autonomia nas refeições.' }
-  ];
-
   // Pilar 2: Financeiro em Moeda Nacional (Kwanza - Kz)
   const [financialHistory, setFinancialHistory] = useState([
     { id: 'inv-3', ref: 'FT-2025/0284', desc: 'Mensalidade Escolar - Fevereiro 2025', amount: 150000.0, method: 'Multicaixa Express (MCX)', status: 'Liquidado', date: '08/02/2025' },
@@ -134,10 +244,10 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
   const [messagesList, setMessagesList] = useState([
     {
       id: 'msg-1',
-      senderRole: 'Professora Titular (Jardim de Infância)',
-      senderName: 'Profª Maria Clara Marques',
+      senderRole: 'Educadora Titular (Tia Clara)',
+      senderName: 'Tia Clara Marques (Educadora)',
       date: 'Hoje, às 10:45',
-      subject: 'Nota de Mérito: Participação exemplar na Horta Pedagógica',
+      subject: 'Elogio Especial: Participação exemplar na Horta Pedagógica',
       preview: 'Estimado Dr. António, o Rodrigo teve uma manhã brilhante no plantio das sementinhas de girassol e cooperou com todos os coleguinhas. Parabéns pelo apoio familiar!',
       unread: true
     },
@@ -328,7 +438,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </span>
             </div>
             <p className="text-xs text-[#5c3f42] mt-1">
-              Professora Titular: <strong>{activeChild.leadTeacher}</strong> • {activeChild.cycle}
+              Educadora Titular (Tia): <strong>{activeChild.leadTeacher}</strong> • {activeChild.cycle}
             </p>
 
             {/* Alternador de Irmãos */}
@@ -366,11 +476,11 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-[#5c3f42] block font-semibold">Média Global</span>
-            <p className="text-lg font-bold font-['Quicksand'] text-[#00a6c0] mt-0.5">
-              {activeChild.averageGrade}%
+            <span className="text-[11px] text-[#5c3f42] block font-semibold">Desenvolvimento</span>
+            <p className="text-sm font-bold font-['Quicksand'] text-[#00a6c0] mt-1 leading-tight truncate">
+              {activeChild.developmentStatus}
             </p>
-            <span className="text-[10px] text-sky-700 font-bold">Muito Bom (2º Trim.)</span>
+            <span className="text-[10px] text-sky-700 font-bold">Acompanhado pelas Tias</span>
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
@@ -386,7 +496,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             <p className="text-lg font-bold font-['Quicksand'] text-[#ed145b] mt-0.5">
               {activeChild.newMessagesCount} Nova
             </p>
-            <span className="text-[10px] text-pink-700 font-bold">Profª Titular</span>
+            <span className="text-[10px] text-pink-700 font-bold">Educadora (Tia)</span>
           </div>
         </div>
       </section>
@@ -427,8 +537,8 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
               }`}
             >
-              <Calendar className="w-4 h-4 shrink-0" />
-              <span>Rotina & Boletim de Notas</span>
+              <Heart className="w-4 h-4 shrink-0" />
+              <span>Rotina & Observações da Tia</span>
             </button>
 
             <button
@@ -557,7 +667,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     onClick={() => setActiveSection('routine')}
                     className="text-xs font-bold text-[#fd9924] hover:underline flex items-center gap-1"
                   >
-                    <span>Ver histórico semanal e boletim de notas completo</span>
+                    <span>Ver rotina diária e observações da Tia</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -597,27 +707,27 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           )}
 
           {/* ========================================================================= */}
-          {/* PILAR 1: ACOMPANHAMENTO DE ROTINA (FREQUÊNCIA & NOTAS DO ESTUDANTE)       */}
+          {/* PILAR 1: ACOMPANHAMENTO DE ROTINA & OBSERVAÇÕES DA TIA                    */}
           {/* ========================================================================= */}
           {activeSection === 'routine' && (
             <div className="space-y-6 animate-in fade-in duration-150">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
-                    Acompanhamento de Rotina & Boletim Escolar • {activeChild.name}
+                    Acompanhamento de Rotina & Observações da Tia • {activeChild.name}
                   </h3>
                   <p className="text-xs text-[#5c3f42]">
-                    Assiduidade com confirmação biométrica, refeições biológicas e pauta trimestral oficial
+                    Assiduidade com confirmação biométrica, refeições biológicas e pareceres qualitativos da Educadora (Tia)
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setReportCardModal(true)}
-                  className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#fd9924] text-white hover:bg-amber-600 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+                  className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#fd9924] text-white hover:bg-amber-600 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer active:scale-95 shrink-0"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download do Boletim Oficial em PDF</span>
+                  <span>Download do Relatório de Desenvolvimento (PDF)</span>
                 </button>
               </div>
 
@@ -640,61 +750,133 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 </div>
               </div>
 
-              {/* Boletim Trimestral Detalhado */}
-              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
-                <div className="p-4 bg-[#fff8f5] border-b border-[#eee0d6] flex items-center justify-between">
+              {/* Diário de Desenvolvimento & Observações Carinhosas da Tia (Sem notas numéricas) */}
+              <div className="bg-white rounded-2xl border border-[#eee0d6] p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#eee0d6]">
                   <div>
-                    <h4 className="font-bold text-sm text-[#211a14]">
-                      Boletim de Avaliação Trimestral Discriminado
+                    <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2 font-['Quicksand']">
+                      <Heart className="w-4 h-4 text-[#ed145b] fill-[#ed145b]" />
+                      <span>Diário de Desenvolvimento & Observações da Educadora</span>
                     </h4>
-                    <p className="text-xs text-[#5c3f42]">
-                      Rubricas: Trabalhos Maker (25%), Formativa (25%), Exame Sumativo (35%), Participação (15%)
+                    <p className="text-xs text-[#5c3f42] mt-0.5">
+                      Registos qualitativos e afetuosos realizados pela {activeChild.leadTeacher}
                     </p>
                   </div>
-                  <span className="text-xs font-bold text-[#00a6c0] bg-sky-50 border border-sky-200 px-3 py-1 rounded-full">
-                    Média da Turma: 88.5%
+                  <span className="text-xs font-bold text-[#ed145b] bg-pink-50 border border-pink-200 px-3 py-1 rounded-full self-start sm:self-auto">
+                    {childObservations.filter((o) => o.childId === activeChild.id).length} Observações Registadas
                   </span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
-                      <tr>
-                        <th className="p-3">Disciplina Curricular</th>
-                        <th className="p-3 text-center">Trabalho Maker</th>
-                        <th className="p-3 text-center">Aval. Formativa</th>
-                        <th className="p-3 text-center">Teste Sumativo</th>
-                        <th className="p-3 text-center">Média Ponderada</th>
-                        <th className="p-3 text-center">Parecer Qualitativo</th>
-                        <th className="p-3">Apreciação Individualizada da Docente</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#eee0d6]">
-                      {academicReport.map((rep, idx) => (
-                        <tr key={idx} className="hover:bg-[#fff1e7]/70 transition-colors">
-                          <td className="p-3 font-bold text-[#211a14]">{rep.subject}</td>
-                          <td className="p-3 text-center font-semibold text-[#5c3f42]">{rep.maker}%</td>
-                          <td className="p-3 text-center font-semibold text-[#5c3f42]">{rep.formative}%</td>
-                          <td className="p-3 text-center font-semibold text-[#5c3f42]">{rep.summative}%</td>
-                          <td className="p-3 text-center font-extrabold text-sm text-[#211a14]">
-                            {rep.finalAverage}%
-                          </td>
-                          <td className="p-3 text-center">
+                {/* Aviso Pedagógico Explicativo da Creche */}
+                <div className="p-3.5 bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-200/80 rounded-2xl text-xs text-[#5c3f42] flex items-start gap-2.5">
+                  <span className="text-lg leading-none shrink-0">🌸</span>
+                  <div className="leading-relaxed">
+                    <strong className="text-[#211a14] block mb-0.5">Metodologia Afetuosa da Creche Mayelin:</strong>
+                    Na nossa creche e educação infantil <strong>não existem notas nem pautas numéricas</strong>. O progresso de cada criança é acompanhado de forma contínua e humanizada através das observações atentas das Tias sobre alimentação, soninho, motricidade, autonomia e socialização.
+                  </div>
+                </div>
+
+                {/* Filtro por Categoria de Observação */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none">
+                  {[
+                    { id: 'todas', label: 'Todas as Observações', icon: '📝' },
+                    { id: 'Alimentação & Apetite', label: 'Alimentação', icon: '🍎' },
+                    { id: 'Soninho & Repouso', label: 'Soninho', icon: '😴' },
+                    { id: 'Desenvolvimento Motor', label: 'Motricidade', icon: '🏃' },
+                    { id: 'Linguagem & Expressão', label: 'Linguagem', icon: '💬' },
+                    { id: 'Adaptação & Emoções', label: 'Afeto & Emoções', icon: '❤️' }
+                  ].map((cat) => {
+                    const count = cat.id === 'todas'
+                      ? childObservations.filter((o) => o.childId === activeChild.id).length
+                      : childObservations.filter((o) => o.childId === activeChild.id && o.category === cat.id).length;
+
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setObsCategoryFilter(cat.id)}
+                        className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap cursor-pointer transition-all flex items-center gap-1.5 text-xs ${
+                          obsCategoryFilter === cat.id
+                            ? 'bg-[#ed145b] text-white shadow-xs'
+                            : 'bg-[#fff8f5] text-[#5c3f42] hover:bg-[#faebe1] border border-[#eee0d6]'
+                        }`}
+                      >
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${obsCategoryFilter === cat.id ? 'bg-white/20 text-white' : 'bg-pink-100 text-[#ed145b]'}`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Lista de Cards de Observações */}
+                <div className="space-y-3 pt-1">
+                  {childObservations
+                    .filter((obs) => obs.childId === activeChild.id)
+                    .filter((obs) => obsCategoryFilter === 'todas' || obs.category === obsCategoryFilter)
+                    .map((obs) => (
+                      <div
+                        key={obs.id}
+                        className="p-4 sm:p-5 rounded-2xl bg-white border border-[#eee0d6] hover:border-pink-200 transition-all space-y-2.5 shadow-2xs"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">{obs.icon}</span>
+                            <span className="text-xs font-bold text-[#ed145b] bg-pink-50 px-2.5 py-0.5 rounded-full border border-pink-100">
+                              {obs.category}
+                            </span>
                             <span
-                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                rep.assessment === 'Excelente'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-sky-100 text-sky-800'
+                              className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                                obs.priority === 'Conquista / Marco'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : obs.priority === 'Importante'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : 'bg-emerald-100 text-emerald-800'
                               }`}
                             >
-                              {rep.assessment}
+                              {obs.priority === 'Conquista / Marco' ? '🌟 Conquista' : obs.priority === 'Importante' ? '⚠️ Importante' : '🌱 Diário de Rotina'}
                             </span>
-                          </td>
-                          <td className="p-3 text-[#5c3f42] leading-relaxed max-w-xs">{rep.feedback}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </div>
+                          <span className="text-[11px] text-[#8c6b6d] font-semibold">
+                            {obs.date}
+                          </span>
+                        </div>
+
+                        <h5 className="font-bold text-xs sm:text-sm text-[#211a14] font-['Quicksand']">
+                          {obs.title}
+                        </h5>
+
+                        <div className="p-3.5 bg-[#fff8f5] rounded-xl border border-[#eee0d6]/80 text-xs sm:text-sm text-[#211a14] leading-relaxed">
+                          "{obs.text}"
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-[#eee0d6]/50 text-xs">
+                          <span className="text-[#5c3f42] flex items-center gap-1.5 font-bold text-[11px]">
+                            <Smile className="w-3.5 h-3.5 text-[#fd9924]" />
+                            <span>Observação escrita com amor por <strong>{obs.recordedBy}</strong></span>
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => setNewMessageModal(true)}
+                            className="text-[#00a6c0] hover:text-sky-700 font-bold hover:underline cursor-pointer flex items-center gap-1 text-[11px]"
+                          >
+                            <Send className="w-3 h-3" />
+                            <span>Enviar mensagem à Tia</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                  {childObservations
+                    .filter((obs) => obs.childId === activeChild.id)
+                    .filter((obs) => obsCategoryFilter === 'todas' || obs.category === obsCategoryFilter).length === 0 && (
+                    <div className="p-6 text-center bg-[#fff8f5] rounded-2xl border border-[#eee0d6] text-xs text-[#5c3f42]">
+                      Nenhuma observação registada para esta categoria.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -807,7 +989,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                     Canal Direto de Comunicação Segura • Segmentado por Polos
                   </h3>
                   <p className="text-xs text-[#5c3f42]">
-                    Diálogo direto com a Professora Titular, Coordenação Pedagógica e Secretaria Geral
+                    Diálogo direto com a Tia (Educadora Titular), Coordenação Pedagógica e Secretaria Geral
                   </p>
                 </div>
 
@@ -1038,7 +1220,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: BOLETIM ESCOLAR OFICIAL EM PDF                                    */}
+      {/* MODAL 2: RELATÓRIO DE DESENVOLVIMENTO & OBSERVAÇÕES EM PDF                */}
       {/* ========================================================================= */}
       {reportCardModal && (
         <div
@@ -1052,13 +1234,13 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-[#fd9924]" />
                 <h3 id="report-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                  Boletim Trimestral Oficial (PDF)
+                  Relatório de Desenvolvimento da Criança (PDF)
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setReportCardModal(false)}
-                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42] cursor-pointer"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1067,30 +1249,35 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
 
             <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-1.5">
               <p className="font-bold text-[#211a14] text-sm">
-                Boletim_Oficial_{activeChild.name.replace(/\s+/g, '_')}_2ºTrimestre_2024-2025.pdf
+                Relatorio_Desenvolvimento_{activeChild.name.replace(/\s+/g, '_')}_2ºTrimestre_2024-2025.pdf
               </p>
-              <p className="text-[#5c3f42]">Turma: {activeChild.classroom} • Média Ponderada: {activeChild.averageGrade}%</p>
-              <p className="text-emerald-700 font-semibold">Chave de Homologação Pedagógica Válida</p>
+              <p className="text-[#5c3f42]">
+                Turma: {activeChild.classroom} • Acompanhado por: {activeChild.leadTeacher}
+              </p>
+              <p className="text-emerald-700 font-semibold flex items-center gap-1.5 pt-1">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Parecer Descritivo e Qualitativo Homologado pela Coordenação</span>
+              </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setReportCardModal(false)}
-                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs cursor-pointer hover:bg-[#eee0d6]"
               >
                 Fechar
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Boletim oficial em PDF descarregado com sucesso.');
+                  showToast('Relatório de desenvolvimento da criança em PDF descarregado com sucesso.');
                   setReportCardModal(false);
                 }}
-                className="px-4 py-2 bg-[#fd9924] text-white rounded-xl font-bold text-xs hover:bg-amber-600 flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#fd9924] text-white rounded-xl font-bold text-xs hover:bg-amber-600 flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Descarregar Boletim PDF</span>
+                <span>Descarregar Relatório PDF</span>
               </button>
             </div>
           </div>
@@ -1383,7 +1570,8 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               <div>
                 <label className="font-bold text-[#5c3f42] block mb-1">Destinatário Institucional</label>
                 <select className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white">
-                  <option>Profª Maria Clara Marques (Educadora Titular - Jardim de Infância)</option>
+                  <option>Tia Clara Marques (Educadora Titular - Jardim de Infância)</option>
+                  <option>Tia Teresa Melo (Educadora Titular - Maternal)</option>
                   <option>Prof. Carlos Esteves (Coordenação Pedagógica)</option>
                   <option>Dra. Manuela Castro (Secretaria Geral)</option>
                 </select>

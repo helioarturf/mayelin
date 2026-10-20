@@ -63,7 +63,7 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
             </button>
           </div>
 
-          {/* 2. Professor */}
+          {/* 2. Educadora (Tia) */}
           <div
             onClick={() => onOpenPortal('professor')}
             className="p-4 sm:p-5 rounded-2xl bg-sky-50/60 border border-sky-200/80 hover:bg-sky-100/70 cursor-pointer group transition-all flex flex-col justify-between space-y-3"
@@ -73,17 +73,17 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
                 <GraduationCap className="w-5 h-5" />
               </div>
               <h4 className="text-sm sm:text-base font-['Quicksand'] font-bold text-[#211a14]">
-                Professor
+                Educadora (Tia)
               </h4>
               <p className="text-xs text-[#5c3f42] mt-1 leading-relaxed">
-                Chamada digital de presença, diário de bordo com 1 clique (alimentação, sono, higiene) e fotos da aula.
+                Cuidados afetuosos de creche: diário de bordo com 1 clique (alimentação, soninho, trocas de fralda/higiene), chamadas e fotos da rotina.
               </p>
             </div>
             <button
               type="button"
               className="text-xs font-bold text-[#00a6c0] flex items-center gap-1 group-hover:underline pt-1 text-left"
             >
-              <span>Acessar Área do Docente</span>
+              <span>Acessar Área da Educadora (Tia)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -190,7 +190,7 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
 
           <p className="text-sm sm:text-base md:text-lg font-['Nunito_Sans'] text-[#5c3f42] leading-relaxed">
             Esqueça as velhas agendas de papel que se perdem na mochila. Nosso sistema de gestão escolar integrado
-            mantém a coordenação, os professores e os pais conectados em tempo real com total privacidade e transparência.
+            mantém a coordenação, as educadoras (tias) e os pais conectados em tempo real com total carinho, privacidade e transparência.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5 pt-2">
