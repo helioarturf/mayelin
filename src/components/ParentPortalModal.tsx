@@ -72,11 +72,8 @@ export default function ParentPortalModal({
     return currentRole;
   });
 
-  useEffect(() => {
-    if (currentRole && !currentUser) {
-      setActiveRole(currentRole);
-    }
-  }, [currentRole, currentUser]);
+  // Effective role: always enforce authenticated user's role when present
+  const effectiveRole = currentUser?.role ?? activeRole;
 
   const handleLoginSuccess = (user: AuthUser) => {
     setIsAuthenticated(true);
@@ -95,17 +92,9 @@ export default function ParentPortalModal({
   };
 
   const handleRoleChange = (role: UserRole) => {
+    if (currentUser) return;
     setActiveRole(role);
     if (onChangeRole) onChangeRole(role);
-    // Update local profile title if changed
-    if (currentUser) {
-      const updatedUser: AuthUser = {
-        ...currentUser,
-        role
-      };
-      setCurrentUser(updatedUser);
-      localStorage.setItem('mayelin_auth_user', JSON.stringify(updatedUser));
-    }
   };
 
   if (!isOpen) return null;
@@ -174,59 +163,86 @@ export default function ParentPortalModal({
         </div>
 
         {/* Centro: Alternador dos 3 Perfis Oficiais com Cores do Website */}
-        <div
-          role="tablist"
-          aria-label="Seleção de Perfis do Portal"
-          className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 scrollbar-none bg-[#faebe1]/60 p-1 rounded-2xl border border-[#eee0d6]"
-        >
-          {/* Perfil 1: Administração e Gestão Escolar */}
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeRole === 'admin'}
-            onClick={() => handleRoleChange('admin')}
-            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeRole === 'admin'
-                ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
-                : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
-            }`}
+        {currentUser ? (
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#faebe1]/60 p-1 rounded-2xl border border-[#eee0d6]">
+            <div
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap ${
+                effectiveRole === 'admin'
+                  ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  : effectiveRole === 'professor' || (effectiveRole as string) === 'educador'
+                    ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                    : 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+              }`}
+              aria-label="Perfil de acesso bloqueado ao da conta"
+            >
+              {effectiveRole === 'admin' && <Building2 className="w-3.5 h-3.5 shrink-0" />}
+              {(effectiveRole === 'professor' || (effectiveRole as string) === 'educador') && <GraduationCap className="w-3.5 h-3.5 shrink-0" />}
+              {effectiveRole === 'pais' && <Users className="w-3.5 h-3.5 shrink-0" />}
+              <span>
+                {effectiveRole === 'admin'
+                  ? 'Administração & Gestão'
+                  : (effectiveRole === 'professor' || (effectiveRole as string) === 'educador')
+                    ? 'Educadora (Tia)'
+                    : 'Pais / Encarregados'}
+              </span>
+              <span className="hidden sm:inline-flex text-[9px] uppercase tracking-wider opacity-90">• Conta</span>
+            </div>
+          </div>
+        ) : (
+          <div
+            role="tablist"
+            aria-label="Seleção de Perfis do Portal"
+            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 scrollbar-none bg-[#faebe1]/60 p-1 rounded-2xl border border-[#eee0d6]"
           >
-            <Building2 className="w-3.5 h-3.5 shrink-0" />
-            <span>Administração & Gestão</span>
-          </button>
+            {/* Perfil 1: Administração e Gestão Escolar */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeRole === 'admin'}
+              onClick={() => handleRoleChange('admin')}
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+                activeRole === 'admin'
+                  ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
+              }`}
+            >
+              <Building2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Administração & Gestão</span>
+            </button>
 
-          {/* Perfil 2: Educadora (Tia) */}
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeRole === 'professor' || (activeRole as string) === 'educador'}
-            onClick={() => handleRoleChange('professor')}
-            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeRole === 'professor' || (activeRole as string) === 'educador'
-                ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
-                : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
-            }`}
-          >
-            <GraduationCap className="w-3.5 h-3.5 shrink-0" />
-            <span>Educadora (Tia)</span>
-          </button>
+            {/* Perfil 2: Educadora (Tia) */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeRole === 'professor' || (activeRole as string) === 'educador'}
+              onClick={() => handleRoleChange('professor')}
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+                activeRole === 'professor' || (activeRole as string) === 'educador'
+                  ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                  : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
+              }`}
+            >
+              <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+              <span>Educadora (Tia)</span>
+            </button>
 
-          {/* Perfil 3: Pais / Encarregados */}
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeRole === 'pais'}
-            onClick={() => handleRoleChange('pais')}
-            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeRole === 'pais'
-                ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
-                : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5 shrink-0" />
-            <span>Pais / Encarregados</span>
-          </button>
-        </div>
+            {/* Perfil 3: Pais / Encarregados */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeRole === 'pais'}
+              onClick={() => handleRoleChange('pais')}
+              className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+                activeRole === 'pais'
+                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                  : 'text-[#5c3f42] hover:text-[#211a14] hover:bg-white/80'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span>Pais / Encarregados</span>
+            </button>
+          </div>
+        )}
 
         {/* Direita: Identificação do Utilizador Autenticado & Terminar Sessão */}
         <div className="flex items-center justify-end gap-2.5 shrink-0">
@@ -235,9 +251,9 @@ export default function ParentPortalModal({
               Autenticado como:
             </span>
             <span className="text-xs font-extrabold text-[#211a14] leading-tight">
-              {(activeRole === 'professor' || (activeRole as string) === 'educador')
-                ? formatEducatorName(currentUser?.name || PROFILE_OPTIONS.find((p) => p.role === activeRole)?.name || 'Tia Clara Marques')
-                : (currentUser?.name || PROFILE_OPTIONS.find((p) => p.role === activeRole)?.name || 'Utilizador')}
+              {(effectiveRole === 'professor' || (effectiveRole as string) === 'educador')
+                ? formatEducatorName(currentUser?.name || PROFILE_OPTIONS.find((p) => p.role === effectiveRole)?.name || 'Tia Clara Marques')
+                : (currentUser?.name || PROFILE_OPTIONS.find((p) => p.role === effectiveRole)?.name || 'Utilizador')}
             </span>
           </div>
 
@@ -254,20 +270,20 @@ export default function ParentPortalModal({
         </div>
       </header>
 
-      {/* Área Central da Página Inteira (Dashboard Completo Selecionado) */}
+        {/* Área Central da Página Inteira (Dashboard Completo Selecionado) */}
       <main className="flex-1 w-full flex flex-col overflow-hidden bg-[#fff8f5]">
         {/* PERFIL 1: ADMINISTRAÇÃO E GESTÃO ESCOLAR */}
-        {activeRole === 'admin' && (
+        {effectiveRole === 'admin' && (
           <AdminSchoolDashboard />
         )}
 
         {/* PERFIL 2: EDUCADORA (TIA) */}
-        {(activeRole === 'professor' || (activeRole as string) === 'educador') && (
+        {(effectiveRole === 'professor' || (effectiveRole as string) === 'educador') && (
           <TeacherSchoolDashboard />
         )}
 
         {/* PERFIL 3: PAIS / ENCARREGADOS DE EDUCAÇÃO */}
-        {activeRole === 'pais' && (
+        {effectiveRole === 'pais' && (
           <GuardianSchoolDashboard />
         )}
       </main>
