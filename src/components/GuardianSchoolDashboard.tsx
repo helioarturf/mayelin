@@ -33,6 +33,9 @@ import {
   Check,
   ChevronRight
 } from 'lucide-react';
+import { Invoice } from '../types';
+import { INITIAL_INVOICES, formatKwanza } from '../utils/invoiceUtils';
+import InvoiceDocumentView from './InvoiceDocumentView';
 
 interface GuardianSchoolDashboardProps {
   onClose?: () => void;
@@ -222,6 +225,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
   const [ibanModal, setIbanModal] = useState(false);
   const [multibancoModal, setMultibancoModal] = useState(false);
   const [receiptPreviewRecord, setReceiptPreviewRecord] = useState<any | null>(null);
+  const [selectedInvoiceView, setSelectedInvoiceView] = useState<Invoice | null>(null);
   const [signAuthorizationModal, setSignAuthorizationModal] = useState(false);
   const [newMessageModal, setNewMessageModal] = useState(false);
 
@@ -233,12 +237,15 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
     { day: 'Quinta-feira', entry: '08:30 (Atestado Pediátrico Arquivado)', meal: 'Dieta Ligeira Monitorizada', activity: 'Cantinho de Leitura & Contação de Histórias' }
   ];
 
-  // Pilar 2: Financeiro em Moeda Nacional (Kwanza - Kz)
-  const [financialHistory, setFinancialHistory] = useState([
-    { id: 'inv-3', ref: 'FT-2025/0284', desc: 'Mensalidade Escolar - Fevereiro 2025', amount: 150000.0, method: 'Multicaixa Express (MCX)', status: 'Liquidado', date: '08/02/2025' },
-    { id: 'inv-2', ref: 'FT-2025/0142', desc: 'Mensalidade Escolar - Janeiro 2025', amount: 150000.0, method: 'Referência Multicaixa', status: 'Liquidado', date: '08/01/2025' },
-    { id: 'inv-1', ref: 'FT-2024/1899', desc: 'Mensalidade Escolar - Dezembro 2024', amount: 150000.0, method: 'Multicaixa Express (MCX)', status: 'Liquidado', date: '08/12/2024' }
-  ]);
+  // Pilar 2: Facturas Electrónicas & Recibos em Moeda Nacional (Kwanza - Kz / AGT)
+  const [guardianInvoices, setGuardianInvoices] = useState<Invoice[]>(() => {
+    try {
+      const saved = localStorage.getItem('mayelin_invoices');
+      return saved ? JSON.parse(saved) : INITIAL_INVOICES;
+    } catch {
+      return INITIAL_INVOICES;
+    }
+  });
 
   // Pilar 3: Comunicações
   const [messagesList, setMessagesList] = useState([
@@ -931,11 +938,17 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               {/* Tabela de Histórico de Liquidações */}
               <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
                 <div className="p-4 bg-[#fff8f5] border-b border-[#eee0d6] flex items-center justify-between">
-                  <h4 className="font-bold text-sm text-[#211a14]">
-                    Histórico de Mensalidades & Recibos Emitidos pela Escola (Kz)
-                  </h4>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                    Todas Liquidadas
+                  <div>
+                    <h4 className="font-bold text-sm text-[#211a14]">
+                      Histórico de Facturas Electrónicas & Recibos Emitidos (Kz)
+                    </h4>
+                    <p className="text-[11px] text-[#5c3f42]">
+                      Documentos com Código de Validação CVA e certificação da Administração Geral Tributária (AGT)
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Emissão Certificada AGT</span>
                   </span>
                 </div>
 
@@ -943,31 +956,124 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
-                        <th className="p-3.5">Fatura da Escola</th>
+                        <th className="p-3.5">Factura Electrónica & CVA</th>
                         <th className="p-3.5">Descrição</th>
-                        <th className="p-3.5">Valor Liquidado (Kz)</th>
-                        <th className="p-3.5">Método de Liquidação</th>
-                        <th className="p-3.5">Data de Liquidação</th>
-                        <th className="p-3.5 text-right">Recibo Emitido</th>
+                        <th className="p-3.5">Valor (Kz)</th>
+                        <th className="p-3.5">Canal de Liquidação</th>
+                        <th className="p-3.5">Data / Vencimento</th>
+                        <th className="p-3.5">Estado</th>
+                        <th className="p-3.5 text-right">Documentos Fiscais</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#eee0d6]">
-                      {financialHistory.map((item) => (
+                      {guardianInvoices.map((item) => (
                         <tr key={item.id} className="hover:bg-[#fff1e7]/70 transition-colors">
-                          <td className="p-3.5 font-bold font-mono text-[#211a14]">{item.ref}</td>
-                          <td className="p-3.5 text-[#5c3f42]">{item.desc}</td>
-                          <td className="p-3.5 font-extrabold text-[#211a14]">Kz {item.amount.toLocaleString('pt-PT')},00</td>
-                          <td className="p-3.5 text-[#5c3f42]">{item.method}</td>
-                          <td className="p-3.5 text-[#5c3f42]">{item.date}</td>
-                          <td className="p-3.5 text-right">
+                          <td className="p-3.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold font-mono text-[#211a14]">{item.invoiceNumber}</span>
+                              <span
+                                className={`px-1.5 py-0.2 rounded font-extrabold text-[9px] ${
+                                  item.documentType === 'FE'
+                                    ? 'bg-pink-100 text-[#ed145b]'
+                                    : item.documentType === 'FRE'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-amber-100 text-amber-800'
+                                }`}
+                              >
+                                {item.documentType}
+                              </span>
+                            </div>
+                            {item.electronic?.cvaCode ? (
+                              <span className="text-[10px] text-emerald-700 font-mono block mt-0.5">
+                                ✓ CVA: {item.electronic.cvaCode}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-amber-700 font-mono block mt-0.5">
+                                • Modo Contingência
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-3.5">
+                            <span className="font-bold text-[#211a14] block">
+                              {item.items[0]?.description || 'Propina Mensal Integrada'}
+                            </span>
+                            <span className="text-[10px] text-[#8c6b6d]">{item.classroom}</span>
+                          </td>
+
+                          <td className="p-3.5 font-extrabold font-mono text-[#211a14]">
+                            {formatKwanza(item.totalAmount)}
+                          </td>
+
+                          <td className="p-3.5">
+                            <span className="text-[#5c3f42] block font-semibold">
+                              {item.paymentMethod || 'Multicaixa Express'}
+                            </span>
+                            {item.paymentReference?.reference && (
+                              <span className="text-[10px] text-[#8c6b6d] font-mono">
+                                Ref: {item.paymentReference.reference}
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-3.5 text-[#5c3f42]">
+                            <span className="block font-medium">{item.paidAt || item.issueDate}</span>
+                            <span className="text-[10px] text-[#8c6b6d]">Venc: {item.dueDate}</span>
+                          </td>
+
+                          <td className="p-3.5">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                item.status === 'Liquidada'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {item.status}
+                            </span>
+                          </td>
+
+                          <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+                            {/* Visualizador da Factura Electrónica Oficial */}
                             <button
                               type="button"
-                              onClick={() => setReceiptPreviewRecord(item)}
-                              className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#8c4f00] font-bold rounded-lg transition-colors inline-flex items-center gap-1"
+                              onClick={() => setSelectedInvoiceView(item)}
+                              className="px-2.5 py-1 bg-white hover:bg-pink-50 border border-pink-200 text-[#ed145b] font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              title="Visualizar Factura Electrónica A4 / PDF"
                             >
-                              <Printer className="w-3 h-3" />
-                              <span>Recibo (PDF)</span>
+                              <FileText className="w-3 h-3" />
+                              <span>Factura (PDF)</span>
                             </button>
+
+                            {/* Recibo Emitido se Liquidada */}
+                            {item.status === 'Liquidada' ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setReceiptPreviewRecord({
+                                    id: item.id,
+                                    ref: item.invoiceNumber,
+                                    desc: item.items[0]?.description || 'Propina Mensal',
+                                    amount: item.totalAmount,
+                                    method: item.paymentMethod || 'Multicaixa Express',
+                                    date: item.paidAt || item.issueDate
+                                  })
+                                }
+                                className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#8c4f00] font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                <Printer className="w-3 h-3" />
+                                <span>Recibo</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setMultibancoModal(true)}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                <CreditCard className="w-3 h-3" />
+                                <span>Liquidar</span>
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -1616,6 +1722,17 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             </form>
           </div>
         </div>
+      )}
+
+      {/* MODAL: VISUALIZADOR DA FACTURA ELECTRÓNICA PARA O ENCARREGADO */}
+      {selectedInvoiceView && (
+        <InvoiceDocumentView
+          invoice={selectedInvoiceView}
+          onClose={() => setSelectedInvoiceView(null)}
+          onSendEmail={(inv) =>
+            showToast(`Cópia da Factura Electrónica ${inv.invoiceNumber} enviada para o seu e-mail!`)
+          }
+        />
       )}
     </div>
   );

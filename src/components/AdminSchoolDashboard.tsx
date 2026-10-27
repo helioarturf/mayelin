@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   Bell,
@@ -41,9 +41,24 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { formatEducatorName } from '../utils/formatters';
+import { Invoice, InvoiceType, Student } from '../types';
+import { INITIAL_STUDENTS } from '../data/mockData';
+import {
+  INITIAL_INVOICES,
+  formatKwanza,
+  generateInvoiceNumber,
+  generateAgtHash,
+  generateAgtCvaCode,
+  generateMulticaixaReference
+} from '../utils/invoiceUtils';
+import { alterFactPlusInvoice, createFactPlusInvoice } from '../utils/factplusApi';
+import IssueInvoiceModal from './IssueInvoiceModal';
+import BatchIssueInvoiceModal from './BatchIssueInvoiceModal';
+import InvoiceDocumentView from './InvoiceDocumentView';
 
 interface AdminSchoolDashboardProps {
   onClose?: () => void;
+  students?: Student[];
 }
 
 type AdminSection = 'overview' | 'classes' | 'finance' | 'hr' | 'comms' | 'settings';
@@ -100,7 +115,8 @@ interface MassAnnouncement {
   status: 'Enviada' | 'Em Processamento';
 }
 
-export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardProps) {
+export default function AdminSchoolDashboard({ onClose, students }: AdminSchoolDashboardProps) {
+  const effectiveStudents = students && students.length > 0 ? students : INITIAL_STUDENTS;
   const [activeSection, setActiveSection] = useState<AdminSection>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('2024/2025');
@@ -114,7 +130,7 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   };
 
   // Modal States
-  const [receiptModalRecord, setReceiptModalRecord] = useState<FinancialRecord | null>(null);
+  const [receiptModalRecord, setReceiptModalRecord] = useState<any | null>(null);
   const [saftModalOpen, setSaftModalOpen] = useState(false);
   const [addClassModalOpen, setAddClassModalOpen] = useState(false);
   const [addStaffModalOpen, setAddStaffModalOpen] = useState(false);
@@ -122,6 +138,12 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   const [newStaffEmail, setNewStaffEmail] = useState('');
   const [newStaffRole, setNewStaffRole] = useState<'Educadora (Tia)' | 'Portaria' | 'SPO' | 'Admin'>('Educadora (Tia)');
   const [commsModalOpen, setCommsModalOpen] = useState(false);
+
+  // Estados da Facturação Electrónica (AGT)
+  const [selectedInvoiceForView, setSelectedInvoiceForView] = useState<Invoice | null>(null);
+  const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [invoiceFilterType, setInvoiceFilterType] = useState<'all' | 'FE' | 'FRE' | 'pending' | 'liquidated'>('all');
 
   // Data: Turmas (Apenas Educação Infantil e Creche - 3 Ciclos de Desenvolvimento)
   const [classesList, setClassesList] = useState<ClassItem[]>([
@@ -187,72 +209,19 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
     }
   ]);
 
-  // Data: Gestão Financeira em Moeda Nacional (Kwanza - Kz)
-  const [financialRecords, setFinancialRecords] = useState<FinancialRecord[]>([
-    {
-      id: 'fin-1',
-      studentName: 'Lucas Oliveira Mayelin',
-      guardianName: 'Helena Mayelin',
-      nif: '5418172901',
-      classGroup: 'Maternal I - Primeiros Passos',
-      amount: 165000.0,
-      paymentMethod: 'Multicaixa Express (MCX)',
-      status: 'Liquidado',
-      invoiceNumber: 'FT-2024/0981',
-      dueDate: '08/10/2024',
-      paidDate: '05/10/2024'
-    },
-    {
-      id: 'fin-2',
-      studentName: 'Sofia Rocha Ramos',
-      guardianName: 'Fernando Ramos',
-      nif: '5413904581',
-      classGroup: 'Berçário Ninho de Afeto',
-      amount: 180000.0,
-      paymentMethod: 'Multicaixa Express (MCX)',
-      status: 'Liquidado',
-      invoiceNumber: 'FT-2024/0982',
-      dueDate: '08/10/2024',
-      paidDate: '06/10/2024'
-    },
-    {
-      id: 'fin-3',
-      studentName: 'Mateus Castro Silva',
-      guardianName: 'Rodrigo Silva',
-      nif: '5419842109',
-      classGroup: 'Jardim de Infância - Sala das Estrelinhas',
-      amount: 150000.0,
-      paymentMethod: 'Referência Multicaixa',
-      status: 'Aviso Enviado',
-      invoiceNumber: 'FT-2024/0983',
-      dueDate: '10/10/2024'
-    },
-    {
-      id: 'fin-4',
-      studentName: 'Beatriz Alcantara',
-      guardianName: 'Diogo Alcantara',
-      nif: '5425489102',
-      classGroup: 'Pré-Escolar - Sala das Descobertas',
-      amount: 150000.0,
-      paymentMethod: 'Transferência Bancária (AO06)',
-      status: 'Liquidado',
-      invoiceNumber: 'FT-2024/0984',
-      dueDate: '08/10/2024',
-      paidDate: '04/10/2024'
-    },
-    {
-      id: 'fin-5',
-      studentName: 'Tomás Mendonça',
-      guardianName: 'Patrícia Mendonça',
-      nif: '5422874190',
-      classGroup: 'Maternal II - Sala dos Exploradores',
-      amount: 165000.0,
-      paymentMethod: 'Referência Multicaixa',
-      status: 'Aviso Enviado',
-      invoiceNumber: 'FT-2024/0985',
-      dueDate: '10/10/2024'
+  // Data: Facturas e Facturação Electrónica (FE / FRE - AGT)
+  const [invoicesList, setInvoicesList] = useState<Invoice[]>(() => {
+    try {
+      const saved = localStorage.getItem('mayelin_invoices');
+      return saved ? JSON.parse(saved) : INITIAL_INVOICES;
+    } catch {
+      return INITIAL_INVOICES;
     }
-  ]);
+  });
+
+  useEffect(() => {
+    localStorage.setItem('mayelin_invoices', JSON.stringify(invoicesList));
+  }, [invoicesList]);
 
   // Data: Recursos Humanos & RBAC
   const [staffList, setStaffList] = useState<StaffMember[]>([
@@ -362,16 +331,35 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   }, [classesList, searchQuery]);
 
   const filteredFinance = useMemo(() => {
-    if (!searchQuery.trim()) return financialRecords;
+    let list = invoicesList;
+    if (invoiceFilterType === 'FE') {
+      list = list.filter((inv) => inv.documentType === 'FE');
+    } else if (invoiceFilterType === 'FRE') {
+      list = list.filter((inv) => inv.documentType === 'FRE');
+    } else if (invoiceFilterType === 'pending') {
+      list = list.filter(
+        (inv) => inv.status === 'Emitida' || inv.status === 'Aviso Enviado' || inv.status === 'Em Aberto'
+      );
+    } else if (invoiceFilterType === 'liquidated') {
+      list = list.filter((inv) => inv.status === 'Liquidada');
+    }
+
+    if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
-    return financialRecords.filter(
+    return list.filter(
       (f) =>
         f.studentName.toLowerCase().includes(q) ||
         f.guardianName.toLowerCase().includes(q) ||
-        f.nif.includes(q) ||
-        f.invoiceNumber.toLowerCase().includes(q)
+        f.guardianNif.includes(q) ||
+        f.invoiceNumber.toLowerCase().includes(q) ||
+        (f.electronic?.cvaCode && f.electronic.cvaCode.toLowerCase().includes(q))
     );
-  }, [financialRecords, searchQuery]);
+  }, [invoicesList, searchQuery, invoiceFilterType]);
+
+  const nextInvoiceSequence = useMemo(() => {
+    if (invoicesList.length === 0) return 150;
+    return Math.max(...invoicesList.map((i) => i.sequenceNumber || 1)) + 1;
+  }, [invoicesList]);
 
   const filteredStaff = useMemo(() => {
     if (!searchQuery.trim()) return staffList;
@@ -412,7 +400,100 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
   };
 
   const handleIssueInvoiceBatch = () => {
-    showToast('Lote de 482 faturas certificadas geradas e sincronizadas com a Administração Geral Tributária (AGT).');
+    setIsBatchModalOpen(true);
+  };
+
+  const handleSaveNewInvoice = (newInvoice: Invoice, openViewerImmediately: boolean) => {
+    setInvoicesList((prev) => [newInvoice, ...prev]);
+    setIsIssueModalOpen(false);
+    showToast(
+      `Factura Electrónica ${newInvoice.invoiceNumber} emitida e sincronizada com a AGT com sucesso!`
+    );
+    if (openViewerImmediately) {
+      setSelectedInvoiceForView(newInvoice);
+    }
+  };
+
+  const handleSaveBatch = (newInvoices: Invoice[]) => {
+    setInvoicesList((prev) => [...newInvoices, ...prev]);
+    setIsBatchModalOpen(false);
+    showToast(
+      `Lote de ${newInvoices.length} Facturas Electrónicas gerado e validado com sucesso pela AGT!`
+    );
+  };
+
+  const handleMarkInvoiceAsPaid = (invoiceId: string) => {
+    const invoice = invoicesList.find((inv) => inv.id === invoiceId);
+    setInvoicesList((prev) =>
+      prev.map((inv) => {
+        if (inv.id === invoiceId) {
+          return {
+            ...inv,
+            status: 'Liquidada',
+            paidAt: new Date().toISOString().split('T')[0]
+          };
+        }
+        return inv;
+      })
+    );
+    
+    // Atualizar estado na FactPlus se for FE ou FRE
+    if (invoice && (invoice.documentType === 'FE' || invoice.documentType === 'FRE')) {
+      alterFactPlusInvoice(
+        invoice.invoiceNumber,
+        invoice.documentType,
+        'Liquidada'
+      ).catch((err) => console.error('Erro ao atualizar estado na FactPlus:', err));
+    }
+    
+    showToast('Liquidação confirmada e recibo de quitação gerado no sistema!');
+  };
+
+  const handleCancelInvoice = (invoice: Invoice) => {
+    const nextSeq = Math.max(...invoicesList.map((i) => i.sequenceNumber || 1)) + 1;
+    const nceNumber = generateInvoiceNumber('NCE', 'MAY2025', nextSeq);
+    const nceInvoice: Invoice = {
+      ...invoice,
+      id: `inv-nce-${Date.now()}`,
+      documentType: 'NCE',
+      invoiceNumber: nceNumber,
+      sequenceNumber: nextSeq,
+      issueDate: new Date().toISOString().split('T')[0],
+      referencedInvoiceNumber: invoice.invoiceNumber,
+      status: 'Liquidada',
+      notes: `Anulação / Nota de Crédito Electrónica referente ao documento ${invoice.invoiceNumber}.`,
+      electronic: {
+        isElectronic: true,
+        cvaCode: generateAgtCvaCode(new Date().getFullYear(), nextSeq),
+        transmissionStatus: 'Validada_AGT',
+        transmissionTimestamp: new Date().toISOString(),
+        isContingency: false
+      },
+      agtHash: generateAgtHash({
+        invoiceNumber: nceNumber,
+        issueDate: new Date().toISOString().split('T')[0],
+        totalAmount: invoice.totalAmount
+      })
+    };
+
+    setInvoicesList((prev) => [
+      nceInvoice,
+      ...prev.map((i) => (i.id === invoice.id ? { ...i, status: 'Anulada' as const } : i))
+    ]);
+
+    // Cancelar factura original na FactPlus e criar NCE
+    if (invoice.documentType === 'FE' || invoice.documentType === 'FRE') {
+      alterFactPlusInvoice(
+        invoice.invoiceNumber,
+        invoice.documentType,
+        'Anulada',
+        `Anulada por Nota de Crédito ${nceNumber}`
+      ).catch((err) => console.error('Erro ao cancelar factura na FactPlus:', err));
+    }
+    createFactPlusInvoice(nceInvoice).catch((err) => console.error('Erro ao criar NCE na FactPlus:', err));
+
+    showToast(`Nota de Crédito Electrónica ${nceNumber} emitida com sucesso!`);
+    setSelectedInvoiceForView(nceInvoice);
   };
 
   return (
@@ -1003,8 +1084,26 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
+                    onClick={() => setIsIssueModalOpen(true)}
+                    className="min-h-[38px] px-4 py-1.5 rounded-xl bg-[#ed145b] text-white font-bold text-xs shadow-md hover:bg-[#d0104f] transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Emitir Factura (FE)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleIssueInvoiceBatch}
+                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-sm hover:bg-emerald-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Emitir em Lote (AGT)</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={handleExportSaft}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#211a14] text-white font-bold text-xs shadow-sm hover:bg-[#382b22] transition-colors flex items-center gap-1.5"
+                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#211a14] text-white font-bold text-xs shadow-sm hover:bg-[#382b22] transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Exportar SAF-T (AO)</span>
@@ -1012,17 +1111,8 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
 
                   <button
                     type="button"
-                    onClick={handleIssueInvoiceBatch}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-sm hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>Emitir Faturas em Lote</span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={handleDispatchReminders}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-xs shadow-sm hover:bg-amber-600 transition-colors flex items-center gap-1.5"
+                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-xs shadow-sm hover:bg-amber-600 transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Disparar Lembretes</span>
@@ -1030,69 +1120,194 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
                 </div>
               </div>
 
-              {/* Financial Records Table */}
+              {/* Barra de Filtros de Facturação Electrónica */}
+              <div className="flex items-center gap-1.5 sm:gap-2 border border-[#eee0d6] p-1.5 rounded-2xl bg-white overflow-x-auto text-xs">
+                <span className="text-[11px] font-bold text-[#8c6b6d] px-2 flex items-center gap-1 shrink-0">
+                  <Filter className="w-3.5 h-3.5" /> Filtros:
+                </span>
+                {[
+                  { id: 'all', label: `Todos (${invoicesList.length})` },
+                  { id: 'FE', label: `Facturas FE (${invoicesList.filter((i) => i.documentType === 'FE').length})` },
+                  { id: 'FRE', label: `Facturas-Recibo FRE (${invoicesList.filter((i) => i.documentType === 'FRE').length})` },
+                  { id: 'pending', label: `Por Liquidar (${invoicesList.filter((i) => i.status !== 'Liquidada' && i.status !== 'Anulada').length})` },
+                  { id: 'liquidated', label: `Liquidadas (${invoicesList.filter((i) => i.status === 'Liquidada').length})` }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setInvoiceFilterType(tab.id as any)}
+                    className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                      invoiceFilterType === tab.id
+                        ? 'bg-[#211a14] text-white'
+                        : 'text-[#5c3f42] hover:bg-[#fff1e7]'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tabela de Facturas e Registos Fiscais */}
               <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
                       <tr>
+                        <th className="p-3.5">Documento & Certificação AGT</th>
                         <th className="p-3.5">Aluno & Turma</th>
                         <th className="p-3.5">Responsável Financeiro (NIF)</th>
                         <th className="p-3.5">Método de Liquidação</th>
                         <th className="p-3.5">Valor (Kz) & Vencimento</th>
                         <th className="p-3.5">Estado</th>
-                        <th className="p-3.5 text-right">Recibo AGT</th>
+                        <th className="p-3.5 text-right">Ações Oficiais</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#eee0d6]">
                       {filteredFinance.map((record) => (
                         <tr key={record.id} className="hover:bg-[#fff1e7]/70 transition-colors">
                           <td className="p-3.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold font-mono text-[#211a14] text-xs">
+                                {record.invoiceNumber}
+                              </span>
+                              <span
+                                className={`px-1.5 py-0.2 rounded font-extrabold text-[9px] ${
+                                  record.documentType === 'FE'
+                                    ? 'bg-pink-100 text-[#ed145b]'
+                                    : record.documentType === 'FRE'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : record.documentType === 'NCE'
+                                    ? 'bg-rose-100 text-rose-800'
+                                    : 'bg-amber-100 text-amber-800'
+                                }`}
+                              >
+                                {record.documentType}
+                              </span>
+                            </div>
+                            {record.electronic?.cvaCode ? (
+                              <span className="text-[10px] text-emerald-700 font-mono block mt-0.5" title="Código de Validação da AGT">
+                                ✓ CVA: {record.electronic.cvaCode}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-amber-700 font-mono block mt-0.5">
+                                • Modo Contingência
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="p-3.5">
                             <p className="font-bold text-[#211a14]">{record.studentName}</p>
-                            <span className="text-[10px] text-[#5c3f42]">{record.classGroup}</span>
+                            <span className="text-[10px] text-[#5c3f42]">{record.classroom}</span>
                           </td>
 
                           <td className="p-3.5">
                             <span className="font-bold text-[#211a14] block">{record.guardianName}</span>
-                            <span className="text-[10px] text-[#5c3f42] font-mono">NIF: {record.nif}</span>
+                            <span className="text-[10px] text-[#5c3f42] font-mono">
+                              NIF: {record.guardianNif}
+                            </span>
                           </td>
 
                           <td className="p-3.5">
                             <span className="font-semibold text-[#5c3f42] flex items-center gap-1">
                               <CreditCard className="w-3.5 h-3.5 text-[#8c6b6d]" />
-                              {record.paymentMethod}
+                              {record.paymentMethod || 'Multicaixa Express'}
                             </span>
-                            <span className="text-[10px] text-[#8c6b6d] font-mono">{record.invoiceNumber}</span>
+                            {record.paymentReference?.reference && (
+                              <span className="text-[10px] text-[#8c6b6d] font-mono block">
+                                Ref: {record.paymentReference.reference}
+                              </span>
+                            )}
                           </td>
 
                           <td className="p-3.5">
-                            <span className="font-bold text-[#211a14]">
-                              Kz {record.amount.toLocaleString('pt-PT')},00
+                            <span className="font-bold text-[#211a14] font-mono">
+                              {formatKwanza(record.totalAmount)}
                             </span>
                             <span className="text-[10px] text-[#5c3f42] block">Venc: {record.dueDate}</span>
                           </td>
 
                           <td className="p-3.5">
                             <span
-                              className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
-                                record.status === 'Liquidado'
+                              className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] inline-block ${
+                                record.status === 'Liquidada'
                                   ? 'bg-emerald-100 text-emerald-800'
+                                  : record.status === 'Anulada'
+                                  ? 'bg-rose-100 text-rose-800'
                                   : 'bg-amber-100 text-amber-800'
                               }`}
                             >
                               {record.status}
                             </span>
+                            {record.paidAt && (
+                              <span className="text-[9px] text-[#8c6b6d] block mt-0.5 font-mono">
+                                Pago em: {record.paidAt}
+                              </span>
+                            )}
                           </td>
 
-                          <td className="p-3.5 text-right">
+                          <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+                            {/* Ver Factura Oficial A4 / PDF */}
                             <button
                               type="button"
-                              onClick={() => setReceiptModalRecord(record)}
-                              className="px-2.5 py-1 bg-pink-50 hover:bg-pink-100 text-[#ed145b] rounded-lg font-bold text-[11px] transition-colors inline-flex items-center gap-1"
+                              onClick={() => setSelectedInvoiceForView(record)}
+                              className="px-2.5 py-1 bg-white hover:bg-pink-50 border border-pink-200 text-[#ed145b] rounded-lg font-bold text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer"
+                              title="Visualizar e Imprimir Factura Electrónica (PDF/A4)"
                             >
-                              <Printer className="w-3 h-3" />
-                              <span>Recibo AGT</span>
+                              <FileText className="w-3 h-3" />
+                              <span>Ver FE</span>
                             </button>
+
+                            {/* Recibo AGT (se Liquidada) */}
+                            {record.status === 'Liquidada' && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setReceiptModalRecord({
+                                    id: record.id,
+                                    studentName: record.studentName,
+                                    guardianName: record.guardianName,
+                                    nif: record.guardianNif,
+                                    classGroup: record.classroom,
+                                    amount: record.totalAmount,
+                                    paymentMethod: record.paymentMethod || 'Multicaixa Express (MCX)',
+                                    status: 'Liquidado',
+                                    invoiceNumber: record.invoiceNumber,
+                                    dueDate: record.dueDate,
+                                    paidDate: record.paidAt || record.dueDate
+                                  })
+                                }
+                                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg font-bold text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                title="Ver Recibo de Quitação AGT"
+                              >
+                                <Printer className="w-3 h-3" />
+                                <span>Recibo</span>
+                              </button>
+                            )}
+
+                            {/* Liquidar (se pendente) */}
+                            {record.status !== 'Liquidada' && record.status !== 'Anulada' && (
+                              <button
+                                type="button"
+                                onClick={() => handleMarkInvoiceAsPaid(record.id)}
+                                className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] transition-colors inline-flex items-center gap-0.5 cursor-pointer"
+                                title="Registar Liquidação de Propina"
+                              >
+                                <Check className="w-3 h-3" />
+                                <span>Liquidar</span>
+                              </button>
+                            )}
+
+                            {/* Anular com NCE */}
+                            {record.status !== 'Anulada' && record.documentType !== 'NCE' && (
+                              <button
+                                type="button"
+                                onClick={() => handleCancelInvoice(record)}
+                                className="px-1.5 py-1 text-rose-500 hover:bg-rose-50 rounded-lg font-bold text-[10px] transition-colors inline-flex items-center cursor-pointer"
+                                title="Anular com Nota de Crédito Electrónica (NCE)"
+                              >
+                                Anular
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -1845,6 +2060,43 @@ export default function AdminSchoolDashboard({ onClose }: AdminSchoolDashboardPr
             </form>
           </div>
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: EMISSÃO INDIVIDUAL DE FACTURA ELECTRÓNICA (FE / AGT)               */}
+      {/* ========================================================================= */}
+      <IssueInvoiceModal
+        isOpen={isIssueModalOpen}
+        onClose={() => setIsIssueModalOpen(false)}
+        onSaveInvoice={handleSaveNewInvoice}
+        studentsList={effectiveStudents}
+        nextSequenceNumber={nextInvoiceSequence}
+      />
+
+      {/* ========================================================================= */}
+      {/* MODAL: EMISSÃO EM LOTE DE FACTURAS ELECTRÓNICAS (AGT)                     */}
+      {/* ========================================================================= */}
+      <BatchIssueInvoiceModal
+        isOpen={isBatchModalOpen}
+        onClose={() => setIsBatchModalOpen(false)}
+        onSaveBatch={handleSaveBatch}
+        studentsList={effectiveStudents}
+        currentSequenceNumber={nextInvoiceSequence}
+      />
+
+      {/* ========================================================================= */}
+      {/* MODAL: VISUALIZADOR OFICIAL A4 / PDF DA FACTURA ELECTRÓNICA (AGT)          */}
+      {/* ========================================================================= */}
+      {selectedInvoiceForView && (
+        <InvoiceDocumentView
+          invoice={selectedInvoiceForView}
+          onClose={() => setSelectedInvoiceForView(null)}
+          onSendEmail={(inv) =>
+            showToast(
+              `Factura Electrónica ${inv.invoiceNumber} enviada por e-mail para ${inv.guardianEmail}!`
+            )
+          }
+        />
       )}
     </div>
   );

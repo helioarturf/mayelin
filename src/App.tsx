@@ -13,12 +13,19 @@ import ContactAndMap from './components/ContactAndMap';
 import MealMenuModal from './components/MealMenuModal';
 import Footer from './components/Footer';
 import RealPhotosGallery from './components/RealPhotosGallery';
+import OfflineIndicator from './components/OfflineIndicator';
+import { seedDatabase } from './services/seedData';
+import { syncManager } from './services/syncManager';
 
 import { INITIAL_STUDENTS, INITIAL_PICKUP_AUTHORIZATIONS, INITIAL_ANNOUNCEMENTS, SCHOOL_CONTACT } from './data/mockData';
 import { AgeGroup, Student, PickupAuthorization, VisitAppointment, UserRole, SchoolAnnouncement, DailyLogItem } from './types';
 import { MessageCircle, Smartphone, Calendar, ArrowUp } from 'lucide-react';
 
 export default function App() {
+  useEffect(() => {
+    seedDatabase();
+    syncManager.sync();
+  }, []);
   // Modal states
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -295,6 +302,7 @@ export default function App() {
           <span className="hidden sm:inline">WhatsApp</span>
         </a>
       </div>
+      <OfflineIndicator />
     </div>
   );
 }

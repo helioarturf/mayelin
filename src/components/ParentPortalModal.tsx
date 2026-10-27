@@ -46,6 +46,7 @@ interface ParentPortalModalProps {
 export default function ParentPortalModal({
   isOpen,
   onClose,
+  students,
   currentRole = 'pais',
   onChangeRole
 }: ParentPortalModalProps) {
@@ -274,7 +275,7 @@ export default function ParentPortalModal({
       <main className="flex-1 w-full flex flex-col overflow-hidden bg-[#fff8f5]">
         {/* PERFIL 1: ADMINISTRAÇÃO E GESTÃO ESCOLAR */}
         {effectiveRole === 'admin' && (
-          <AdminSchoolDashboard />
+          <AdminSchoolDashboard students={students} />
         )}
 
         {/* PERFIL 2: EDUCADORA (TIA) */}

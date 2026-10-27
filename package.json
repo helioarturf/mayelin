@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
+    "build": "vite build && npm run build:server",
+    "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist-server/index.js --external:mysql2 --external:express --external:cors --external:dotenv --external:bcryptjs --external:jsonwebtoken",
+    "start": "node dist-server/index.js",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
+    "preview:local": "npx serve dist -l 8080",
+    "clean": "rm -rf dist dist-server server.js",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -20,7 +23,14 @@
     "vite": "^6.2.3",
     "express": "^4.21.2",
     "dotenv": "^17.2.3",
-    "motion": "^12.23.24"
+    "motion": "^12.23.24",
+    "dexie": "^4.0.10",
+    "workbox-window": "^7.3.0",
+    "mysql2": "^3.11.5",
+    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
@@ -30,6 +40,12 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
-    "@types/express": "^4.17.21"
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/uuid": "^10.0.0",
+    "vite-plugin-pwa": "^0.21.1",
+    "serve": "^14.2.4"
   }
 }
