@@ -2,4 +2,6 @@
 deployment:
   tasks:
     - export NODE_ENV=production
-    - npm install --legacy-peer-deps --no-audit --no-fund
+    - export PATH=$HOME/nodevenv/mayelin_ao/bin:$PATH
+    - npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline
+    - if [ -f "package.json" ] && grep -q '"build"' package.json; then npm run build; fi
