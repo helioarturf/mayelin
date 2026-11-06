@@ -63,19 +63,23 @@ Clique em "Start App" no painel Node.js App.
 ✅ Inserção automática do utilizador admin
 ✅ Servir frontend + API num único servidor (`dist/` + `dist-server/index.js`)
 
-> **Importante:** Não inclua um `.htaccess` personalizado no deploy do app Node.js. O cPanel (Passenger/Setup Node.js App) gere o `.htaccess` automaticamente; sobrescrevê-lo pode causar **503/erro de acesso**.
+> **Importante:** `dist-server/index.js` é um bundle **autocontido** (inclui dependências do servidor). O arranque não deve falhar por falta de `mysql2`/`express` em `node_modules`. Se fizer *build* no servidor, corra `npm install --legacy-peer-deps` antes.
+>
+> Não inclua um `.htaccess` personalizado no deploy do app Node.js. O cPanel (Passenger/Setup Node.js App) gere o `.htaccess` automaticamente; sobrescrevê-lo pode causar **503/erro de acesso**.
 
 ## Troubleshooting
 
-### Erro 503 (Service Unavailable) após apontar DNS para cPanel
-1. **Setup Node.js App** → confirme que a aplicação existe, está em **Started/Running** e tem:
+### Erro 503 (Service Unavailable) ou `ERR_MODULE_NOT_FOUND` no log
+1. **Atualize o código** (Git Pull/Deploy) para obter o `dist-server/index.js` autocontido mais recente e faça **Restart** em *Setup Node.js App*.
+2. **Setup Node.js App** → confirme:
    - Application root: `repositories/mayelin` (ou o caminho real)
    - Startup file: `dist-server/index.js`
-   - Node.js: 18.x ou 20.x
-2. **Run NPM Install** (ou `npm install --legacy-peer-deps` no terminal do app) — `dist-server/index.js` depende de `express`, `mysql2`, `cors`, `dotenv`, etc. em `node_modules`.
-3. **Restaurar `.htaccess` gerido pelo Passenger**: se o `.htaccess` da pasta da aplicação foi sobrescrito por deploy, o Passenger pode parar de funcionar. Em *Setup Node.js App*, faça **Stop App** → edite/guarde as definições (ou **Restart**) para o cPanel regenerar o `.htaccess`, ou apague o `.htaccess` manual e reinicie a app.
-4. Verifique os **logs** em *Setup Node.js App → Log* e os *Error Logs* do Apache/cPanel.
-5. Teste direto: `https://www.mayelin.ao/api/health` (deve responder JSON quando a app Node está ativa).
+   - Node.js: **20.x ou 22.x** (compatível com o bundle)
+   - Estado: **Started/Running**
+3. **Restaurar `.htaccess` gerido pelo Passenger**: se o `.htaccess` da pasta da aplicação foi sobrescrito por deploy, o Passenger pode falhar (503). Em *Setup Node.js App*, faça **Stop App** → **Restart** para o cPanel regenerar o `.htaccess` (não mantenha `.htaccess` custom no root do app).
+4. Se o log ainda mostrar módulos em falta com um bundle antigo, execute **Run NPM Install** (`npm install --legacy-peer-deps`) no contexto da app e reinicie.
+5. Verifique os **logs** em *Setup Node.js App → Log* e os *Error Logs* do Apache/cPanel.
+6. Teste direto: `https://www.mayelin.ao/api/health` (deve responder JSON, com `dbReady` conforme a BD).
 
 ### Erro de ligação à BD
 A app deve continuar acessível mesmo sem BD (responde em `/api/health` com `dbReady:false`). Verifique as credenciais MySQL em "MySQL Databases" e as variáveis de ambiente.
