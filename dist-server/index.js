@@ -13,48 +13,69 @@ var database_exports = {};
 __export(database_exports, {
   createDatabaseIfNotExists: () => createDatabaseIfNotExists,
   default: () => database_default,
-  getPool: () => getPool
+  getLastDbError: () => getLastDbError,
+  getPool: () => getPool,
+  hasPool: () => hasPool
 });
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+function getLastDbError() {
+  return lastError;
+}
 async function createDatabaseIfNotExists() {
+  const dbName = process.env.DB_NAME || "mayelin_db";
   try {
-    const connection = await mysql.createConnection(dbConfig);
-    const dbName = process.env.DB_NAME || "mayelin_db";
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-    console.log(`\u2705 Base de dados '${dbName}' verificada/criada com sucesso`);
-    await connection.end();
+    try {
+      const connection = await mysql.createConnection(baseConfig);
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+      await connection.end();
+      console.log(`\u2705 Base de dados '${dbName}' verificada/criada com sucesso`);
+    } catch (e) {
+      console.warn(`\u26A0\uFE0F  N\xE3o foi poss\xEDvel criar/verificar BD '${dbName}' (pode j\xE1 existir ou faltar privil\xE9gio CREATE): ${e?.message}`);
+    }
     pool = mysql.createPool({
-      ...dbConfig,
+      ...baseConfig,
       database: dbName,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
     });
+    const conn = await pool.getConnection();
+    await conn.ping();
+    conn.release();
+    lastError = null;
+    console.log(`\u2705 Liga\xE7\xE3o \xE0 base de dados '${dbName}' estabelecida`);
     return pool;
   } catch (error) {
-    console.error("\u274C Erro ao criar/verificar base de dados:", error);
+    lastError = error?.message || String(error);
+    pool = null;
+    console.error("\u274C Erro ao ligar \xE0 base de dados:", lastError);
     throw error;
   }
 }
 function getPool() {
   if (!pool) {
-    throw new Error("Pool de conex\xF5es n\xE3o inicializado");
+    throw new Error(lastError ? `Pool de conex\xF5es n\xE3o inicializado: ${lastError}` : "Pool de conex\xF5es n\xE3o inicializado");
   }
   return pool;
 }
-var dbConfig, pool, database_default;
+function hasPool() {
+  return !!pool;
+}
+var baseConfig, pool, lastError, database_default;
 var init_database = __esm({
   "server/config/database.ts"() {
     dotenv.config();
-    dbConfig = {
+    baseConfig = {
       host: process.env.DB_HOST || "localhost",
       user: process.env.DB_USER || "",
       password: process.env.DB_PASSWORD || "",
-      port: parseInt(process.env.DB_PORT || "3306")
+      port: parseInt(process.env.DB_PORT || "3306", 10),
+      connectTimeout: 1e4
     };
     pool = null;
-    database_default = { createDatabaseIfNotExists, getPool };
+    lastError = null;
+    database_default = { createDatabaseIfNotExists, getPool, getLastDbError, hasPool };
   }
 });
 
@@ -283,7 +304,15 @@ app.get("/api/setup/status", async (_req, res) => {
     });
   } catch (error) {
     dbReady = false;
-    res.status(503).json({ status: "error", message: "Base de dados n\xE3o configurada", detail: error?.message });
+    res.status(503).json({ status: "error", message: "Base de dados n\xE3o configurada", detail: error?.message, lastDbError: getLastDbError() });
+  }
+});
+app.post("/api/setup/retry", async (_req, res) => {
+  try {
+    await initDatabase();
+    return res.json({ status: dbReady ? "ok" : "error", dbReady, lastDbError: getLastDbError() });
+  } catch (error) {
+    return res.status(500).json({ status: "error", dbReady, detail: error?.message, lastDbError: getLastDbError() });
   }
 });
 app.post("/api/setup/reset", async (req, res) => {

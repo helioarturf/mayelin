@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createDatabaseIfNotExists } from './config/database.js';
+import { createDatabaseIfNotExists, getLastDbError, hasPool } from './config/database.js';
 import { initializeSchema, seedInitialData, resetDatabase } from './db/schema.js';
 
 dotenv.config();
@@ -38,7 +38,16 @@ app.get('/api/setup/status', async (_req, res) => {
     });
   } catch (error: any) {
     dbReady = false;
-    res.status(503).json({ status: 'error', message: 'Base de dados não configurada', detail: error?.message });
+    res.status(503).json({ status: 'error', message: 'Base de dados não configurada', detail: error?.message, lastDbError: getLastDbError() });
+  }
+});
+
+app.post('/api/setup/retry', async (_req, res) => {
+  try {
+    await initDatabase();
+    return res.json({ status: dbReady ? 'ok' : 'error', dbReady, lastDbError: getLastDbError() });
+  } catch (error: any) {
+    return res.status(500).json({ status: 'error', dbReady, detail: error?.message, lastDbError: getLastDbError() });
   }
 });
 
