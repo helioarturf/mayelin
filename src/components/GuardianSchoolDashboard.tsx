@@ -33,8 +33,15 @@ import {
   Check,
   ChevronRight
 } from 'lucide-react';
-import { Invoice } from '../types';
-import { INITIAL_INVOICES, formatKwanza } from '../utils/invoiceUtils';
+type Invoice = any;
+// Faturas - sem dados demo; integrar com API/backend quando disponível
+const formatKwanza = (amount: number) => {
+  if (isNaN(amount)) return 'Kz 0,00';
+  const parts = Math.abs(amount).toFixed(2).split('.');
+  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const sign = amount < 0 ? '-' : '';
+  return `${sign}Kz ${intPart},${parts[1]}`;
+};
 import InvoiceDocumentView from './InvoiceDocumentView';
 
 interface GuardianSchoolDashboardProps {
@@ -241,9 +248,9 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
   const [guardianInvoices, setGuardianInvoices] = useState<Invoice[]>(() => {
     try {
       const saved = localStorage.getItem('mayelin_invoices');
-      return saved ? JSON.parse(saved) : INITIAL_INVOICES;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_INVOICES;
+      return [];
     }
   });
 

@@ -17,12 +17,24 @@ import OfflineIndicator from './components/OfflineIndicator';
 import { seedDatabase } from './services/seedData';
 import { syncManager } from './services/syncManager';
 
-import { INITIAL_STUDENTS, INITIAL_PICKUP_AUTHORIZATIONS, INITIAL_ANNOUNCEMENTS, SCHOOL_CONTACT } from './data/mockData';
+import { SCHOOL_CONTACT } from './data/mockData';
 import { AgeGroup, Student, PickupAuthorization, VisitAppointment, UserRole, SchoolAnnouncement, DailyLogItem } from './types';
 import { MessageCircle, Smartphone, Calendar, ArrowUp } from 'lucide-react';
 
 export default function App() {
   useEffect(() => {
+    // Zerar dados demo em cache (migração única)
+    const demoCleared = localStorage.getItem('mayelin_demo_cleared_v1');
+    if (!demoCleared) {
+      try {
+        const keys = ['mayelin_students', 'mayelin_authorizations', 'mayelin_announcements', 'mayelin_invoices'];
+        keys.forEach((k) => localStorage.removeItem(k));
+        if ('indexedDB' in window) {
+          indexedDB.deleteDatabase('MayelinPortalDB');
+        }
+        localStorage.setItem('mayelin_demo_cleared_v1', '1');
+      } catch {}
+    }
     seedDatabase();
     syncManager.sync();
   }, []);
@@ -40,21 +52,21 @@ export default function App() {
   const [students, setStudents] = useState<Student[]>(() => {
     try {
       const saved = localStorage.getItem('mayelin_students');
-      return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_STUDENTS;
+      return [];
     }
   });
 
-  const [activeStudentId, setActiveStudentId] = useState<string>('lucas-mayelin');
+  const [activeStudentId, setActiveStudentId] = useState<string>('');
 
   // Authorizations state with localStorage
   const [authorizations, setAuthorizations] = useState<PickupAuthorization[]>(() => {
     try {
       const saved = localStorage.getItem('mayelin_authorizations');
-      return saved ? JSON.parse(saved) : INITIAL_PICKUP_AUTHORIZATIONS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_PICKUP_AUTHORIZATIONS;
+      return [];
     }
   });
 
@@ -72,9 +84,9 @@ export default function App() {
   const [announcements, setAnnouncements] = useState<SchoolAnnouncement[]>(() => {
     try {
       const saved = localStorage.getItem('mayelin_announcements');
-      return saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_ANNOUNCEMENTS;
+      return [];
     }
   });
 

@@ -1,21 +1,18 @@
 import { db } from '../db/schema';
-import { INITIAL_STUDENTS } from '../data/mockData';
-import { INITIAL_INVOICES } from '../utils/invoiceUtils';
 
+/**
+ * Inicializa a base de dados local sem dados demo.
+ * Em produção os dados devem vir do backend/MySQL.
+ */
 export async function seedDatabase() {
   try {
-    const studentsCount = await db.students.count();
-    if (studentsCount === 0) {
-      await db.students.bulkPut(INITIAL_STUDENTS);
-      console.log('Alunos iniciais carregados na BD local');
-    }
-
-    const invoicesCount = await db.invoices.count();
-    if (invoicesCount === 0) {
-      await db.invoices.bulkPut(INITIAL_INVOICES);
-      console.log('Faturas iniciais carregadas na BD local');
-    }
+    // Garante que as tabelas existem no IndexedDB (Dexie cria automaticamente)
+    await db.students.count();
+    await db.invoices.count();
+    await db.announcements.count();
+    await db.dailyLogs.count();
+    await db.pickupAuth.count();
   } catch (error) {
-    console.error('Erro ao popular BD local:', error);
+    console.error('Erro ao inicializar BD local:', error);
   }
 }
