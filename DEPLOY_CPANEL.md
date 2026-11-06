@@ -61,16 +61,24 @@ Clique em "Start App" no painel Node.js App.
 ✅ Criação automática da base de dados MySQL
 ✅ Criação automática de todas as tabelas
 ✅ Inserção automática do utilizador admin
-✅ Servir frontend + API num único servidor
-✅ Configuração via .htaccess para proxy reverso
+✅ Servir frontend + API num único servidor (`dist/` + `dist-server/index.js`)
+
+> **Importante:** Não inclua um `.htaccess` personalizado no deploy do app Node.js. O cPanel (Passenger/Setup Node.js App) gere o `.htaccess` automaticamente; sobrescrevê-lo pode causar **503/erro de acesso**.
 
 ## Troubleshooting
 
+### Erro 503 (Service Unavailable) após apontar DNS para cPanel
+1. **Setup Node.js App** → confirme que a aplicação existe, está em **Started/Running** e tem:
+   - Application root: `repositories/mayelin` (ou o caminho real)
+   - Startup file: `dist-server/index.js`
+   - Node.js: 18.x ou 20.x
+2. **Run NPM Install** (ou `npm install --legacy-peer-deps` no terminal do app) — `dist-server/index.js` depende de `express`, `mysql2`, `cors`, `dotenv`, etc. em `node_modules`.
+3. **Restaurar `.htaccess` gerido pelo Passenger**: se o `.htaccess` da pasta da aplicação foi sobrescrito por deploy, o Passenger pode parar de funcionar. Em *Setup Node.js App*, faça **Stop App** → edite/guarde as definições (ou **Restart**) para o cPanel regenerar o `.htaccess`, ou apague o `.htaccess` manual e reinicie a app.
+4. Verifique os **logs** em *Setup Node.js App → Log* e os *Error Logs* do Apache/cPanel.
+5. Teste direto: `https://www.mayelin.ao/api/health` (deve responder JSON quando a app Node está ativa).
+
 ### Erro de ligação à BD
-Verifique se as credenciais MySQL estão corretas. No cPanel pode criar utilizador MySQL em "MySQL Databases".
+A app deve continuar acessível mesmo sem BD (responde em `/api/health` com `dbReady:false`). Verifique as credenciais MySQL em "MySQL Databases" e as variáveis de ambiente.
 
 ### App não inicia
-Verifique logs em "Setup Node.js App" > "Log file"
-
-### Porta já em uso
-O cPanel atribui porta automaticamente, mas o código usa PORT da env
+Verifique logs em "Setup Node.js App" > "Log file" e confirme que `dist-server/index.js` e `dist/index.html` existem no Application root.

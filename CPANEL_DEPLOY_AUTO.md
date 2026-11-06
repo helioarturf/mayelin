@@ -33,10 +33,17 @@ APP_URL=http://mayelin.ao
 
 ## 4) Deploy
 Git Version Control > mayelin > Pull or Deploy > Deploy HEAD Commit
-Setup Node.js App > Start/Restart App
+Setup Node.js App > Run NPM Install (se necessário) > Start/Restart App
 
 ## Funcionamento automático
 Ao iniciar dist-server/index.js:
-- Cria base de dados DB_NAME caso não exista
+- Cria base de dados DB_NAME caso não exista (se credenciais MySQL válidas)
 - Cria todas as tabelas automaticamente
 - Cria utilizador admin (admin@mayelin.ao / admin123)
+- Mantém a app acessível mesmo que a BD falhe no arranque (`/api/health`)
+
+## 503 em www.mayelin.ao / mayelin.ao
+1. DNS de `www` deve apontar para o **cPanel** (não Vercel), e `www.mayelin.ao` deve ser alias do domínio da aplicação.
+2. Não faça deploy de `.htaccess` personalizado — o Passenger do cPanel gere-o. Se foi sobrescrito, em *Setup Node.js App* faça **Stop → Restart** para regenerar.
+3. Confirme *Application root*, *Startup file* (`dist-server/index.js`), app **Running** e `node_modules` instaladas.
+4. Veja *Setup Node.js App → Log* e teste `https://www.mayelin.ao/api/health`.

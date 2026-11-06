@@ -8,3 +8,6 @@ coverage/
 # Keep dist/ and dist-server/ tracked for cPanel deploy (pre-built)
 !dist/
 !dist-server/
+
+# cPanel/Passenger manages .htaccess for Node.js apps - do not deploy a custom one
+.htaccess
