@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createDatabaseIfNotExists } from './config/database.js';
-import { initializeSchema, seedInitialData } from './db/schema.js';
+import { initializeSchema, seedInitialData, resetDatabase } from './db/schema.js';
 
 dotenv.config();
 
@@ -39,6 +39,23 @@ app.get('/api/setup/status', async (_req, res) => {
   } catch (error: any) {
     dbReady = false;
     res.status(503).json({ status: 'error', message: 'Base de dados não configurada', detail: error?.message });
+  }
+});
+
+app.post('/api/setup/reset', async (req, res) => {
+  try {
+    const secret = String(req.body?.secret || req.headers['x-reset-secret'] || '');
+    const expected = process.env.DB_RESET_SECRET || process.env.JWT_SECRET || 'mayelin_secret_key_change_in_production';
+    if (!secret || secret !== expected) {
+      return res.status(403).json({ status: 'error', message: 'Não autorizado. Forneça o secret correto.' });
+    }
+    if (!dbReady) {
+      await initDatabase();
+    }
+    const result = await resetDatabase();
+    return res.json({ status: 'ok', ...result });
+  } catch (error: any) {
+    return res.status(500).json({ status: 'error', message: 'Erro ao zerar base de dados', detail: error?.message });
   }
 });
 

@@ -175,3 +175,41 @@ export async function seedInitialData() {
     console.error('❌ Erro ao inserir dados iniciais:', error);
   }
 }
+
+
+export async function resetDatabase() {
+  const pool = getPool();
+  const bcrypt = await import('bcryptjs');
+
+  try {
+    // Desativar checks de FK para truncar em ordem segura
+    await pool.query('SET FOREIGN_KEY_CHECKS = 0');
+    const tables = [
+      'daily_logs',
+      'invoices',
+      'announcements',
+      'pickup_authorizations',
+      'visit_appointments',
+      'students',
+      'users',
+    ];
+    for (const t of tables) {
+      await pool.query(`TRUNCATE TABLE \`${t}\``);
+    }
+    await pool.query('SET FOREIGN_KEY_CHECKS = 1');
+
+    // Recriar utilizador admin padrão
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await pool.query(
+      `INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)`,
+      ['admin-001', 'Administrador', 'admin@mayelin.ao', hashedPassword, 'admin']
+    );
+
+    console.log('✅ Base de dados zerada e admin recriado (admin@mayelin.ao / admin123)');
+    return { ok: true, message: 'Base de dados zerada com sucesso. Admin recriado.' };
+  } catch (error) {
+    try { await pool.query('SET FOREIGN_KEY_CHECKS = 1'); } catch {}
+    console.error('❌ Erro ao zerar base de dados:', error);
+    throw error;
+  }
+}
