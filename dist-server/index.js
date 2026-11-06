@@ -228,52 +228,66 @@ dotenv2.config();
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 var app = express();
-var PORT = process.env.PORT || 3001;
+var PORT = Number(process.env.PORT) || 3001;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "Mayelin API funcionando" });
+var dbReady = false;
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", message: "Mayelin API funcionando", dbReady });
 });
-app.get("/api/setup/status", async (req, res) => {
+app.get("/api/setup/status", async (_req, res) => {
   try {
     const { getPool: getPool2 } = await Promise.resolve().then(() => (init_database(), database_exports));
     const pool2 = getPool2();
     const [rows] = await pool2.query("SHOW TABLES");
+    dbReady = true;
     res.json({
       status: "ok",
       tables: rows.length,
       message: "Base de dados configurada"
     });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Base de dados n\xE3o configurada" });
+    dbReady = false;
+    res.status(503).json({ status: "error", message: "Base de dados n\xE3o configurada", detail: error?.message });
   }
 });
-var distPath = path.join(__dirname, "../dist");
+var distPath = path.resolve(__dirname, "../dist");
 app.use(express.static(distPath));
 app.get("*", (req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "Rota n\xE3o encontrada" });
   }
-  res.sendFile(path.join(distPath, "index.html"));
+  return res.sendFile(path.join(distPath, "index.html"), (err) => {
+    if (err) {
+      res.status(200).type("text/plain").send("Aplica\xE7\xE3o iniciada. Construa o frontend (dist/) ou fa\xE7a deploy dos ficheiros est\xE1ticos.");
+    }
+  });
 });
-async function startServer() {
+async function initDatabase() {
   try {
-    console.log("\u{1F680} Iniciando servidor Mayelin...");
     console.log("\u{1F4E6} A verificar/criar base de dados MySQL...");
     await createDatabaseIfNotExists();
     console.log("\u{1F4CA} A inicializar schema...");
     await initializeSchema();
     console.log("\u{1F331} A inserir dados iniciais...");
     await seedInitialData();
-    app.listen(PORT, () => {
-      console.log(`\u2705 Servidor a correr na porta ${PORT}`);
-      console.log(`\u{1F310} Aceda em: http://localhost:${PORT}`);
-      console.log("\u{1F389} Deploy completo - Base de dados MySQL criada automaticamente!");
-    });
+    dbReady = true;
+    console.log("\u{1F389} Base de dados MySQL pronta.");
   } catch (error) {
-    console.error("\u274C Erro ao iniciar servidor:", error);
-    process.exit(1);
+    dbReady = false;
+    console.error("\u26A0\uFE0F  Base de dados indispon\xEDvel no arranque (a aplica\xE7\xE3o continuar\xE1 acess\xEDvel):", error);
   }
 }
-startServer();
+async function startServer() {
+  console.log("\u{1F680} Iniciando servidor Mayelin...");
+  await initDatabase();
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`\u2705 Servidor a correr na porta ${PORT}`);
+    console.log(`\u{1F310} Aceda em: http://localhost:${PORT}`);
+  });
+}
+startServer().catch((error) => {
+  console.error("\u274C Erro fatal ao iniciar servidor:", error);
+  setTimeout(() => process.exit(1), 1e3);
+});

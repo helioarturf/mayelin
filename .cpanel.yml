@@ -1,7 +1,7 @@
 ---
 deployment:
   tasks:
+    - export DEPLOYPATH=$HOME/repositories/mayelin
     - export NODE_ENV=production
-    - export PATH=$HOME/nodevenv/mayelin_ao/bin:$PATH
-    - npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline
-    - if [ -f "package.json" ] && grep -q '"build"' package.json; then npm run build; fi
+    - /bin/bash -lc 'source $HOME/nodevenv/repositories/mayelin/20/bin/activate 2>/dev/null || source $HOME/nodevenv/mayelin_ao/20/bin/activate 2>/dev/null || true; cd $DEPLOYPATH && npm install --legacy-peer-deps --no-audit --no-fund --include=dev || npm install --legacy-peer-deps --no-audit --no-fund'
+    - /bin/bash -lc 'source $HOME/nodevenv/repositories/mayelin/20/bin/activate 2>/dev/null || source $HOME/nodevenv/mayelin_ao/20/bin/activate 2>/dev/null || true; cd $DEPLOYPATH && if [ ! -f dist/index.html ] || [ ! -f dist-server/index.js ]; then npm run build || echo "Build skipped/failed - using prebuilt files if present"; fi'
