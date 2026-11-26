@@ -19,6 +19,15 @@ import {
   verifyPassword
 } from './auth.ts';
 import type { AuthRequest, PortalRole, SessionUser } from './auth.ts';
+import {
+  alterFactPlusDocument,
+  createFactPlusDocument,
+  isFactPlusConfigured,
+  resolveFactPlusApiUrl,
+  runLocalFiscalValidation,
+  viewFactPlusDocument
+} from './factplus.ts';
+import type { FactPlusDocType } from './factplus.ts';
 
 function normalizeRoleInput(role?: string): PortalRole {
   if (role === 'admin') return 'admin';
@@ -660,9 +669,226 @@ export function createApiRouter(): Router {
         .single();
 
       if (error) throw error;
+
+      // Best-effort sync with FactPlus if record has an active FactPlus reference
+      if (status === 'Liquidado' && data?.factplus_reference && isFactPlusConfigured()) {
+        try {
+          await alterFactPlusDocument(String(data.factplus_reference), 'factura', 'settled');
+        } catch {
+          // Do not block local settlement status if FactPlus sync fails
+        }
+      }
+
       res.json({ record: data });
     } catch (error) {
       sendDbError(res, error, 'Erro ao atualizar estado financeiro.');
+    }
+  });
+
+  // ============================================================================
+  // FACTPLUS API INTEGRATION (SERVER-SIDE ONLY)
+  // ============================================================================
+  router.get('/admin/factplus/status', requireAuth, requireRole(['admin']), (_req, res) => {
+    let apiUrl = 'https://api.factplus.co.ao';
+    try {
+      apiUrl = resolveFactPlusApiUrl();
+    } catch {
+      // Keep default display value if custom URL fails validation
+    }
+    res.json({
+      configured: isFactPlusConfigured(),
+      apiUrl
+    });
+  });
+
+  router.post('/admin/financial/:id/validate-factplus', requireAuth, requireRole(['admin']), async (req: AuthRequest, res) => {
+    const { id } = req.params;
+    const body = (req.body ?? {}) as { reference?: string; docType?: string };
+    const docType: FactPlusDocType =
+      body.docType === 'factura-recibo' || body.docType === 'proforma' ? body.docType : 'factura';
+
+    try {
+      const supabase = getSupabaseClient();
+      const { data: record, error: fetchError } = await supabase
+        .from('financial_records')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!record) {
+        res.status(404).json({ error: 'Fatura não encontrada.' });
+        return;
+      }
+
+      const localValidation = runLocalFiscalValidation(record);
+      const configured = isFactPlusConfigured();
+
+      if (!localValidation.valid) {
+        res.json({
+          valid: false,
+          configured,
+          mode: 'local-check',
+          reference: record.factplus_reference ?? null,
+          factplusStatus: 'Dados Fiscais Inválidos',
+          message: 'Corrija os campos assinalados antes de validar na FactPlus.',
+          checks: localValidation.checks,
+          record
+        });
+        return;
+      }
+
+      if (!configured) {
+        res.json({
+          valid: false,
+          configured: false,
+          mode: 'local-only',
+          reference: record.factplus_reference ?? null,
+          factplusStatus: 'API Não Configurada',
+          message:
+            'Pré-validação AGT concluída com sucesso. Para certificação online na FactPlus, configure FACTPLUS_API_KEY nas variáveis secretas do servidor.',
+          checks: localValidation.checks,
+          record
+        });
+        return;
+      }
+
+      const providedRef = typeof body.reference === 'string' && body.reference.trim() ? body.reference.trim() : null;
+      const existingRef =
+        typeof record.factplus_reference === 'string' && record.factplus_reference.trim()
+          ? record.factplus_reference.trim()
+          : null;
+      const targetRef = providedRef || existingRef;
+
+      let valid = false;
+      let mode: 'create' | 'view' = targetRef ? 'view' : 'create';
+      let resultRef: string | null = targetRef;
+      let statusLabel = 'Pendente';
+      let message = '';
+
+      if (targetRef) {
+        const viewRes = await viewFactPlusDocument(targetRef, docType);
+        valid = viewRes.success;
+        resultRef = viewRes.reference;
+        statusLabel = viewRes.success
+          ? viewRes.statusText
+            ? `Validada (${viewRes.statusText})`
+            : 'Validada na FactPlus'
+          : 'Não Validada na FactPlus';
+        message = viewRes.message;
+      } else {
+        const createRes = await createFactPlusDocument(record, localValidation, docType);
+        valid = createRes.success;
+        resultRef = createRes.reference;
+        statusLabel = createRes.success ? 'Certificada FactPlus' : 'Rejeitada pela FactPlus';
+        message = createRes.message;
+      }
+
+      let updatedRecord = record;
+      let schemaColumnWarning = false;
+
+      const { data: savedRecord, error: updateError } = await supabase
+        .from('financial_records')
+        .update({
+          factplus_reference: resultRef,
+          factplus_status: statusLabel,
+          factplus_validated_at: new Date().toISOString(),
+          factplus_message: message
+        })
+        .eq('id', id)
+        .select('*')
+        .maybeSingle();
+
+      if (updateError) {
+        // Gracefully handle environments where optional FactPlus columns are not yet migrated
+        const errCode = (updateError as { code?: string }).code;
+        if (errCode === '42703' || errCode === 'PGRST204') {
+          schemaColumnWarning = true;
+        } else {
+          throw updateError;
+        }
+      } else if (savedRecord) {
+        updatedRecord = savedRecord;
+      }
+
+      res.json({
+        valid,
+        configured: true,
+        mode,
+        reference: resultRef,
+        factplusStatus: statusLabel,
+        message,
+        checks: localValidation.checks,
+        schemaColumnWarning,
+        record: updatedRecord
+      });
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : 'Erro ao comunicar com a API FactPlus.';
+      res.status(502).json({ error: errMsg });
+    }
+  });
+
+  router.post('/admin/factplus/verify-reference', requireAuth, requireRole(['admin']), async (req: AuthRequest, res) => {
+    const { reference, docType, financialRecordId } = (req.body ?? {}) as {
+      reference?: string;
+      docType?: string;
+      financialRecordId?: string;
+    };
+
+    if (typeof reference !== 'string' || !reference.trim() || reference.trim().length > 80) {
+      res.status(400).json({ error: 'Indique uma referência de factura FactPlus válida.' });
+      return;
+    }
+
+    if (!isFactPlusConfigured()) {
+      res.status(503).json({
+        error: 'FACTPLUS_API_KEY não está configurada nas variáveis secretas do servidor.'
+      });
+      return;
+    }
+
+    const parsedType: FactPlusDocType | undefined =
+      docType === 'factura' ||
+      docType === 'factura-recibo' ||
+      docType === 'proforma' ||
+      docType === 'nota-credito' ||
+      docType === 'nota-debito'
+        ? docType
+        : undefined;
+
+    try {
+      const viewRes = await viewFactPlusDocument(reference.trim(), parsedType);
+      let updatedRecord = null;
+
+      if (typeof financialRecordId === 'string' && financialRecordId.trim()) {
+        const supabase = getSupabaseClient();
+        const { data: saved, error: updateError } = await supabase
+          .from('financial_records')
+          .update({
+            factplus_reference: viewRes.reference,
+            factplus_status: viewRes.success ? 'Validada na FactPlus' : 'Não Validada na FactPlus',
+            factplus_validated_at: new Date().toISOString(),
+            factplus_message: viewRes.message
+          })
+          .eq('id', financialRecordId.trim())
+          .select('*')
+          .maybeSingle();
+
+        if (!updateError && saved) {
+          updatedRecord = saved;
+        }
+      }
+
+      res.json({
+        valid: viewRes.success,
+        reference: viewRes.reference,
+        statusText: viewRes.statusText,
+        message: viewRes.message,
+        record: updatedRecord
+      });
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : 'Erro ao consultar referência na FactPlus.';
+      res.status(502).json({ error: errMsg });
     }
   });
 

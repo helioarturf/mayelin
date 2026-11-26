@@ -148,6 +148,10 @@ create table if not exists public.financial_records (
   invoice_number text not null unique,
   due_date text not null,
   paid_date text,
+  factplus_reference text,
+  factplus_status text,
+  factplus_validated_at timestamptz,
+  factplus_message text,
   created_at timestamptz not null default now()
 );
 
@@ -272,3 +276,11 @@ alter table public.digital_consents enable row level security;
 alter table public.portal_messages enable row level security;
 alter table public.visit_appointments enable row level security;
 alter table public.routine_logs enable row level security;
+
+-- ============================================================================
+-- Migração incremental para integração FactPlus (AGT) em bases existentes
+-- ============================================================================
+alter table public.financial_records add column if not exists factplus_reference text;
+alter table public.financial_records add column if not exists factplus_status text;
+alter table public.financial_records add column if not exists factplus_validated_at timestamptz;
+alter table public.financial_records add column if not exists factplus_message text;

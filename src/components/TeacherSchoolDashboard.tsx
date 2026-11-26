@@ -343,23 +343,35 @@ export default function TeacherSchoolDashboard({
     }
   };
 
+  const teacherSectionLabels: Record<TeacherSection, string> = {
+    overview: 'Visão Geral',
+    attendance: 'Chamadas & Presenças',
+    observations: 'Observações & Desenvolvimento',
+    lessons: 'Planos de Atividades',
+    incidents: 'Méritos & Apoio SPO'
+  };
+
   const educatorToolbarControls = (
     <>
-      <div className="flex items-center gap-2.5 flex-wrap">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-[#00a6c0] border border-sky-200">
-          <GraduationCap className="w-3.5 h-3.5" />
-          <span>{educatorDisplayName}</span>
-        </span>
+      <div className="flex items-center gap-3 flex-wrap min-w-0">
+        <div className="flex items-center gap-2 text-xs min-w-0">
+          <span className="font-bold text-[#00a6c0] whitespace-nowrap">{educatorDisplayName}</span>
+          <span className="text-[#c9b4a8]" aria-hidden="true">/</span>
+          <span className="font-extrabold text-[#211a14] whitespace-nowrap truncate">
+            {teacherSectionLabels[activeSection]}
+          </span>
+        </div>
+
         {classrooms.length > 0 && (
-          <div className="flex items-center gap-1 bg-[#faebe1] rounded-xl p-0.5 border border-[#eee0d6] overflow-x-auto max-w-full">
+          <div className="flex items-center gap-1 bg-[#faebe1] rounded-lg p-0.5 border border-[#eee0d6] overflow-x-auto max-w-full">
             {classrooms.map((cls) => (
               <button
                 key={cls.id}
                 type="button"
                 onClick={() => setActiveClass(cls.name)}
-                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                   activeClass === cls.name
-                    ? 'bg-white text-[#00a6c0] shadow-2xs'
+                    ? 'bg-white text-[#00a6c0]'
                     : 'text-[#5c3f42] hover:text-[#211a14]'
                 }`}
               >
@@ -368,7 +380,7 @@ export default function TeacherSchoolDashboard({
             ))}
           </div>
         )}
-        <span className="text-[11px] text-[#5c3f42] capitalize hidden lg:inline">
+        <span className="text-[11px] text-[#8c6b6d] capitalize hidden xl:inline whitespace-nowrap">
           {todayLabel}
         </span>
       </div>
@@ -424,58 +436,79 @@ export default function TeacherSchoolDashboard({
       )}
 
       {/* BODY LAYOUT */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
         <nav
-          className="w-full md:w-64 bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-[#eee0d6]"
+          className="w-full md:w-64 lg:w-[260px] bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-b md:border-b-0 md:border-r border-[#eee0d6]"
           aria-label="Fluxos de trabalho da educadora"
         >
           <div className="flex md:flex-col gap-1 w-full">
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#8c6b6d] px-3 py-1.5 hidden md:block">
+            <span className="text-[11px] font-bold text-[#8c6b6d] px-3 py-1.5 hidden md:block">
               Gestão Pedagógica
             </span>
 
             {[
-              { id: 'overview', label: 'Visão Geral da Educadora', icon: Activity },
-              { id: 'attendance', label: 'Chamadas & Presenças', icon: Users },
-              { id: 'observations', label: 'Observações & Desenvolvimento', icon: Heart },
-              { id: 'lessons', label: 'Planos de Atividades', icon: BookOpen },
-              { id: 'incidents', label: 'Méritos & Apoio SPO', icon: Smile }
+              { id: 'overview', label: 'Visão Geral', icon: Activity, count: null },
+              { id: 'attendance', label: 'Chamadas & Presenças', icon: Users, count: attendanceStats.total },
+              { id: 'observations', label: 'Observações & Afeto', icon: Heart, count: observationsList.length },
+              { id: 'lessons', label: 'Planos de Atividades', icon: BookOpen, count: lessonsList.length },
+              { id: 'incidents', label: 'Méritos & Apoio SPO', icon: Smile, count: incidentsList.length }
             ].map((item) => {
               const Icon = item.icon;
+              const isActive = activeSection === item.id;
               return (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setActiveSection(item.id as TeacherSection)}
-                  className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
-                    activeSection === item.id
-                      ? 'bg-[#00a6c0] text-white shadow-md shadow-sky-500/20'
+                  className={`min-h-[40px] md:w-full px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-between gap-2.5 transition-colors text-left whitespace-nowrap shrink-0 cursor-pointer ${
+                    isActive
+                      ? 'bg-[#00a6c0] text-white'
                       : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2.5 min-w-0">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </span>
+                  {item.count !== null && (
+                    <span
+                      className={`text-[11px] font-bold tabular-nums shrink-0 ${
+                        isActive ? 'text-white/90' : 'text-[#8c6b6d]'
+                      }`}
+                    >
+                      {item.count}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
-          <div className="pt-3 border-t border-[#eee0d6] hidden md:block">
-            <div className="p-2.5 rounded-xl bg-[#faebe1] text-[11px] space-y-1 border border-[#eee0d6]">
-              <p className="font-bold text-[#211a14]">Diário de Desenvolvimento</p>
-              <p className="text-[#5c3f42]">
-                Acompanhamento contínuo e afetuoso sem notas nem exames numéricos. Observações diárias pelas Tias.
-              </p>
+          <div className="pt-4 mt-4 border-t border-[#eee0d6] hidden md:block space-y-2 px-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Presentes hoje</span>
+              <span className="font-bold tabular-nums text-emerald-700">
+                {attendanceStats.present}/{attendanceStats.total}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Observações</span>
+              <span className="font-bold tabular-nums text-[#ed145b]">{observationsList.length}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Avaliação</span>
+              <span className="font-semibold text-[#5c3f42]">Qualitativa</span>
             </div>
           </div>
         </nav>
 
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-[#fff8f5] focus:outline-none" tabIndex={-1}>
+        <main className="flex-1 min-h-0 p-4 sm:p-6 lg:p-8 overflow-y-auto bg-[#fff8f5] focus:outline-none" tabIndex={-1}>
+          <div className="max-w-7xl mx-auto w-full space-y-6">
           {toastMessage && (
             <div
               role="status"
               aria-live="polite"
-              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-[#5c3f42]"
+              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-xl flex items-center gap-2 border border-[#5c3f42]"
             >
               <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
               <span>{toastMessage}</span>
@@ -483,7 +516,7 @@ export default function TeacherSchoolDashboard({
           )}
 
           {loadError && (
-            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-3">
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span className="font-semibold">{loadError}</span>
@@ -508,110 +541,248 @@ export default function TeacherSchoolDashboard({
               {/* 1. VISÃO GERAL */}
               {activeSection === 'overview' && (
                 <div className="space-y-6 animate-in fade-in duration-150">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#5c3f42]">Taxa de Presença Hoje</span>
-                        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                          <Users className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
-                        {attendanceStats.rate}%
-                      </p>
-                      <p className="text-xs text-emerald-700 font-bold mt-2">
-                        {attendanceStats.present} de {attendanceStats.total} crianças presentes
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#eee0d6]">
+                    <div>
+                      <h1 className="text-xl sm:text-2xl font-extrabold font-['Quicksand'] text-[#211a14] tracking-tight">
+                        {educatorDisplayName} {activeClass ? `· ${activeClass}` : ''}
+                      </h1>
+                      <p className="text-xs sm:text-sm text-[#5c3f42] mt-0.5">
+                        Acompanhamento qualitativo sem notas · {attendanceStats.total} crianças na turma
                       </p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#5c3f42]">Observações da Turma</span>
-                        <div className="w-8 h-8 rounded-xl bg-pink-100 text-[#ed145b] flex items-center justify-center">
-                          <Heart className="w-4 h-4" />
-                        </div>
+                    <div className="flex items-center gap-2 flex-wrap shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setActiveSection('attendance')}
+                        className="min-h-[40px] px-4 py-2 rounded-lg bg-white border border-[#eee0d6] hover:bg-[#faebe1] text-[#211a14] font-bold text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+                      >
+                        <Users className="w-3.5 h-3.5 text-[#00a6c0]" />
+                        <span>Chamada do Dia</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={attendanceList.length === 0}
+                        onClick={() => setNewObsModal(true)}
+                        className="min-h-[40px] px-4 py-2 rounded-lg bg-[#ed145b] hover:bg-pink-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Escrever Observação</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Faixa de Métricas (4 Colunas) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eee0d6]">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#5c3f42]">
+                        <span>Taxa de Presença Hoje</span>
+                        <Users className="w-4 h-4 text-emerald-700" />
                       </div>
-                      <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
+                      <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] tabular-nums text-[#211a14] mt-2">
+                        {attendanceStats.rate}%
+                      </p>
+                      <p className="text-xs text-emerald-700 font-semibold mt-1.5 tabular-nums">
+                        {attendanceStats.present} de {attendanceStats.total} presentes
+                      </p>
+                    </div>
+
+                    <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eee0d6]">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#5c3f42]">
+                        <span>Observações da Turma</span>
+                        <Heart className="w-4 h-4 text-[#ed145b]" />
+                      </div>
+                      <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] tabular-nums text-[#211a14] mt-2">
                         {observationsList.length}
                       </p>
-                      <p className="text-xs text-[#ed145b] font-bold mt-2">
+                      <p className="text-xs text-[#5c3f42] mt-1.5">
                         Registos qualitativos das Tias
                       </p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#5c3f42]">Atividades Planeadas</span>
-                        <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                          <BookOpen className="w-4 h-4" />
-                        </div>
+                    <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eee0d6]">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#5c3f42]">
+                        <span>Atividades Planeadas</span>
+                        <BookOpen className="w-4 h-4 text-[#00a6c0]" />
                       </div>
-                      <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
+                      <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] tabular-nums text-[#211a14] mt-2">
                         {lessonsList.length}
                       </p>
-                      <p className="text-xs text-purple-700 font-bold mt-2">
+                      <p className="text-xs text-[#5c3f42] mt-1.5">
                         Sessões lúdicas registadas
                       </p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#5c3f42]">Méritos & Apoio SPO</span>
-                        <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                          <Smile className="w-4 h-4" />
-                        </div>
+                    <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eee0d6]">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#5c3f42]">
+                        <span>Méritos & Apoio SPO</span>
+                        <Smile className="w-4 h-4 text-[#fd9924]" />
                       </div>
-                      <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
+                      <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] tabular-nums text-[#211a14] mt-2">
                         {incidentsList.length}
                       </p>
-                      <p className="text-xs text-amber-800 font-bold mt-2">
+                      <p className="text-xs text-[#5c3f42] mt-1.5">
                         Acompanhamento socioemocional
                       </p>
                     </div>
                   </div>
 
                   {attendanceList.length === 0 ? (
-                    <div className="bg-white p-6 rounded-2xl border border-[#eee0d6] text-xs text-[#5c3f42] space-y-2">
+                    <div className="bg-white p-6 rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42] space-y-2">
                       <p className="font-bold text-sm text-[#211a14]">Ainda não existem crianças matriculadas nesta turma.</p>
                       <p>
                         Solicite à Administração & Gestão que crie as turmas e matricule as crianças para começar a registar chamadas e observações diárias.
                       </p>
                     </div>
                   ) : (
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                      <h3 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
-                        Rotinas Diárias da {educatorDisplayName} • {activeClass}
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setActiveSection('attendance')}
-                          className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-sky-50 hover:border-sky-200 text-[#211a14] text-xs font-bold flex items-center justify-between transition-all cursor-pointer"
-                        >
-                          <span>Fazer Chamada da Sessão</span>
-                          <Users className="w-4 h-4 text-[#00a6c0]" />
-                        </button>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                      {/* Coluna Esquerda: Chamada Rápida da Turma */}
+                      <section className="lg:col-span-7 bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                        <div className="px-5 py-4 border-b border-[#eee0d6] flex items-center justify-between gap-3">
+                          <div>
+                            <h2 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
+                              Chamada Rápida {activeClass ? `· ${activeClass}` : ''}
+                            </h2>
+                            <p className="text-xs text-[#8c6b6d] tabular-nums">
+                              {attendanceStats.present} presentes · {attendanceStats.absent} ausentes · {attendanceStats.late} atrasos
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleMarkAllPresent}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer"
+                          >
+                            Marcar Todos Presentes
+                          </button>
+                        </div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveSection('observations');
-                            setNewObsModal(true);
-                          }}
-                          className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-pink-50 hover:border-pink-200 text-[#211a14] text-xs font-bold flex items-center justify-between transition-all cursor-pointer"
-                        >
-                          <span>Escrever Observação sobre Criança</span>
-                          <Heart className="w-4 h-4 text-[#ed145b]" />
-                        </button>
+                        <div className="divide-y divide-[#eee0d6]">
+                          {attendanceList.slice(0, 6).map((st) => (
+                            <div
+                              key={st.id}
+                              className="px-5 py-3 flex items-center justify-between gap-3 hover:bg-[#fff8f5] transition-colors text-xs"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="text-[11px] font-bold tabular-nums text-[#8c6b6d] w-6">
+                                  #{st.number}
+                                </span>
+                                <span className="font-bold text-[#211a14] truncate">{st.name}</span>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {(['Presente', 'Ausente', 'Atrasado'] as AttendanceStatus[]).map((statusOption) => (
+                                  <button
+                                    key={statusOption}
+                                    type="button"
+                                    onClick={() => handleStatusChange(st, statusOption)}
+                                    className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors cursor-pointer ${
+                                      st.status === statusOption
+                                        ? statusOption === 'Presente'
+                                          ? 'bg-emerald-600 text-white'
+                                          : statusOption === 'Ausente'
+                                          ? 'bg-rose-600 text-white'
+                                          : 'bg-amber-500 text-white'
+                                        : 'bg-[#faebe1] text-[#5c3f42] hover:bg-[#eee0d6]'
+                                    }`}
+                                  >
+                                    {statusOption}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
 
-                        <button
-                          type="button"
-                          onClick={() => setNewIncidentModal(true)}
-                          className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-amber-50 hover:border-amber-200 text-[#211a14] text-xs font-bold flex items-center justify-between transition-all cursor-pointer"
-                        >
-                          <span>Registar Mérito / Apoio SPO</span>
-                          <Smile className="w-4 h-4 text-amber-600" />
-                        </button>
+                        {attendanceList.length > 6 && (
+                          <div className="px-5 py-3 bg-[#fffcf9] border-t border-[#eee0d6] text-right">
+                            <button
+                              type="button"
+                              onClick={() => setActiveSection('attendance')}
+                              className="text-xs font-bold text-[#00a6c0] hover:underline cursor-pointer"
+                            >
+                              Ver lista completa ({attendanceList.length})
+                            </button>
+                          </div>
+                        )}
+                      </section>
+
+                      {/* Coluna Direita: Observações Recentes & Ações */}
+                      <div className="lg:col-span-5 space-y-6">
+                        <section className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                          <div className="px-5 py-4 border-b border-[#eee0d6] flex items-center justify-between gap-3">
+                            <h2 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
+                              Observações Recentes
+                            </h2>
+                            <button
+                              type="button"
+                              onClick={() => setActiveSection('observations')}
+                              className="text-xs font-bold text-[#00a6c0] hover:underline whitespace-nowrap cursor-pointer"
+                            >
+                              Ver Todas
+                            </button>
+                          </div>
+
+                          {observationsList.length === 0 ? (
+                            <div className="p-6 text-center space-y-2 text-xs text-[#5c3f42]">
+                              <p>Nenhuma observação registada ainda nesta turma.</p>
+                              <button
+                                type="button"
+                                onClick={() => setNewObsModal(true)}
+                                className="px-3.5 py-1.5 rounded-lg bg-[#ed145b] text-white font-bold hover:bg-pink-600 transition-colors cursor-pointer"
+                              >
+                                Escrever Primeira Observação
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="divide-y divide-[#eee0d6]">
+                              {observationsList.slice(0, 4).map((obs) => (
+                                <div key={obs.id} className="px-5 py-3.5 space-y-1 text-xs">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-[#211a14] truncate">{obs.student_name}</span>
+                                    <span className="text-[11px] font-semibold text-[#00a6c0] whitespace-nowrap">
+                                      {obs.category}
+                                    </span>
+                                  </div>
+                                  <p className="text-[#5c3f42] line-clamp-2 leading-relaxed">"{obs.text}"</p>
+                                  <p className="text-[11px] text-[#8c6b6d] tabular-nums">
+                                    {obs.priority} · {formatEducatorName(obs.recorded_by)}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </section>
+
+                        <section className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                          <div className="px-5 py-3.5 border-b border-[#eee0d6]">
+                            <h2 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
+                              Registos Pedagógicos
+                            </h2>
+                          </div>
+                          <div className="divide-y divide-[#eee0d6]">
+                            <button
+                              type="button"
+                              onClick={() => setNewLessonModal(true)}
+                              className="w-full px-5 py-3 text-left text-xs font-bold text-[#211a14] hover:bg-[#fff8f5] flex items-center justify-between transition-colors cursor-pointer"
+                            >
+                              <span className="flex items-center gap-2.5">
+                                <BookOpen className="w-4 h-4 text-[#00a6c0]" />
+                                <span>Criar Plano de Atividade Lúdica</span>
+                              </span>
+                              <Plus className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewIncidentModal(true)}
+                              className="w-full px-5 py-3 text-left text-xs font-bold text-[#211a14] hover:bg-[#fff8f5] flex items-center justify-between transition-colors cursor-pointer"
+                            >
+                              <span className="flex items-center gap-2.5">
+                                <Smile className="w-4 h-4 text-[#fd9924]" />
+                                <span>Registar Mérito / Apoio SPO</span>
+                              </span>
+                              <Plus className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                            </button>
+                          </div>
+                        </section>
                       </div>
                     </div>
                   )}
@@ -1071,6 +1242,7 @@ export default function TeacherSchoolDashboard({
               )}
             </>
           )}
+          </div>
         </main>
       </div>
 

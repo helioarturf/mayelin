@@ -90,7 +90,43 @@ export interface DbFinancialRecord {
   invoice_number: string;
   due_date: string;
   paid_date: string | null;
+  factplus_reference?: string | null;
+  factplus_status?: string | null;
+  factplus_validated_at?: string | null;
+  factplus_message?: string | null;
   created_at: string;
+}
+
+export interface FactPlusStatusResponse {
+  configured: boolean;
+  apiUrl: string;
+}
+
+export interface FiscalValidationCheck {
+  key: string;
+  label: string;
+  passed: boolean;
+  detail: string;
+}
+
+export interface FactPlusValidationResponse {
+  valid: boolean;
+  configured: boolean;
+  mode: 'create' | 'view' | 'local-check' | 'local-only';
+  reference: string | null;
+  factplusStatus: string;
+  message: string;
+  checks: FiscalValidationCheck[];
+  schemaColumnWarning?: boolean;
+  record: DbFinancialRecord;
+}
+
+export interface FactPlusVerifyReferenceResponse {
+  valid: boolean;
+  reference: string;
+  statusText: string | null;
+  message: string;
+  record: DbFinancialRecord | null;
 }
 
 export interface DbAnnouncement {
@@ -464,6 +500,37 @@ export const portalApi = {
     return apiRequest<{ record: DbFinancialRecord }>(
       `/api/admin/financial/${encodeURIComponent(id)}/status`,
       { method: 'PATCH', body: JSON.stringify({ status }) },
+      token
+    );
+  },
+
+  getFactPlusStatus(token: string): Promise<FactPlusStatusResponse> {
+    return apiRequest<FactPlusStatusResponse>('/api/admin/factplus/status', {}, token);
+  },
+
+  validateInvoiceFactPlus(
+    token: string,
+    id: string,
+    payload?: { reference?: string; docType?: 'factura' | 'factura-recibo' | 'proforma' }
+  ): Promise<FactPlusValidationResponse> {
+    return apiRequest<FactPlusValidationResponse>(
+      `/api/admin/financial/${encodeURIComponent(id)}/validate-factplus`,
+      { method: 'POST', body: JSON.stringify(payload ?? {}) },
+      token
+    );
+  },
+
+  verifyFactPlusReference(
+    token: string,
+    payload: {
+      reference: string;
+      docType?: 'factura' | 'factura-recibo' | 'proforma' | 'nota-credito' | 'nota-debito';
+      financialRecordId?: string;
+    }
+  ): Promise<FactPlusVerifyReferenceResponse> {
+    return apiRequest<FactPlusVerifyReferenceResponse>(
+      '/api/admin/factplus/verify-reference',
+      { method: 'POST', body: JSON.stringify(payload) },
       token
     );
   },

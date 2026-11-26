@@ -40,6 +40,9 @@ import {
   DbStaffMember,
   DbStudent,
   DbVisitAppointment,
+  FactPlusStatusResponse,
+  FactPlusValidationResponse,
+  FactPlusVerifyReferenceResponse,
   portalApi
 } from '../lib/api';
 
@@ -91,6 +94,17 @@ export default function AdminSchoolDashboard({
   const [addInvoiceModalOpen, setAddInvoiceModalOpen] = useState(false);
   const [commsModalOpen, setCommsModalOpen] = useState(false);
 
+  // FactPlus Validation States
+  const [factPlusStatus, setFactPlusStatus] = useState<FactPlusStatusResponse | null>(null);
+  const [validatingInvoiceId, setValidatingInvoiceId] = useState<string | null>(null);
+  const [validationResultModal, setValidationResultModal] = useState<FactPlusValidationResponse | null>(null);
+  const [verifyRefModalOpen, setVerifyRefModalOpen] = useState(false);
+  const [verifyRefInput, setVerifyRefInput] = useState('');
+  const [verifyRefDocType, setVerifyRefDocType] = useState<'factura' | 'factura-recibo' | 'proforma'>('factura');
+  const [verifyRefRecordId, setVerifyRefRecordId] = useState('');
+  const [verifyingRef, setVerifyingRef] = useState(false);
+  const [verifyRefResult, setVerifyRefResult] = useState<FactPlusVerifyReferenceResponse | null>(null);
+
   // Form: New Classroom
   const [className, setClassName] = useState('');
   const [classCycle, setClassCycle] = useState('Berçário (4 meses a 1 ano)');
@@ -138,7 +152,10 @@ export default function AdminSchoolDashboard({
     setLoading(true);
     setLoadError(null);
     try {
-      const data = await portalApi.getAdminOverview(authToken);
+      const [data, fpStatus] = await Promise.all([
+        portalApi.getAdminOverview(authToken),
+        portalApi.getFactPlusStatus(authToken).catch(() => null)
+      ]);
       setClassesList(data.classrooms);
       setStudentsList(data.students);
       setFinancialRecords(data.financialRecords);
@@ -146,6 +163,9 @@ export default function AdminSchoolDashboard({
       setAnnouncementsList(data.announcements);
       setAppointmentsList(data.appointments);
       setPickupAuthorizations(data.pickupAuthorizations);
+      if (fpStatus) {
+        setFactPlusStatus(fpStatus);
+      }
 
       if (data.classrooms.length > 0 && !studentClassroom) {
         setStudentClassroom(data.classrooms[0].name);
@@ -396,6 +416,60 @@ export default function AdminSchoolDashboard({
     }
   };
 
+  const handleValidateFactPlus = async (record: DbFinancialRecord) => {
+    setValidatingInvoiceId(record.id);
+    try {
+      const result = await portalApi.validateInvoiceFactPlus(authToken, record.id);
+      if (result.record) {
+        setFinancialRecords((prev) =>
+          prev.map((r) =>
+            r.id === result.record.id
+              ? {
+                  ...result.record,
+                  factplus_reference: result.reference ?? result.record.factplus_reference,
+                  factplus_status: result.factplusStatus ?? result.record.factplus_status,
+                  factplus_message: result.message ?? result.record.factplus_message
+                }
+              : r
+          )
+        );
+      }
+      setValidationResultModal(result);
+      showToast(
+        result.valid
+          ? `Fatura ${record.invoice_number} validada na FactPlus!`
+          : result.message
+      );
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao validar fatura na FactPlus.');
+    } finally {
+      setValidatingInvoiceId(null);
+    }
+  };
+
+  const handleVerifyFactPlusReference = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verifyRefInput.trim()) return;
+    setVerifyingRef(true);
+    setVerifyRefResult(null);
+    try {
+      const res = await portalApi.verifyFactPlusReference(authToken, {
+        reference: verifyRefInput.trim(),
+        docType: verifyRefDocType,
+        financialRecordId: verifyRefRecordId || undefined
+      });
+      setVerifyRefResult(res);
+      if (res.record) {
+        setFinancialRecords((prev) => prev.map((r) => (r.id === res.record!.id ? res.record! : r)));
+      }
+      showToast(res.valid ? `Referência ${res.reference} validada!` : res.message);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao consultar referência na FactPlus.');
+    } finally {
+      setVerifyingRef(false);
+    }
+  };
+
   const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!annTitle.trim() || !annContent.trim()) return;
@@ -456,19 +530,40 @@ export default function AdminSchoolDashboard({
     .map((p) => p[0]?.toUpperCase())
     .join('');
 
+  const adminSectionMeta: Record<AdminSection, { label: string; subtitle: string }> = {
+    overview: {
+      label: 'Visão Geral',
+      subtitle: 'Resumo institucional, ocupação das turmas e situação financeira'
+    },
+    classes: {
+      label: 'Turmas & Crianças',
+      subtitle: 'Gestão de salas, vagas, rácios e matrículas'
+    },
+    finance: {
+      label: 'Gestão Financeira',
+      subtitle: 'Propinas em Kwanza (Kz), liquidações e recibos AGT'
+    },
+    hr: {
+      label: 'Equipa & Utilizadores',
+      subtitle: 'Educadoras (Tias), encarregados e controlo de acesso'
+    },
+    comms: {
+      label: 'Circulares, Visitas & Portaria',
+      subtitle: 'Comunicação escolar, agendamentos e autorizações'
+    },
+    settings: {
+      label: 'Configurações & RGPD',
+      subtitle: 'Políticas de privacidade e conformidade institucional'
+    }
+  };
+
   const adminToolbarControls = (
     <>
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-pink-50 text-[#ed145b] border border-pink-200">
-          <Building2 className="w-3.5 h-3.5" />
-          <span>Painel Administrativo</span>
-        </span>
-        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          Supabase Ativo
-        </span>
-        <span className="hidden lg:inline text-[10px] font-semibold bg-[#faebe1] text-[#5c3f42] px-2 py-0.5 rounded border border-[#eee0d6]">
-          RGPD • WCAG 2.1 AA
+      <div className="flex items-center gap-2 text-xs min-w-0">
+        <span className="font-bold text-[#8c6b6d] whitespace-nowrap">Administração</span>
+        <span className="text-[#c9b4a8]" aria-hidden="true">/</span>
+        <span className="font-extrabold text-[#211a14] whitespace-nowrap truncate">
+          {adminSectionMeta[activeSection].label}
         </span>
       </div>
 
@@ -587,59 +682,85 @@ export default function AdminSchoolDashboard({
       )}
 
       {/* 2. BODY LAYOUT */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
         <nav
-          className="w-full md:w-64 bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-[#eee0d6]"
+          className="w-full md:w-64 lg:w-[260px] bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-b md:border-b-0 md:border-r border-[#eee0d6]"
           aria-label="Menu principal de gestão"
         >
           <div className="flex md:flex-col gap-1 w-full">
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#8c6b6d] px-3 py-1.5 hidden md:block">
-              Módulos Institucionais
+            <span className="text-[11px] font-bold text-[#8c6b6d] px-3 py-1.5 hidden md:block">
+              Módulos de Gestão
             </span>
 
             {[
-              { id: 'overview', label: 'Visão Geral', icon: Activity },
-              { id: 'classes', label: 'Turmas & Crianças', icon: GraduationCap },
-              { id: 'finance', label: 'Gestão Financeira', icon: DollarSign },
-              { id: 'hr', label: 'Equipa & Utilizadores', icon: Users },
-              { id: 'comms', label: 'Circulares, Visitas & Portaria', icon: Send },
-              { id: 'settings', label: 'Configurações & RGPD', icon: Settings }
+              { id: 'overview', label: 'Visão Geral', icon: Activity, count: null },
+              { id: 'classes', label: 'Turmas & Crianças', icon: GraduationCap, count: metrics.totalStudents },
+              { id: 'finance', label: 'Gestão Financeira', icon: DollarSign, count: metrics.pendingCount > 0 ? metrics.pendingCount : null },
+              { id: 'hr', label: 'Equipa & Utilizadores', icon: Users, count: metrics.totalStaffCount },
+              {
+                id: 'comms',
+                label: 'Circulares & Portaria',
+                icon: Send,
+                count: metrics.pendingAppointments + metrics.pendingPickups > 0 ? metrics.pendingAppointments + metrics.pendingPickups : null
+              },
+              { id: 'settings', label: 'Configurações & RGPD', icon: Settings, count: null }
             ].map((item) => {
               const Icon = item.icon;
+              const isActive = activeSection === item.id;
               return (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setActiveSection(item.id as AdminSection)}
-                  className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
-                    activeSection === item.id
-                      ? 'bg-[#ed145b] text-white shadow-md shadow-pink-500/20'
+                  className={`min-h-[40px] md:w-full px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-between gap-2.5 transition-colors text-left whitespace-nowrap shrink-0 cursor-pointer ${
+                    isActive
+                      ? 'bg-[#ed145b] text-white'
                       : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2.5 min-w-0">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </span>
+                  {item.count !== null && (
+                    <span
+                      className={`text-[11px] font-bold tabular-nums shrink-0 ${
+                        isActive ? 'text-white/90' : 'text-[#8c6b6d]'
+                      }`}
+                    >
+                      {item.count}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
-          <div className="pt-3 border-t border-[#eee0d6] hidden md:block">
-            <div className="p-2.5 rounded-xl bg-[#faebe1] text-[11px] space-y-1 border border-[#eee0d6]">
-              <p className="font-bold text-[#211a14]">Base de Dados Real</p>
-              <p className="text-[#5c3f42]">
-                Todos os cadastros, presenças, observações e faturas são persistidos no Supabase.
-              </p>
+          <div className="pt-4 mt-4 border-t border-[#eee0d6] hidden md:block space-y-2 px-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Ocupação</span>
+              <span className="font-bold tabular-nums text-[#211a14]">{metrics.occupancyPct}%</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Liquidado</span>
+              <span className="font-bold tabular-nums text-emerald-700">{metrics.paidPct}%</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Pendências</span>
+              <span className="font-bold tabular-nums text-[#ed145b]">
+                {metrics.pendingAppointments + metrics.pendingPickups + metrics.pendingCount}
+              </span>
             </div>
           </div>
         </nav>
 
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-[#fff8f5] focus:outline-none" tabIndex={-1}>
+        <main className="flex-1 min-h-0 p-4 sm:p-6 lg:p-8 overflow-y-auto bg-[#fff8f5] focus:outline-none" tabIndex={-1}>
+          <div className="max-w-7xl mx-auto w-full space-y-6">
           {toastMessage && (
             <div
               role="status"
               aria-live="polite"
-              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-[#5c3f42]"
+              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-xl flex items-center gap-2 border border-[#5c3f42]"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{toastMessage}</span>
@@ -647,7 +768,7 @@ export default function AdminSchoolDashboard({
           )}
 
           {loadError && (
-            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-3">
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span className="font-semibold">{loadError}</span>
@@ -672,196 +793,333 @@ export default function AdminSchoolDashboard({
               {/* SECÇÃO 1: VISÃO GERAL */}
               {activeSection === 'overview' && (
                 <div className="space-y-6 animate-in fade-in duration-150">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#5c3f42]">Crianças Matriculadas</span>
-                        <div className="w-8 h-8 rounded-xl bg-pink-100 text-[#ed145b] flex items-center justify-center">
-                          <Baby className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
-                        {metrics.totalStudents}
+                  {/* Cabeçalho de Secção com Ações Principais */}
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#eee0d6]">
+                    <div>
+                      <h1 className="text-xl sm:text-2xl font-extrabold font-['Quicksand'] text-[#211a14] tracking-tight">
+                        {adminSectionMeta.overview.label}
+                      </h1>
+                      <p className="text-xs sm:text-sm text-[#5c3f42] mt-0.5">
+                        {classesList.length} turmas · {metrics.totalStudents} crianças · {metrics.activeStaffCount} membros de equipa
                       </p>
-                      <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-600 font-bold">
-                        <ArrowUpRight className="w-4 h-4" />
-                        <span>
-                          {classesList.length} turmas • {metrics.occupancyPct}% de ocupação ({metrics.totalCapacity} vagas)
-                        </span>
-                      </div>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#5c3f42]">Equipa & Educadoras (Tias)</span>
-                        <div className="w-8 h-8 rounded-xl bg-sky-100 text-[#00a6c0] flex items-center justify-center">
-                          <Users className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
-                        {metrics.activeStaffCount}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-2 text-xs text-sky-700 font-bold">
-                        <ShieldCheck className="w-4 h-4 text-sky-600" />
-                        <span>{metrics.totalStaffCount} utilizadores totais no portal</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#5c3f42]">Faturação Registada</span>
-                        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                          <DollarSign className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
-                        Kz {metrics.totalBilled.toLocaleString('pt-PT')}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-700 font-bold">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span>{metrics.paidPct}% liquidado ({metrics.pendingCount} pendentes)</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#5c3f42]">Visitas & Circulares</span>
-                        <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                          <DoorOpen className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <p className="text-3xl font-extrabold font-['Quicksand'] text-[#211a14] mt-2">
-                        {appointmentsList.length}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-2 text-xs text-purple-700 font-bold">
-                        <span>
-                          {metrics.pendingAppointments} visitas pendentes • {announcementsList.length} circulares
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Ações Rápidas */}
-                  <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
-                        Ações Rápidas de Coordenação Geral
-                      </h3>
-                      <span className="text-xs text-[#8c6b6d]">Operações gravadas no Supabase</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div className="flex items-center gap-2 flex-wrap shrink-0">
                       <button
                         type="button"
                         onClick={() => setAddClassModalOpen(true)}
-                        className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-pink-50 hover:border-pink-200 text-[#211a14] text-xs font-bold flex items-center gap-2.5 transition-all text-left cursor-pointer"
+                        className="min-h-[40px] px-4 py-2 rounded-lg bg-white border border-[#eee0d6] hover:bg-[#faebe1] text-[#211a14] font-bold text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
                       >
-                        <Plus className="w-4 h-4 text-[#ed145b] shrink-0" />
-                        <span>Criar Nova Turma</span>
+                        <Plus className="w-3.5 h-3.5 text-[#ed145b]" />
+                        <span>Criar Turma</span>
                       </button>
-
                       <button
                         type="button"
                         onClick={() => setAddStudentModalOpen(true)}
-                        className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-amber-50 hover:border-amber-200 text-[#211a14] text-xs font-bold flex items-center gap-2.5 transition-all text-left cursor-pointer"
+                        className="min-h-[40px] px-4 py-2 rounded-lg bg-[#ed145b] hover:bg-pink-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
                       >
-                        <Baby className="w-4 h-4 text-[#fd9924] shrink-0" />
+                        <Baby className="w-3.5 h-3.5" />
                         <span>Matricular Criança</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setAddStaffModalOpen(true)}
-                        className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-sky-50 hover:border-sky-200 text-[#211a14] text-xs font-bold flex items-center gap-2.5 transition-all text-left cursor-pointer"
-                      >
-                        <Users className="w-4 h-4 text-[#00a6c0] shrink-0" />
-                        <span>Cadastrar Tia / Encarregado</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setCommsModalOpen(true)}
-                        className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] hover:bg-purple-50 hover:border-purple-200 text-[#211a14] text-xs font-bold flex items-center gap-2.5 transition-all text-left cursor-pointer"
-                      >
-                        <Send className="w-4 h-4 text-purple-600 shrink-0" />
-                        <span>Publicar Circular</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Resumo Financeiro e Visitas Recentes */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                      <h4 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
-                        Distribuição da Faturação (Kz {metrics.totalBilled.toLocaleString('pt-PT')})
-                      </h4>
-                      <div className="space-y-2 text-xs">
-                        <div className="flex justify-between font-semibold">
-                          <span className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                            Liquidado (Kz {metrics.totalPaid.toLocaleString('pt-PT')})
-                          </span>
-                          <span className="text-emerald-700 font-bold">{metrics.paidPct}%</span>
-                        </div>
-                        <div className="w-full bg-[#faebe1] h-2.5 rounded-full overflow-hidden">
-                          <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${metrics.paidPct}%` }} />
-                        </div>
-
-                        <div className="flex justify-between font-semibold pt-2">
-                          <span className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                            Em Aberto / Pendente (Kz {metrics.totalPending.toLocaleString('pt-PT')})
-                          </span>
-                          <span className="text-amber-700 font-bold">{metrics.totalBilled > 0 ? 100 - metrics.paidPct : 0}%</span>
-                        </div>
-                        <div className="w-full bg-[#faebe1] h-2.5 rounded-full overflow-hidden">
-                          <div
-                            className="bg-amber-500 h-full rounded-full"
-                            style={{ width: `${metrics.totalBilled > 0 ? 100 - metrics.paidPct : 0}%` }}
-                          />
-                        </div>
+                  {/* Faixa de Métricas Principais (4 Colunas) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eee0d6]">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#5c3f42]">
+                        <span>Crianças Matriculadas</span>
+                        <Baby className="w-4 h-4 text-[#ed145b]" />
                       </div>
+                      <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] tabular-nums text-[#211a14] mt-2">
+                        {metrics.totalStudents}
+                      </p>
+                      <p className="text-xs text-[#5c3f42] mt-1.5 tabular-nums">
+                        {metrics.occupancyPct}% de ocupação · {metrics.totalCapacity} vagas
+                      </p>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
-                          Visitas Agendadas Recentemente
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={() => setActiveSection('comms')}
-                          className="text-xs font-bold text-[#ed145b] hover:underline cursor-pointer"
-                        >
-                          Gerir Todas
-                        </button>
+                    <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eee0d6]">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#5c3f42]">
+                        <span>Equipa & Educadoras</span>
+                        <Users className="w-4 h-4 text-[#00a6c0]" />
                       </div>
-                      {appointmentsList.length === 0 ? (
-                        <p className="text-xs text-[#8c6b6d] py-3">
-                          Nenhuma visita agendada no website até ao momento.
-                        </p>
-                      ) : (
-                        <div className="space-y-2 text-xs">
-                          {appointmentsList.slice(0, 3).map((apt) => (
-                            <div
-                              key={apt.id}
-                              className="p-3 rounded-xl bg-[#fff8f5] border border-[#eee0d6] flex items-center justify-between gap-2"
+                      <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] tabular-nums text-[#211a14] mt-2">
+                        {metrics.activeStaffCount}
+                      </p>
+                      <p className="text-xs text-[#5c3f42] mt-1.5 tabular-nums">
+                        {metrics.totalStaffCount} contas ativas no portal
+                      </p>
+                    </div>
+
+                    <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eee0d6]">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#5c3f42]">
+                        <span>Faturação Registada</span>
+                        <DollarSign className="w-4 h-4 text-emerald-700" />
+                      </div>
+                      <p className="text-2xl font-extrabold font-['Quicksand'] tabular-nums text-[#211a14] mt-2 truncate">
+                        Kz {metrics.totalBilled.toLocaleString('pt-PT')}
+                      </p>
+                      <p className="text-xs text-emerald-700 font-semibold mt-1.5 tabular-nums">
+                        {metrics.paidPct}% liquidado · {metrics.pendingCount} pendentes
+                      </p>
+                    </div>
+
+                    <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eee0d6]">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#5c3f42]">
+                        <span>Visitas & Portaria</span>
+                        <DoorOpen className="w-4 h-4 text-[#fd9924]" />
+                      </div>
+                      <p className="text-2xl sm:text-3xl font-extrabold font-['Quicksand'] tabular-nums text-[#211a14] mt-2">
+                        {appointmentsList.length}
+                      </p>
+                      <p className="text-xs text-[#5c3f42] mt-1.5 tabular-nums">
+                        {metrics.pendingAppointments} visitas agendadas · {metrics.pendingPickups} autorizações
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Grelha Principal Assimétrica (8 + 4 Colunas) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Coluna Esquerda: Turmas & Visitas */}
+                    <div className="lg:col-span-8 space-y-6">
+                      {/* Tabela Resumo das Turmas */}
+                      <section className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                        <div className="px-5 py-4 border-b border-[#eee0d6] flex items-center justify-between gap-3">
+                          <div>
+                            <h2 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
+                              Lotação das Turmas & Educadoras Titulares
+                            </h2>
+                            <p className="text-xs text-[#8c6b6d]">
+                              Distribuição atual por sala e ciclo infantil
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setActiveSection('classes')}
+                            className="text-xs font-bold text-[#ed145b] hover:underline whitespace-nowrap cursor-pointer"
+                          >
+                            Gerir Turmas
+                          </button>
+                        </div>
+
+                        {classesList.length === 0 ? (
+                          <div className="p-8 text-center space-y-3 text-xs text-[#5c3f42]">
+                            <p className="font-bold text-sm text-[#211a14]">Ainda não existem turmas registadas.</p>
+                            <button
+                              type="button"
+                              onClick={() => setAddClassModalOpen(true)}
+                              className="px-4 py-2 rounded-lg bg-[#ed145b] text-white font-bold hover:bg-pink-600 transition-colors cursor-pointer"
                             >
-                              <div>
-                                <p className="font-bold text-[#211a14]">
-                                  {apt.parent_name} • Criança: {apt.child_name}
-                                </p>
-                                <p className="text-[11px] text-[#5c3f42]">
-                                  {apt.visit_date} às {apt.visit_time} • {apt.whatsapp}
-                                </p>
+                              Criar Primeira Turma
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs">
+                              <thead className="bg-[#fffcf9] border-b border-[#eee0d6] text-[#5c3f42] font-bold text-[11px]">
+                                <tr>
+                                  <th className="px-5 py-3">Turma</th>
+                                  <th className="px-5 py-3">Educadora (Tia)</th>
+                                  <th className="px-5 py-3">Ocupação</th>
+                                  <th className="px-5 py-3 text-right">Matrículas</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-[#eee0d6]">
+                                {classesList.slice(0, 5).map((cls) => {
+                                  const pct = cls.capacity > 0 ? Math.min(100, Math.round((cls.enrolled / cls.capacity) * 100)) : 0;
+                                  return (
+                                    <tr key={cls.id} className="hover:bg-[#fff8f5] transition-colors">
+                                      <td className="px-5 py-3">
+                                        <p className="font-bold text-[#211a14]">{cls.name}</p>
+                                        <span className="text-[11px] text-[#8c6b6d]">{cls.cycle}</span>
+                                      </td>
+                                      <td className="px-5 py-3 font-semibold text-[#00a6c0]">
+                                        {formatEducatorName(cls.lead_teacher)}
+                                      </td>
+                                      <td className="px-5 py-3 w-36">
+                                        <div className="flex items-center gap-2">
+                                          <div className="flex-1 bg-[#faebe1] h-1.5 rounded-full overflow-hidden">
+                                            <div
+                                              className={`h-full rounded-full ${pct >= 90 ? 'bg-[#ed145b]' : 'bg-[#00a6c0]'}`}
+                                              style={{ width: `${pct}%` }}
+                                            />
+                                          </div>
+                                          <span className="text-[11px] font-bold tabular-nums text-[#5c3f42]">
+                                            {pct}%
+                                          </span>
+                                        </div>
+                                      </td>
+                                      <td className="px-5 py-3 text-right font-bold tabular-nums text-[#211a14]">
+                                        {cls.enrolled} / {cls.capacity}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </section>
+
+                      {/* Visitas Agendadas Recentemente (Lista com divisores finos, sem cartões aninhados) */}
+                      <section className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                        <div className="px-5 py-4 border-b border-[#eee0d6] flex items-center justify-between gap-3">
+                          <div>
+                            <h2 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
+                              Visitas Agendadas pelo Website
+                            </h2>
+                            <p className="text-xs text-[#8c6b6d]">
+                              Famílias interessadas em conhecer a creche
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setActiveSection('comms')}
+                            className="text-xs font-bold text-[#ed145b] hover:underline whitespace-nowrap cursor-pointer"
+                          >
+                            Gerir Todas
+                          </button>
+                        </div>
+
+                        {appointmentsList.length === 0 ? (
+                          <div className="p-6 text-center text-xs text-[#8c6b6d]">
+                            Nenhuma visita agendada até ao momento.
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-[#eee0d6]">
+                            {appointmentsList.slice(0, 4).map((apt) => (
+                              <div
+                                key={apt.id}
+                                className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-[#fff8f5] transition-colors text-xs"
+                              >
+                                <div className="min-w-0">
+                                  <p className="font-bold text-[#211a14] truncate">
+                                    {apt.parent_name} · Criança: {apt.child_name}
+                                  </p>
+                                  <p className="text-[11px] text-[#5c3f42] tabular-nums mt-0.5">
+                                    {apt.visit_date} às {apt.visit_time} · {apt.whatsapp}
+                                  </p>
+                                </div>
+                                <span
+                                  className={`text-[11px] font-bold whitespace-nowrap shrink-0 ${
+                                    apt.status === 'Confirmada'
+                                      ? 'text-emerald-700'
+                                      : apt.status === 'Cancelada'
+                                      ? 'text-rose-700'
+                                      : 'text-[#ed145b]'
+                                  }`}
+                                >
+                                  {apt.status}
+                                </span>
                               </div>
-                              <span className="px-2.5 py-0.5 rounded-full bg-pink-100 text-[#ed145b] font-bold text-[10px]">
-                                {apt.status}
+                            ))}
+                          </div>
+                        )}
+                      </section>
+                    </div>
+
+                    {/* Coluna Direita: Resumo Financeiro & Ações Rápidas */}
+                    <div className="lg:col-span-4 space-y-6">
+                      <section className="bg-white p-5 rounded-xl border border-[#eee0d6] space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
+                            Faturação (Kz)
+                          </h2>
+                          <button
+                            type="button"
+                            onClick={() => setActiveSection('finance')}
+                            className="text-xs font-bold text-[#ed145b] hover:underline cursor-pointer"
+                          >
+                            Ver Faturas
+                          </button>
+                        </div>
+
+                        <div className="space-y-3 text-xs">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between font-semibold">
+                              <span className="text-[#5c3f42]">Liquidado</span>
+                              <span className="font-bold tabular-nums text-emerald-700">
+                                Kz {metrics.totalPaid.toLocaleString('pt-PT')} ({metrics.paidPct}%)
                               </span>
                             </div>
-                          ))}
+                            <div className="w-full bg-[#faebe1] h-2 rounded-full overflow-hidden">
+                              <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${metrics.paidPct}%` }} />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between font-semibold">
+                              <span className="text-[#5c3f42]">Em Aberto</span>
+                              <span className="font-bold tabular-nums text-amber-700">
+                                Kz {metrics.totalPending.toLocaleString('pt-PT')} ({metrics.totalBilled > 0 ? 100 - metrics.paidPct : 0}%)
+                              </span>
+                            </div>
+                            <div className="w-full bg-[#faebe1] h-2 rounded-full overflow-hidden">
+                              <div
+                                className="bg-amber-500 h-full rounded-full"
+                                style={{ width: `${metrics.totalBilled > 0 ? 100 - metrics.paidPct : 0}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      )}
+
+                        <div className="pt-3 border-t border-[#eee0d6]">
+                          <button
+                            type="button"
+                            onClick={() => setAddInvoiceModalOpen(true)}
+                            className="w-full min-h-[38px] px-3.5 py-2 rounded-lg bg-[#faebe1] hover:bg-[#f4e6db] text-[#211a14] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5 text-[#ed145b]" />
+                            <span>Emitir Nova Fatura (Kz)</span>
+                          </button>
+                        </div>
+                      </section>
+
+                      <section className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                        <div className="px-5 py-3.5 border-b border-[#eee0d6]">
+                          <h2 className="text-sm font-bold font-['Quicksand'] text-[#211a14]">
+                            Ações Rápidas
+                          </h2>
+                        </div>
+                        <div className="divide-y divide-[#eee0d6]">
+                          <button
+                            type="button"
+                            onClick={() => setAddStaffModalOpen(true)}
+                            className="w-full px-5 py-3 text-left text-xs font-bold text-[#211a14] hover:bg-[#fff8f5] flex items-center justify-between transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <Users className="w-4 h-4 text-[#00a6c0]" />
+                              <span>Cadastrar Tia / Encarregado</span>
+                            </span>
+                            <ArrowUpRight className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setCommsModalOpen(true)}
+                            className="w-full px-5 py-3 text-left text-xs font-bold text-[#211a14] hover:bg-[#fff8f5] flex items-center justify-between transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <Send className="w-4 h-4 text-[#ed145b]" />
+                              <span>Publicar Circular Escolar</span>
+                            </span>
+                            <ArrowUpRight className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setSaftModalOpen(true)}
+                            className="w-full px-5 py-3 text-left text-xs font-bold text-[#211a14] hover:bg-[#fff8f5] flex items-center justify-between transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+                              <span>Exportar Ficheiro SAF-T (AO)</span>
+                            </span>
+                            <ArrowUpRight className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                          </button>
+                        </div>
+                      </section>
                     </div>
                   </div>
                 </div>
@@ -1023,11 +1281,25 @@ export default function AdminSchoolDashboard({
                         Gestão Financeira & Faturação em Kwanza (Kz)
                       </h3>
                       <p className="text-xs text-[#5c3f42]">
-                        Controlo de propinas, referências Multicaixa Express e recibos certificados
+                        Controlo de propinas, referências Multicaixa Express e validação fiscal FactPlus (AGT)
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVerifyRefResult(null);
+                          setVerifyRefInput('');
+                          setVerifyRefRecordId('');
+                          setVerifyRefModalOpen(true);
+                        }}
+                        className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-white border border-[#eee0d6] hover:bg-[#fff8f5] text-[#211a14] font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#00a6c0]" />
+                        <span>Validar por Referência</span>
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => setSaftModalOpen(true)}
@@ -1048,6 +1320,35 @@ export default function AdminSchoolDashboard({
                     </div>
                   </div>
 
+                  {/* Estado da Integração FactPlus */}
+                  <div
+                    className={`rounded-xl border px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${
+                      factPlusStatus?.configured
+                        ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
+                        : 'bg-amber-50/80 border-amber-200 text-amber-900'
+                    }`}
+                  >
+                    <div className="flex items-start sm:items-center gap-2.5">
+                      {factPlusStatus?.configured ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5 sm:mt-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5 sm:mt-0" />
+                      )}
+                      <div>
+                        <p className="font-bold">
+                          {factPlusStatus?.configured
+                            ? 'API FactPlus (Angola AGT) ligada no servidor'
+                            : 'Pré-validação AGT ativa • Chave FactPlus ainda não configurada no servidor'}
+                        </p>
+                        <p className="text-[11px] opacity-85">
+                          {factPlusStatus?.configured
+                            ? `Endpoint ativo: ${factPlusStatus.apiUrl} • Clique em "Validar FactPlus" em qualquer fatura para certificar ou consultar.`
+                            : 'Para certificação online na FactPlus, adicione a variável secreta FACTPLUS_API_KEY nas definições do ambiente do servidor.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
                     {filteredFinance.length === 0 ? (
                       <div className="p-8 text-center text-xs text-[#5c3f42]">
@@ -1062,66 +1363,101 @@ export default function AdminSchoolDashboard({
                               <th className="p-3.5">Responsável Financeiro (NIF)</th>
                               <th className="p-3.5">Método & Fatura</th>
                               <th className="p-3.5">Valor (Kz) & Vencimento</th>
-                              <th className="p-3.5">Estado</th>
+                              <th className="p-3.5">Estado / FactPlus</th>
                               <th className="p-3.5 text-right">Ações</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#eee0d6]">
-                            {filteredFinance.map((record) => (
-                              <tr key={record.id} className="hover:bg-[#fff1e7]/70 transition-colors">
-                                <td className="p-3.5">
-                                  <p className="font-bold text-[#211a14]">{record.student_name}</p>
-                                  <span className="text-[10px] text-[#5c3f42]">{record.class_group}</span>
-                                </td>
-                                <td className="p-3.5">
-                                  <span className="font-bold text-[#211a14] block">{record.guardian_name}</span>
-                                  <span className="text-[10px] text-[#5c3f42] font-mono">NIF: {record.nif}</span>
-                                </td>
-                                <td className="p-3.5">
-                                  <span className="font-semibold text-[#5c3f42] flex items-center gap-1">
-                                    <CreditCard className="w-3.5 h-3.5 text-[#8c6b6d]" />
-                                    {record.payment_method}
-                                  </span>
-                                  <span className="text-[10px] text-[#8c6b6d] font-mono">{record.invoice_number}</span>
-                                </td>
-                                <td className="p-3.5">
-                                  <span className="font-bold text-[#211a14]">
-                                    Kz {Number(record.amount).toLocaleString('pt-PT')}
-                                  </span>
-                                  <span className="text-[10px] text-[#5c3f42] block">Venc: {record.due_date}</span>
-                                </td>
-                                <td className="p-3.5">
-                                  <span
-                                    className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
-                                      record.status === 'Liquidado'
-                                        ? 'bg-emerald-100 text-emerald-800'
-                                        : 'bg-amber-100 text-amber-800'
-                                    }`}
-                                  >
-                                    {record.status}
-                                  </span>
-                                </td>
-                                <td className="p-3.5 text-right space-x-1.5">
-                                  {record.status !== 'Liquidado' && (
+                            {filteredFinance.map((record) => {
+                              const isValidating = validatingInvoiceId === record.id;
+                              const isFactPlusOk =
+                                record.factplus_status?.includes('Certificada') ||
+                                record.factplus_status?.includes('Validada');
+                              return (
+                                <tr key={record.id} className="hover:bg-[#fff1e7]/70 transition-colors">
+                                  <td className="p-3.5">
+                                    <p className="font-bold text-[#211a14]">{record.student_name}</p>
+                                    <span className="text-[10px] text-[#5c3f42]">{record.class_group}</span>
+                                  </td>
+                                  <td className="p-3.5">
+                                    <span className="font-bold text-[#211a14] block">{record.guardian_name}</span>
+                                    <span className="text-[10px] text-[#5c3f42] font-mono">NIF: {record.nif}</span>
+                                  </td>
+                                  <td className="p-3.5">
+                                    <span className="font-semibold text-[#5c3f42] flex items-center gap-1">
+                                      <CreditCard className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                                      {record.payment_method}
+                                    </span>
+                                    <span className="text-[10px] text-[#8c6b6d] font-mono block">{record.invoice_number}</span>
+                                    {record.factplus_reference && (
+                                      <span className="text-[10px] text-[#00a6c0] font-mono font-bold block">
+                                        FactPlus Ref: {record.factplus_reference}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="p-3.5">
+                                    <span className="font-bold text-[#211a14] tabular-nums">
+                                      Kz {Number(record.amount).toLocaleString('pt-PT')}
+                                    </span>
+                                    <span className="text-[10px] text-[#5c3f42] block">Venc: {record.due_date}</span>
+                                  </td>
+                                  <td className="p-3.5 space-y-1">
+                                    <span
+                                      className={`px-2.5 py-0.5 rounded-md font-bold text-[10px] inline-block ${
+                                        record.status === 'Liquidado'
+                                          ? 'bg-emerald-100 text-emerald-800'
+                                          : 'bg-amber-100 text-amber-800'
+                                      }`}
+                                    >
+                                      {record.status}
+                                    </span>
+                                    {record.factplus_status && (
+                                      <span
+                                        className={`px-2 py-0.5 rounded-md font-bold text-[10px] block w-fit ${
+                                          isFactPlusOk
+                                            ? 'bg-sky-100 text-sky-900'
+                                            : 'bg-rose-100 text-rose-800'
+                                        }`}
+                                      >
+                                        {record.factplus_status}
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
                                     <button
                                       type="button"
-                                      onClick={() => handleMarkInvoicePaid(record)}
-                                      className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold text-[11px] transition-colors cursor-pointer"
+                                      disabled={isValidating}
+                                      onClick={() => handleValidateFactPlus(record)}
+                                      className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-[#00a6c0] rounded-lg font-bold text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-60"
                                     >
-                                      Liquidar
+                                      {isValidating ? (
+                                        <RefreshCw className="w-3 h-3 animate-spin" />
+                                      ) : (
+                                        <ShieldCheck className="w-3 h-3" />
+                                      )}
+                                      <span>{isValidating ? 'A validar...' : 'Validar FactPlus'}</span>
                                     </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={() => setReceiptModalRecord(record)}
-                                    className="px-2.5 py-1 bg-pink-50 hover:bg-pink-100 text-[#ed145b] rounded-lg font-bold text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer"
-                                  >
-                                    <Printer className="w-3 h-3" />
-                                    <span>Recibo AGT</span>
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                                    {record.status !== 'Liquidado' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMarkInvoicePaid(record)}
+                                        className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg font-bold text-[11px] transition-colors cursor-pointer"
+                                      >
+                                        Liquidar
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => setReceiptModalRecord(record)}
+                                      className="px-2.5 py-1 bg-pink-50 hover:bg-pink-100 text-[#ed145b] rounded-lg font-bold text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Printer className="w-3 h-3" />
+                                      <span>Recibo AGT</span>
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -1401,6 +1737,7 @@ export default function AdminSchoolDashboard({
               )}
             </>
           )}
+          </div>
         </main>
       </div>
 
@@ -2020,6 +2357,182 @@ export default function AdminSchoolDashboard({
                   <span>{submitting ? 'A publicar...' : 'Publicar Circular'}</span>
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: RESULTADO DA VALIDAÇÃO FACTPLUS */}
+      {validationResultModal && (
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className={`w-5 h-5 ${validationResultModal.valid ? 'text-emerald-600' : 'text-amber-600'}`} />
+                <div>
+                  <h3 className="font-bold text-sm text-[#211a14] font-['Quicksand']">
+                    Validação Fiscal FactPlus (AGT)
+                  </h3>
+                  <p className="text-[11px] text-[#5c3f42] font-mono">
+                    {validationResultModal.record.invoice_number}
+                    {validationResultModal.reference ? ` • Ref FactPlus: ${validationResultModal.reference}` : ''}
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setValidationResultModal(null)} className="p-1 text-[#8c6b6d]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div
+              className={`rounded-xl p-3.5 border text-xs ${
+                validationResultModal.valid
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  : 'bg-amber-50 border-amber-200 text-amber-900'
+              }`}
+            >
+              <p className="font-bold">{validationResultModal.factplusStatus}</p>
+              <p className="mt-1 text-[11px]">{validationResultModal.message}</p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#8c6b6d]">
+                Verificações Fiscais da Fatura
+              </p>
+              <div className="divide-y divide-[#eee0d6] border border-[#eee0d6] rounded-xl overflow-hidden text-xs">
+                {validationResultModal.checks.map((chk) => (
+                  <div key={chk.key} className="px-3.5 py-2.5 flex items-start justify-between gap-3 bg-white">
+                    <div>
+                      <p className="font-bold text-[#211a14]">{chk.label}</p>
+                      <p className="text-[11px] text-[#5c3f42]">{chk.detail}</p>
+                    </div>
+                    {chk.passed ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {validationResultModal.schemaColumnWarning && (
+              <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                A fatura foi validada na FactPlus, mas as colunas de histórico FactPlus ainda não existem na tabela Supabase. Execute a migração SQL atualizada para guardar a referência permanentemente.
+              </p>
+            )}
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={() => setValidationResultModal(null)}
+                className="px-4 py-2 bg-[#211a14] text-white rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: VALIDAR REFERÊNCIA FACTPLUS EXISTENTE */}
+      {verifyRefModalOpen && (
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-[#00a6c0]" />
+                <h3 className="font-bold text-sm text-[#211a14] font-['Quicksand']">
+                  Validar Factura por Referência FactPlus
+                </h3>
+              </div>
+              <button type="button" onClick={() => setVerifyRefModalOpen(false)} className="p-1 text-[#8c6b6d]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleVerifyFactPlusReference} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-[#5c3f42] block mb-1">Referência FactPlus *</label>
+                <input
+                  type="text"
+                  required
+                  value={verifyRefInput}
+                  onChange={(e) => setVerifyRefInput(e.target.value)}
+                  placeholder="Ex: FT 2026/1042"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] font-mono focus:outline-none focus:border-[#00a6c0]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-[#5c3f42] block mb-1">Tipo de Documento</label>
+                <select
+                  value={verifyRefDocType}
+                  onChange={(e) => setVerifyRefDocType(e.target.value as 'factura' | 'factura-recibo' | 'proforma')}
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white"
+                >
+                  <option value="factura">Factura</option>
+                  <option value="factura-recibo">Factura-Recibo</option>
+                  <option value="proforma">Factura Proforma</option>
+                </select>
+              </div>
+
+              {financialRecords.length > 0 && (
+                <div>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Associar a Lançamento (Opcional)</label>
+                  <select
+                    value={verifyRefRecordId}
+                    onChange={(e) => setVerifyRefRecordId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white"
+                  >
+                    <option value="">-- Apenas consultar na FactPlus --</option>
+                    {financialRecords.map((rec) => (
+                      <option key={rec.id} value={rec.id}>
+                        {rec.invoice_number} — {rec.student_name} (Kz {Number(rec.amount).toLocaleString('pt-PT')})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {verifyRefResult && (
+                <div
+                  className={`rounded-xl p-3 border text-xs ${
+                    verifyRefResult.valid
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-rose-50 border-rose-200 text-rose-900'
+                  }`}
+                >
+                  <p className="font-bold">
+                    {verifyRefResult.valid ? 'Documento Válido na FactPlus' : 'Não Validado'}
+                    {verifyRefResult.statusText ? ` (${verifyRefResult.statusText})` : ''}
+                  </p>
+                  <p className="text-[11px] mt-0.5">{verifyRefResult.message}</p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setVerifyRefModalOpen(false)}
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
+                >
+                  Fechar
+                </button>
+                <button
+                  type="submit"
+                  disabled={verifyingRef || !factPlusStatus?.configured}
+                  className="px-4 py-2 bg-[#00a6c0] text-white rounded-xl font-bold hover:bg-cyan-700 cursor-pointer disabled:opacity-60"
+                >
+                  {verifyingRef ? 'A consultar...' : 'Validar na FactPlus'}
+                </button>
+              </div>
+
+              {!factPlusStatus?.configured && (
+                <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+                  Configure a variável secreta <span className="font-mono font-bold">FACTPLUS_API_KEY</span> no servidor para consultar referências online.
+                </p>
+              )}
             </form>
           </div>
         </div>

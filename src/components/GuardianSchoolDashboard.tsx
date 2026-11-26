@@ -317,16 +317,54 @@ export default function GuardianSchoolDashboard({
   const firstPendingConsent = pendingConsents[0] || null;
   const nextInvoice = pendingFinancial[0] || financialRecords[0] || null;
 
+  const guardianSectionLabels: Record<GuardianSection, string> = {
+    overview: 'Visão Integrada',
+    routine: 'Rotina & Observações',
+    finance: 'Propinas & Faturação',
+    comms: 'Mensagens & Circulares',
+    authorizations: 'Autorizações & Portaria'
+  };
+
   const guardianToolbarControls = (
     <>
-      <div className="flex items-center gap-2.5 flex-wrap">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-[#8c4f00] border border-amber-200">
-          <Users className="w-3.5 h-3.5 text-[#fd9924]" />
-          <span>Encarregado: {currentUser.name}</span>
-        </span>
-        <span className="text-[11px] text-[#5c3f42]">
-          {currentUser.nif ? `NIF: ${currentUser.nif}` : currentUser.email}
-        </span>
+      <div className="flex items-center gap-3 flex-wrap min-w-0">
+        <div className="flex items-center gap-2 text-xs min-w-0">
+          <span className="font-bold text-[#8c4f00] whitespace-nowrap truncate max-w-[180px]">
+            {currentUser.name}
+          </span>
+          <span className="text-[#c9b4a8]" aria-hidden="true">/</span>
+          <span className="font-extrabold text-[#211a14] whitespace-nowrap truncate">
+            {guardianSectionLabels[activeSection]}
+          </span>
+        </div>
+
+        {children.length > 1 && (
+          <div className="flex items-center gap-1 bg-[#faebe1] rounded-lg p-0.5 border border-[#eee0d6] overflow-x-auto max-w-full">
+            {children.map((ch) => (
+              <button
+                key={ch.id}
+                type="button"
+                onClick={() => {
+                  setActiveChildId(ch.id);
+                  showToast(`Contexto alterado para ${ch.name} (${ch.classroom_name}).`);
+                }}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeChild?.id === ch.id
+                    ? 'bg-white text-[#fd9924]'
+                    : 'text-[#5c3f42] hover:text-[#211a14]'
+                }`}
+              >
+                {ch.name.split(' ')[0]}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {activeChild && children.length <= 1 && (
+          <span className="text-[11px] text-[#5c3f42] hidden lg:inline whitespace-nowrap truncate">
+            {activeChild.name} · {activeChild.classroom_name}
+          </span>
+        )}
       </div>
 
       <div className="flex items-center justify-between md:justify-end gap-2 shrink-0 flex-wrap">
@@ -334,7 +372,7 @@ export default function GuardianSchoolDashboard({
           type="button"
           onClick={loadWorkspace}
           disabled={loading}
-          className="px-3 py-1.5 rounded-xl bg-[#faebe1] hover:bg-[#eee0d6] text-[#5c3f42] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+          className="px-3 py-1.5 rounded-lg bg-[#faebe1] hover:bg-[#eee0d6] text-[#5c3f42] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap"
           title="Atualizar dados"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -344,7 +382,7 @@ export default function GuardianSchoolDashboard({
         <button
           type="button"
           onClick={() => setActiveSection('finance')}
-          className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+          className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap tabular-nums ${
             pendingFinancial.length > 0
               ? 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
               : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
@@ -363,12 +401,12 @@ export default function GuardianSchoolDashboard({
         <button
           type="button"
           onClick={() => setActiveSection('comms')}
-          className="relative p-2 rounded-xl text-[#5c3f42] hover:bg-[#faebe1] transition-colors cursor-pointer"
+          className="relative p-2 rounded-lg text-[#5c3f42] hover:bg-[#faebe1] transition-colors cursor-pointer"
           aria-label="Mensagens e Circulares"
         >
           <Send className="w-4 h-4 text-[#5c3f42]" />
-          {(messages.some((m) => m.unread) || announcements.length > 0) && (
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#ed145b] rounded-full ring-2 ring-white" />
+          {messages.some((m) => m.unread) && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ed145b] rounded-full" />
           )}
         </button>
       </div>
@@ -393,7 +431,7 @@ export default function GuardianSchoolDashboard({
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 rounded-xl text-[#5c3f42] hover:text-[#211a14] hover:bg-[#faebe1] transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              className="px-3 py-1.5 rounded-lg text-[#5c3f42] hover:text-[#211a14] hover:bg-[#faebe1] transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
               aria-label="Voltar ao Website"
             >
               <ArrowLeft className="w-4 h-4 text-amber-600" />
@@ -404,159 +442,25 @@ export default function GuardianSchoolDashboard({
       )}
 
       {/* ========================================================================= */}
-      {/* CARD DE CONTEXTO DO EDUCANDO ATIVO                                        */}
+      {/* BODY LAYOUT: SIDENAVBAR + PAINEL PRINCIPAL                                */}
       {/* ========================================================================= */}
-      <section
-        className="bg-gradient-to-r from-amber-50 via-orange-50/60 to-rose-50/40 border-b border-amber-200/80 px-4 sm:px-6 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0"
-        aria-label="Perfil do educando ativo"
-      >
-        {activeChild ? (
-          <>
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-[#fd9924] text-white flex items-center justify-center font-extrabold text-lg shadow-sm shrink-0 border-2 border-white">
-                {activeChild.avatar_letter}
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
-                    {activeChild.name}
-                  </h2>
-                  <span className="text-xs font-bold text-[#fd9924] bg-white px-2.5 py-0.5 rounded-full border border-amber-200 shadow-2xs">
-                    {activeChild.classroom_name}
-                  </span>
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    {activeChild.status}
-                  </span>
-                </div>
-                <p className="text-xs text-[#5c3f42] mt-1">
-                  Educadora Titular:{' '}
-                  <strong>{formatEducatorName(activeChild.teacher_name)}</strong> •{' '}
-                  {activeChild.cycle} • {activeChild.age}
-                </p>
-
-                {children.length > 1 && (
-                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                    <span className="text-[11px] font-semibold text-[#5c3f42]">
-                      Educandos Vinculados:
-                    </span>
-                    {children.map((ch) => (
-                      <button
-                        key={ch.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveChildId(ch.id);
-                          showToast(`Contexto alterado para ${ch.name} (${ch.classroom_name}).`);
-                        }}
-                        className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                          activeChild.id === ch.id
-                            ? 'bg-[#fd9924] text-white shadow-xs'
-                            : 'bg-white border border-[#eee0d6] text-[#5c3f42] hover:border-amber-400'
-                        }`}
-                      >
-                        {ch.name.split(' ')[0]} ({ch.classroom_name.split(' ')[0]})
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs shrink-0">
-              <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-                <span className="text-[11px] text-[#5c3f42] block font-semibold">Assiduidade</span>
-                <p className="text-lg font-bold font-['Quicksand'] text-emerald-700 mt-0.5">
-                  {activeChild.presence_rate}%
-                </p>
-                <span className="text-[10px] text-[#8c6b6d]">Frequência ativa</span>
-              </div>
-
-              <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-                <span className="text-[11px] text-[#5c3f42] block font-semibold">Desenvolvimento</span>
-                <p className="text-sm font-bold font-['Quicksand'] text-[#00a6c0] mt-1 leading-tight truncate">
-                  {activeChild.development_status}
-                </p>
-                <span className="text-[10px] text-sky-700 font-bold">Acompanhado pelas Tias</span>
-              </div>
-
-              <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-                <span className="text-[11px] text-[#5c3f42] block font-semibold">Propinas</span>
-                <p
-                  className={`text-lg font-bold font-['Quicksand'] mt-0.5 ${
-                    pendingFinancial.length > 0 ? 'text-amber-600' : 'text-emerald-700'
-                  }`}
-                >
-                  {pendingFinancial.length > 0 ? `${pendingFinancial.length} Pendente` : 'Regularizada'}
-                </p>
-                <span className="text-[10px] text-[#8c6b6d]">Faturação em Kz</span>
-              </div>
-
-              <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-                <span className="text-[11px] text-[#5c3f42] block font-semibold">Observações</span>
-                <p className="text-lg font-bold font-['Quicksand'] text-[#ed145b] mt-0.5">
-                  {childObservations.length}
-                </p>
-                <span className="text-[10px] text-pink-700 font-bold">Registos da Tia</span>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-[#fd9924] text-white flex items-center justify-center font-extrabold text-base shadow-sm shrink-0">
-                {currentUser.avatarLetter || 'E'}
-              </div>
-              <div>
-                <h2 className="text-sm sm:text-base font-bold font-['Quicksand'] text-[#211a14]">
-                  {loading
-                    ? 'A carregar educandos vinculados...'
-                    : 'Nenhuma criança vinculada a esta conta ainda'}
-                </h2>
-                <p className="text-xs text-[#5c3f42] mt-0.5">
-                  {loading
-                    ? 'A consultar os registos reais no Supabase...'
-                    : 'Solicite à Secretaria que associe a matrícula do seu educando ao seu e-mail no ato de inscrição.'}
-                </p>
-              </div>
-            </div>
-            {!loading && (
-              <button
-                type="button"
-                onClick={() =>
-                  handleOpenMessageModal(
-                    'Secretaria Geral & Financeiro',
-                    'Solicitação de vinculação de matrícula'
-                  )
-                }
-                className="px-4 py-2 rounded-xl bg-[#ed145b] text-white text-xs font-bold hover:bg-pink-600 transition-colors shrink-0 cursor-pointer"
-              >
-                Contactar Secretaria
-              </button>
-            )}
-          </div>
-        )}
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 2. BODY LAYOUT: SIDENAVBAR + PAINÉIS FUNCIONAIS                           */}
-      {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
         <nav
-          className="w-full md:w-64 bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-[#eee0d6]"
+          className="w-full md:w-64 lg:w-[260px] bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-b md:border-b-0 md:border-r border-[#eee0d6]"
           aria-label="Módulos do encarregado de educação"
         >
           <div className="flex md:flex-col gap-1 w-full">
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#8c6b6d] px-3 py-1.5 hidden md:block">
-              Área do Encarregado
+            <span className="text-[11px] font-bold text-[#8c6b6d] px-3 py-1.5 hidden md:block">
+              Área da Família
             </span>
 
             {(
               [
-                { id: 'overview', label: 'Visão Integrada', icon: Smile },
-                { id: 'routine', label: 'Rotina & Observações da Tia', icon: Heart },
-                { id: 'finance', label: 'Propinas & Faturação', icon: DollarSign },
-                { id: 'comms', label: 'Canal Direto & Circulares', icon: Send },
-                { id: 'authorizations', label: 'Autorizações & Portaria', icon: ShieldCheck }
+                { id: 'overview', label: 'Visão Integrada', icon: Smile, count: null },
+                { id: 'routine', label: 'Rotina & Observações', icon: Heart, count: childObservations.length },
+                { id: 'finance', label: 'Propinas & Faturação', icon: DollarSign, count: pendingFinancial.length > 0 ? pendingFinancial.length : null },
+                { id: 'comms', label: 'Mensagens & Circulares', icon: Send, count: announcements.length + messages.length },
+                { id: 'authorizations', label: 'Autorizações & Portaria', icon: ShieldCheck, count: pendingConsents.length > 0 ? pendingConsents.length : null }
               ] as const
             ).map((item) => {
               const Icon = item.icon;
@@ -566,38 +470,56 @@ export default function GuardianSchoolDashboard({
                   key={item.id}
                   type="button"
                   onClick={() => setActiveSection(item.id)}
-                  className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
+                  className={`min-h-[40px] md:w-full px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-between gap-2.5 transition-colors text-left whitespace-nowrap shrink-0 cursor-pointer ${
                     isActive
-                      ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                      ? 'bg-[#fd9924] text-white'
                       : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2.5 min-w-0">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </span>
+                  {item.count !== null && (
+                    <span
+                      className={`text-[11px] font-bold tabular-nums shrink-0 ${
+                        isActive ? 'text-white/90' : 'text-[#8c6b6d]'
+                      }`}
+                    >
+                      {item.count}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
-          <div className="pt-3 border-t border-[#eee0d6] hidden md:block">
-            <div className="p-2.5 rounded-xl bg-[#faebe1] text-[11px] space-y-1 border border-[#eee0d6]">
-              <p className="font-bold text-[#211a14]">Acompanhamento Humanizado</p>
-              <p className="text-[#5c3f42]">
-                Sem notas numéricas: pareceres qualitativos escritos pelas Tias educadoras.
-              </p>
+          <div className="pt-4 mt-4 border-t border-[#eee0d6] hidden md:block space-y-2 px-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Observações</span>
+              <span className="font-bold tabular-nums text-[#ed145b]">{childObservations.length}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Propinas em aberto</span>
+              <span className="font-bold tabular-nums text-[#211a14]">{pendingFinancial.length}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#8c6b6d]">Consentimentos</span>
+              <span className="font-bold tabular-nums text-amber-700">{pendingConsents.length} pendente(s)</span>
             </div>
           </div>
         </nav>
 
         <main
-          className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-[#fff8f5] focus:outline-none"
+          className="flex-1 min-h-0 p-4 sm:p-6 lg:p-8 overflow-y-auto bg-[#fff8f5] focus:outline-none"
           tabIndex={-1}
         >
+          <div className="max-w-7xl mx-auto w-full space-y-6">
           {toastMessage && (
             <div
               role="status"
               aria-live="polite"
-              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-[#5c3f42]"
+              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-xl flex items-center gap-2 border border-[#5c3f42]"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{toastMessage}</span>
@@ -605,7 +527,7 @@ export default function GuardianSchoolDashboard({
           )}
 
           {loadError && (
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-800">
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-800">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span className="font-semibold">{loadError}</span>
@@ -613,7 +535,7 @@ export default function GuardianSchoolDashboard({
               <button
                 type="button"
                 onClick={loadWorkspace}
-                className="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 cursor-pointer self-start sm:self-auto"
+                className="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-700 cursor-pointer self-start sm:self-auto"
               >
                 Tentar novamente
               </button>
@@ -631,24 +553,138 @@ export default function GuardianSchoolDashboard({
               {/* SECÇÃO 1: VISÃO INTEGRADA                                                 */}
               {/* ========================================================================= */}
               {activeSection === 'overview' && (
-                <div className="space-y-6">
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  {/* Cabeçalho do Educando & Indicadores */}
+                  {activeChild ? (
+                    <section
+                      aria-label="Perfil do educando ativo"
+                      className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden"
+                    >
+                      <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eee0d6]">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-12 h-12 rounded-xl bg-[#fd9924] text-white flex items-center justify-center font-extrabold text-lg shrink-0">
+                            {activeChild.avatar_letter}
+                          </div>
+                          <div className="min-w-0">
+                            <h1 className="text-lg sm:text-xl font-extrabold font-['Quicksand'] text-[#211a14] leading-tight truncate">
+                              {activeChild.name}
+                            </h1>
+                            <p className="text-xs text-[#5c3f42] mt-0.5 truncate">
+                              {activeChild.classroom_name} · {activeChild.cycle} · Educadora{' '}
+                              <strong className="text-[#00a6c0]">{formatEducatorName(activeChild.teacher_name)}</strong>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenMessageModal()}
+                            className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-[#faebe1] hover:bg-[#f4e6db] text-[#211a14] font-bold text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+                          >
+                            <Send className="w-3.5 h-3.5 text-[#ed145b]" />
+                            <span>Enviar Mensagem</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setReportModalOpen(true)}
+                            className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-[#fd9924] hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>Relatório Qualitativo</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 4 Células de Métricas com Divisores Finos (Sem Cartões Aninhados) */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#eee0d6]">
+                        <div className="p-4">
+                          <span className="text-[11px] text-[#8c6b6d] font-bold block">Assiduidade</span>
+                          <p className="text-xl font-extrabold font-['Quicksand'] tabular-nums text-emerald-700 mt-1">
+                            {activeChild.presence_rate}%
+                          </p>
+                          <span className="text-[11px] text-[#5c3f42]">Estado atual: {activeChild.status}</span>
+                        </div>
+
+                        <div className="p-4">
+                          <span className="text-[11px] text-[#8c6b6d] font-bold block">Desenvolvimento</span>
+                          <p className="text-sm font-extrabold font-['Quicksand'] text-[#00a6c0] mt-1.5 truncate">
+                            {activeChild.development_status}
+                          </p>
+                          <span className="text-[11px] text-[#5c3f42]">Acompanhado pelas Tias</span>
+                        </div>
+
+                        <div className="p-4">
+                          <span className="text-[11px] text-[#8c6b6d] font-bold block">Propinas (Kz)</span>
+                          <p
+                            className={`text-xl font-extrabold font-['Quicksand'] tabular-nums mt-1 ${
+                              pendingFinancial.length > 0 ? 'text-amber-600' : 'text-emerald-700'
+                            }`}
+                          >
+                            {pendingFinancial.length > 0 ? `${pendingFinancial.length} Pendente(s)` : 'Em dia'}
+                          </p>
+                          <span className="text-[11px] text-[#5c3f42]">Faturação em Kwanza</span>
+                        </div>
+
+                        <div className="p-4">
+                          <span className="text-[11px] text-[#8c6b6d] font-bold block">Observações da Tia</span>
+                          <p className="text-xl font-extrabold font-['Quicksand'] tabular-nums text-[#ed145b] mt-1">
+                            {childObservations.length}
+                          </p>
+                          <span className="text-[11px] text-[#5c3f42]">Registos qualitativos</span>
+                        </div>
+                      </div>
+                    </section>
+                  ) : (
+                    <section
+                      aria-label="Sem educando vinculado"
+                      className="bg-white rounded-xl border border-[#eee0d6] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-xl bg-[#fd9924] text-white flex items-center justify-center font-extrabold text-base shrink-0">
+                          {currentUser.avatarLetter || 'E'}
+                        </div>
+                        <div>
+                          <h1 className="text-base font-extrabold font-['Quicksand'] text-[#211a14]">
+                            Nenhuma criança vinculada a esta conta ainda
+                          </h1>
+                          <p className="text-xs text-[#5c3f42] mt-0.5">
+                            Solicite à Secretaria que associe a matrícula do seu educando ao seu e-mail.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleOpenMessageModal(
+                            'Secretaria Geral & Financeiro',
+                            'Solicitação de vinculação de matrícula'
+                          )
+                        }
+                        className="px-4 py-2 rounded-lg bg-[#ed145b] text-white text-xs font-bold hover:bg-pink-600 transition-colors shrink-0 cursor-pointer"
+                      >
+                        Contactar Secretaria
+                      </button>
+                    </section>
+                  )}
+
                   {firstPendingConsent && (
-                    <div className="bg-gradient-to-r from-pink-500 to-rose-600 text-white p-5 rounded-2xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="bg-[#ed145b] text-white p-5 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="space-y-1">
-                        <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                          Consentimento Digital Pendente
+                        <span className="text-[11px] font-bold text-pink-100 block">
+                          Consentimento Digital Pendente · {firstPendingConsent.event_date}
                         </span>
-                        <h3 className="font-['Quicksand'] font-bold text-base sm:text-lg">
+                        <h2 className="font-['Quicksand'] font-bold text-base sm:text-lg">
                           {firstPendingConsent.title}
-                        </h3>
+                        </h2>
                         <p className="text-xs text-pink-100">
-                          Data: {firstPendingConsent.event_date} • Requer validação com PIN do encarregado.
+                          Requer validação rápida com o código PIN do encarregado.
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setConsentToSign(firstPendingConsent)}
-                        className="min-h-[42px] px-5 py-2 rounded-xl bg-white text-[#ed145b] font-bold text-xs shadow-md hover:bg-pink-50 transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                        className="min-h-[40px] px-4 py-2 rounded-lg bg-white text-[#ed145b] font-bold text-xs hover:bg-pink-50 transition-colors flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
                       >
                         <KeyRound className="w-4 h-4" />
                         <span>Assinar Digitalmente</span>
@@ -656,175 +692,201 @@ export default function GuardianSchoolDashboard({
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                    {/* Card 1: Rotina & Última Observação */}
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-[#fd9924]" />
-                          <span>Último Registo de Rotina & Acompanhamento</span>
-                        </h3>
-                        {activeChild && (
-                          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                            {activeChild.status}
-                          </span>
-                        )}
-                      </div>
-
-                      {childRoutineLogs.length > 0 ? (
-                        <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
-                          <p className="font-bold text-[#211a14]">{childRoutineLogs[0].day_label}</p>
-                          <p className="text-[#5c3f42]">
-                            <strong>Entrada:</strong> {childRoutineLogs[0].entry_info}
-                          </p>
-                          <p className="text-[#5c3f42]">
-                            <strong>Alimentação:</strong> {childRoutineLogs[0].meal_info}
-                          </p>
-                          <p className="text-[#00a6c0] font-semibold">
-                            {childRoutineLogs[0].activity_info}
-                          </p>
-                        </div>
-                      ) : childObservations.length > 0 ? (
-                        <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-[#ed145b]">
-                              {getObservationIcon(childObservations[0].category)}{' '}
-                              {childObservations[0].category}
-                            </span>
-                            <span className="text-[11px] text-[#8c6b6d]">
-                              {formatDatePt(childObservations[0].created_at)}
-                            </span>
-                          </div>
-                          <p className="font-bold text-[#211a14]">{childObservations[0].title}</p>
-                          <p className="text-[#5c3f42] line-clamp-2">"{childObservations[0].text}"</p>
-                          <p className="text-[11px] text-[#8c6b6d]">
-                            Por {formatEducatorName(childObservations[0].recorded_by)}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="p-4 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42]">
-                          Ainda não existem registos de rotina ou observações publicadas pela Educadora.
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => setActiveSection('routine')}
-                        className="text-xs font-bold text-[#fd9924] hover:underline flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>Ver rotina diária e observações da Tia</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Card 2: Situação Financeira */}
-                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-[#00a6c0]" />
-                          <span>Resumo de Faturação (Kz)</span>
-                        </h3>
-                        <span className="text-[11px] font-bold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-full">
-                          Multicaixa Express
-                        </span>
-                      </div>
-
-                      {nextInvoice ? (
-                        <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
-                          <div className="flex justify-between items-center font-bold gap-2">
-                            <span className="text-[#211a14]">{nextInvoice.description}</span>
-                            <span className="text-base text-[#211a14] shrink-0">
-                              {formatCurrencyKz(nextInvoice.amount)}
-                            </span>
-                          </div>
-                          <p className="text-[#5c3f42]">
-                            Fatura {nextInvoice.invoice_number} • Vencimento: {nextInvoice.due_date}
-                          </p>
-                          <div className="flex items-center justify-between pt-1">
-                            <span
-                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                                nextInvoice.status === 'Liquidado'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-amber-100 text-amber-800'
-                              }`}
-                            >
-                              {nextInvoice.status}
-                            </span>
-                            {nextInvoice.status !== 'Liquidado' && (
-                              <button
-                                type="button"
-                                onClick={() => setPayModalRecord(nextInvoice)}
-                                className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-[11px] cursor-pointer"
-                              >
-                                Pagar Agora
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-4 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42]">
-                          Nenhuma fatura ou propina emitida para esta conta até ao momento.
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => setActiveSection('finance')}
-                        className="text-xs font-bold text-[#00a6c0] hover:underline flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>Consultar histórico de propinas e recibos</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Card 3: Últimas Circulares Escolares */}
-                  <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
-                        <Megaphone className="w-4 h-4 text-[#ed145b]" />
-                        <span>Comunicados Recentes da Escola</span>
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={() => setActiveSection('comms')}
-                        className="text-xs font-bold text-[#ed145b] hover:underline cursor-pointer"
-                      >
-                        Ver todos ({announcements.length})
-                      </button>
-                    </div>
-
-                    {announcements.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {announcements.slice(0, 2).map((ann) => (
-                          <div
-                            key={ann.id}
-                            className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] text-xs space-y-1"
+                  {/* Grelha Principal Assimétrica (7 + 5 Colunas) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Coluna Esquerda: Observações & Comunicados */}
+                    <div className="lg:col-span-7 space-y-6">
+                      <section className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                        <div className="px-5 py-4 border-b border-[#eee0d6] flex items-center justify-between gap-3">
+                          <h2 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
+                            <Heart className="w-4 h-4 text-[#ed145b]" />
+                            <span>Acompanhamento & Observações da Tia</span>
+                          </h2>
+                          <button
+                            type="button"
+                            onClick={() => setActiveSection('routine')}
+                            className="text-xs font-bold text-[#fd9924] hover:underline flex items-center gap-1 whitespace-nowrap cursor-pointer"
                           >
-                            <div className="flex items-center justify-between gap-2">
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                                  ann.priority === 'urgente'
-                                    ? 'bg-rose-100 text-rose-800'
-                                    : ann.priority === 'importante'
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : 'bg-sky-100 text-sky-800'
-                                }`}
-                              >
-                                {ann.priority}
-                              </span>
-                              <span className="text-[10px] text-[#8c6b6d]">
-                                {formatDatePt(ann.created_at)}
+                            <span>Ver Diário Completo</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {childObservations.length === 0 && childRoutineLogs.length === 0 ? (
+                          <div className="p-6 text-xs text-[#5c3f42]">
+                            Ainda não existem registos de rotina ou observações publicadas pela Educadora.
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-[#eee0d6]">
+                            {childRoutineLogs.slice(0, 1).map((log) => (
+                              <div key={log.id} className="px-5 py-4 space-y-1 text-xs bg-[#fffcf9]">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-bold text-[#211a14]">{log.day_label}</span>
+                                  <span className="text-[11px] font-semibold text-emerald-700">Rotina do Dia</span>
+                                </div>
+                                <p className="text-[#5c3f42]">
+                                  Entrada: {log.entry_info} · Alimentação: {log.meal_info}
+                                </p>
+                                <p className="text-[#00a6c0] font-semibold">{log.activity_info}</p>
+                              </div>
+                            ))}
+                            {childObservations.slice(0, 3).map((obs) => (
+                              <div key={obs.id} className="px-5 py-4 space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-bold text-[#ed145b]">
+                                    {getObservationIcon(obs.category)} {obs.category}
+                                  </span>
+                                  <span className="text-[11px] text-[#8c6b6d] tabular-nums">
+                                    {formatDatePt(obs.created_at)}
+                                  </span>
+                                </div>
+                                <p className="font-bold text-[#211a14]">{obs.title}</p>
+                                <p className="text-[#5c3f42] leading-relaxed">"{obs.text}"</p>
+                                <p className="text-[11px] text-[#8c6b6d]">
+                                  Por {formatEducatorName(obs.recorded_by)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </section>
+
+                      <section className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                        <div className="px-5 py-4 border-b border-[#eee0d6] flex items-center justify-between gap-3">
+                          <h2 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
+                            <Megaphone className="w-4 h-4 text-[#ed145b]" />
+                            <span>Comunicados Recentes da Escola</span>
+                          </h2>
+                          <button
+                            type="button"
+                            onClick={() => setActiveSection('comms')}
+                            className="text-xs font-bold text-[#ed145b] hover:underline whitespace-nowrap cursor-pointer"
+                          >
+                            Ver Todos ({announcements.length})
+                          </button>
+                        </div>
+
+                        {announcements.length > 0 ? (
+                          <div className="divide-y divide-[#eee0d6]">
+                            {announcements.slice(0, 3).map((ann) => (
+                              <div key={ann.id} className="px-5 py-3.5 text-xs space-y-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-bold text-[#211a14]">{ann.title}</span>
+                                  <span className="text-[11px] text-[#8c6b6d] tabular-nums shrink-0">
+                                    {ann.priority} · {formatDatePt(ann.created_at)}
+                                  </span>
+                                </div>
+                                <p className="text-[#5c3f42] line-clamp-2">{ann.content}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="p-6 text-xs text-[#5c3f42]">
+                            Sem comunicados publicados até ao momento.
+                          </p>
+                        )}
+                      </section>
+                    </div>
+
+                    {/* Coluna Direita: Faturação & Ações Rápidas */}
+                    <div className="lg:col-span-5 space-y-6">
+                      <section className="bg-white p-5 rounded-xl border border-[#eee0d6] space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h2 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
+                            <CreditCard className="w-4 h-4 text-[#00a6c0]" />
+                            <span>Resumo de Faturação (Kz)</span>
+                          </h2>
+                          <button
+                            type="button"
+                            onClick={() => setActiveSection('finance')}
+                            className="text-xs font-bold text-[#00a6c0] hover:underline cursor-pointer"
+                          >
+                            Ver Todas
+                          </button>
+                        </div>
+
+                        {nextInvoice ? (
+                          <div className="space-y-3 text-xs pt-1 border-t border-[#eee0d6]">
+                            <div className="flex justify-between items-baseline gap-2 pt-2">
+                              <span className="font-bold text-[#211a14]">{nextInvoice.description}</span>
+                              <span className="text-base font-extrabold tabular-nums text-[#211a14] shrink-0">
+                                {formatCurrencyKz(nextInvoice.amount)}
                               </span>
                             </div>
-                            <p className="font-bold text-[#211a14]">{ann.title}</p>
-                            <p className="text-[#5c3f42] line-clamp-2">{ann.content}</p>
+                            <p className="text-[#5c3f42] tabular-nums">
+                              Fatura {nextInvoice.invoice_number} · Vencimento: {nextInvoice.due_date}
+                            </p>
+                            <div className="flex items-center justify-between pt-2">
+                              <span
+                                className={`text-xs font-bold ${
+                                  nextInvoice.status === 'Liquidado' ? 'text-emerald-700' : 'text-amber-700'
+                                }`}
+                              >
+                                Estado: {nextInvoice.status}
+                              </span>
+                              {nextInvoice.status !== 'Liquidado' && (
+                                <button
+                                  type="button"
+                                  onClick={() => setPayModalRecord(nextInvoice)}
+                                  className="px-3.5 py-1.5 bg-[#fd9924] hover:bg-amber-600 text-white rounded-lg font-bold text-xs cursor-pointer"
+                                >
+                                  Pagar Agora
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-[#5c3f42]">Sem comunicados publicados até ao momento.</p>
-                    )}
+                        ) : (
+                          <p className="text-xs text-[#5c3f42]">
+                            Nenhuma fatura ou propina emitida para esta conta até ao momento.
+                          </p>
+                        )}
+                      </section>
+
+                      <section className="bg-white rounded-xl border border-[#eee0d6] overflow-hidden">
+                        <div className="px-5 py-3.5 border-b border-[#eee0d6]">
+                          <h2 className="font-['Quicksand'] font-bold text-sm text-[#211a14]">
+                            Serviços & Portaria
+                          </h2>
+                        </div>
+                        <div className="divide-y divide-[#eee0d6]">
+                          <button
+                            type="button"
+                            onClick={() => setPickupModalOpen(true)}
+                            className="w-full px-5 py-3 text-left text-xs font-bold text-[#211a14] hover:bg-[#fff8f5] flex items-center justify-between transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <UserCheck className="w-4 h-4 text-[#ed145b]" />
+                              <span>Autorizar Retirada na Portaria</span>
+                            </span>
+                            <Plus className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenMessageModal()}
+                            className="w-full px-5 py-3 text-left text-xs font-bold text-[#211a14] hover:bg-[#fff8f5] flex items-center justify-between transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <Send className="w-4 h-4 text-[#00a6c0]" />
+                              <span>Contactar Educadora ou Secretaria</span>
+                            </span>
+                            <ArrowRight className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setActiveSection('authorizations')}
+                            className="w-full px-5 py-3 text-left text-xs font-bold text-[#211a14] hover:bg-[#fff8f5] flex items-center justify-between transition-colors cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                              <span>Gerir Consentimentos & Saídas ({pendingConsents.length})</span>
+                            </span>
+                            <ArrowRight className="w-3.5 h-3.5 text-[#8c6b6d]" />
+                          </button>
+                        </div>
+                      </section>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1442,6 +1504,7 @@ export default function GuardianSchoolDashboard({
               )}
             </>
           )}
+          </div>
         </main>
       </div>
 

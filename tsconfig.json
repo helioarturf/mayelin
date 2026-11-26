@@ -22,5 +22,18 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-server",
+    "server/index.ts",
+    "server/config",
+    "server/db",
+    "src/db",
+    "src/services",
+    "src/utils/factplusApi.ts",
+    "src/components/InvoiceDocumentView.tsx",
+    "src/components/OfflineIndicator.tsx"
+  ]
 }
