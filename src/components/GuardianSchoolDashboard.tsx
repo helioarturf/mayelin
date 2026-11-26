@@ -1,358 +1,379 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Users,
   CheckCircle2,
   Clock,
-  AlertCircle,
-  Calendar,
-  DollarSign,
   CreditCard,
-  Download,
   Send,
   FileText,
-  Sparkles,
   ShieldCheck,
   Smartphone,
   Printer,
   Heart,
   Smile,
-  FileSpreadsheet,
-  Eye,
   X,
   KeyRound,
-  Building2,
-  GraduationCap,
-  Utensils,
-  BookOpen,
-  Award,
   ArrowRight,
   ArrowLeft,
   Lock,
   RefreshCw,
-  Baby,
-  Check,
-  ChevronRight
+  DollarSign,
+  Plus,
+  Megaphone,
+  UserCheck,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
-type Invoice = any;
-// Faturas - sem dados demo; integrar com API/backend quando disponível
-const formatKwanza = (amount: number) => {
-  if (isNaN(amount)) return 'Kz 0,00';
-  const parts = Math.abs(amount).toFixed(2).split('.');
-  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  const sign = amount < 0 ? '-' : '';
-  return `${sign}Kz ${intPart},${parts[1]}`;
-};
-import InvoiceDocumentView from './InvoiceDocumentView';
+import {
+  portalApi,
+  type AuthUser,
+  type DbAnnouncement,
+  type DbChildObservation,
+  type DbDigitalConsent,
+  type DbFinancialRecord,
+  type DbPickupAuthorization,
+  type DbPortalMessage,
+  type DbRoutineLog,
+  type DbStudent,
+  type ObservationCategory
+} from '../lib/api';
+import { formatEducatorName } from '../utils/formatters';
 
 interface GuardianSchoolDashboardProps {
+  authToken: string;
+  currentUser: AuthUser;
   onClose?: () => void;
+  headerPortalTarget?: HTMLElement | null;
 }
 
-type GuardianSection = 'overview' | 'routine' | 'finance' | 'comms' | 'authorizations' | 'settings';
+type GuardianSection = 'overview' | 'routine' | 'finance' | 'comms' | 'authorizations';
 
-interface ChildProfile {
-  id: string;
-  name: string;
-  classroom: string;
-  cycle: string;
-  leadTeacher: string;
-  avatarLetter: string;
-  status: string;
-  presenceRate: number;
-  developmentStatus: string;
-  financialStatus: 'Regularizada' | 'Pendente';
-  newMessagesCount: number;
+function getObservationIcon(category: ObservationCategory | string): string {
+  switch (category) {
+    case 'Alimentação & Apetite':
+      return '🍎';
+    case 'Soninho & Repouso':
+      return '😴';
+    case 'Desenvolvimento Motor':
+      return '🏃';
+    case 'Linguagem & Interação':
+      return '💬';
+    case 'Saúde & Cuidados':
+      return '🩺';
+    case 'Adaptação & Emoções':
+    default:
+      return '❤️';
+  }
 }
 
-export interface GuardianObservation {
-  id: string;
-  childId: string;
-  date: string;
-  category: 'Alimentação & Apetite' | 'Soninho & Repouso' | 'Desenvolvimento Motor' | 'Linguagem & Expressão' | 'Adaptação & Emoções' | 'Higiene & Cuidados';
-  icon: string;
-  priority: 'Conquista / Marco' | 'Rotina' | 'Importante';
-  title: string;
-  text: string;
-  recordedBy: string;
+function formatDatePt(value?: string | null): string {
+  if (!value) return '—';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString('pt-PT', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
-export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashboardProps) {
-  // Navigation & Active Section
+function formatCurrencyKz(amount: number): string {
+  return `Kz ${Number(amount || 0).toLocaleString('pt-PT', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+export default function GuardianSchoolDashboard({
+  authToken,
+  currentUser,
+  onClose,
+  headerPortalTarget
+}: GuardianSchoolDashboardProps) {
   const [activeSection, setActiveSection] = useState<GuardianSection>('overview');
 
-  // Selected Child Profile (Rodrigo Silva no Jardim de Infância vs. Sofia Silva no Maternal I)
-  const childrenList: ChildProfile[] = [
-    {
-      id: 'rodrigo-silva',
-      name: 'Rodrigo Silva',
-      classroom: 'Jardim de Infância - Sala das Estrelinhas',
-      cycle: 'Pré-Escolar & Jardim de Infância (4 a 5 anos)',
-      leadTeacher: 'Tia Clara Marques (Educadora de Infância)',
-      avatarLetter: 'R',
-      status: 'Presente na Atividade da Horta & Expressão',
-      presenceRate: 98.2,
-      developmentStatus: 'Pleno & Autônomo',
-      financialStatus: 'Regularizada',
-      newMessagesCount: 1
-    },
-    {
-      id: 'sofia-silva',
-      name: 'Sofia Silva',
-      classroom: 'Maternal I - Sala dos Primeiros Passos',
-      cycle: 'Maternal I & II (1 a 2 anos)',
-      leadTeacher: 'Tia Teresa Melo (Educadora de Infância)',
-      avatarLetter: 'S',
-      status: 'Em Atividade Sensorial no Pátio',
-      presenceRate: 99.0,
-      developmentStatus: 'Adaptação Serena & Afetuosa',
-      financialStatus: 'Regularizada',
-      newMessagesCount: 0
-    }
-  ];
+  // Data from Supabase
+  const [children, setChildren] = useState<DbStudent[]>([]);
+  const [routineLogs, setRoutineLogs] = useState<DbRoutineLog[]>([]);
+  const [observations, setObservations] = useState<DbChildObservation[]>([]);
+  const [financialRecords, setFinancialRecords] = useState<DbFinancialRecord[]>([]);
+  const [messages, setMessages] = useState<DbPortalMessage[]>([]);
+  const [consents, setConsents] = useState<DbDigitalConsent[]>([]);
+  const [pickupAuthorizations, setPickupAuthorizations] = useState<DbPickupAuthorization[]>([]);
+  const [announcements, setAnnouncements] = useState<DbAnnouncement[]>([]);
 
-  const [activeChildId, setActiveChildId] = useState('rodrigo-silva');
-  const activeChild = childrenList.find((c) => c.id === activeChildId) || childrenList[0];
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [activeChildId, setActiveChildId] = useState<string>('');
   const [obsCategoryFilter, setObsCategoryFilter] = useState<string>('todas');
-
-  // Observações Carinhosas das Tias (Sem notas nem pautas numéricas)
-  const childObservations: GuardianObservation[] = [
-    // Rodrigo Silva (Tia Clara)
-    {
-      id: 'g-obs-1',
-      childId: 'rodrigo-silva',
-      date: 'Hoje, às 12:30',
-      category: 'Alimentação & Apetite',
-      icon: '🍎',
-      priority: 'Conquista / Marco',
-      title: 'Almoço com excelente autonomia e apetite',
-      text: 'O Rodrigo comeu com muito gosto toda a sopa de legumes biológicos e o peixinho fresco. Segurou os talheres com firmeza, bebeu o sumo natural e levou o pratinho à bancada com orgulho.',
-      recordedBy: 'Tia Clara Marques (Educadora Titular)'
-    },
-    {
-      id: 'g-obs-2',
-      childId: 'rodrigo-silva',
-      date: 'Hoje, às 10:15',
-      category: 'Linguagem & Expressão',
-      icon: '💬',
-      priority: 'Rotina',
-      title: 'Expressão oral rica na roda de histórias',
-      text: 'Participou ativamente na roda da manhã. Expressou-se com vocabulário rico, partilhou as vivências em família com os amiguinhos e cantou as cantigas de roda gesticulando alegremente.',
-      recordedBy: 'Tia Clara Marques (Educadora Titular)'
-    },
-    {
-      id: 'g-obs-3',
-      childId: 'rodrigo-silva',
-      date: 'Ontem, às 15:40',
-      category: 'Desenvolvimento Motor',
-      icon: '🏃',
-      priority: 'Conquista / Marco',
-      title: 'Superação no circuito psicomotor de equilíbrio',
-      text: 'Completou o percurso com blocos de madeira e saltou com os dois pezinhos juntos com muita segurança. Demonstrou coordenação motora ampla exemplar e incentivou os colegas.',
-      recordedBy: 'Tia Clara Marques (Educadora Titular)'
-    },
-    {
-      id: 'g-obs-4',
-      childId: 'rodrigo-silva',
-      date: 'Ontem, às 13:30',
-      category: 'Soninho & Repouso',
-      icon: '😴',
-      priority: 'Rotina',
-      title: 'Soneca tranquila de 1h30',
-      text: 'Dormiu um sono tranquilo e reparador no ambiente climatizado ao som de música instrumental relaxante. Acordou bem disposto e com sorriso nos lábios.',
-      recordedBy: 'Tia Clara Marques (Educadora Titular)'
-    },
-    {
-      id: 'g-obs-5',
-      childId: 'rodrigo-silva',
-      date: '04 de Outubro, às 11:00',
-      category: 'Adaptação & Emoções',
-      icon: '❤️',
-      priority: 'Conquista / Marco',
-      title: 'Empatia e cooperação exemplar na horta',
-      text: 'Ajudou os colegas a regar as mudinhas de alface na horta agroecológica com regador pequeno e partilhou os materiais com muita generosidade e carinho.',
-      recordedBy: 'Tia Clara Marques (Educadora Titular)'
-    },
-    // Sofia Silva (Tia Teresa)
-    {
-      id: 'g-obs-6',
-      childId: 'sofia-silva',
-      date: 'Hoje, às 09:30',
-      category: 'Adaptação & Emoções',
-      icon: '❤️',
-      priority: 'Conquista / Marco',
-      title: 'Chegada carinhosa sem choro no Maternal',
-      text: 'Chegou sorridente, deu um abraço apertadinho na Tia Teresa e foi diretamente para o tapete sensorial explorar os blocos de tecido e texturas com curiosidade.',
-      recordedBy: 'Tia Teresa Melo (Educadora de Infância)'
-    },
-    {
-      id: 'g-obs-7',
-      childId: 'sofia-silva',
-      date: 'Hoje, às 10:00',
-      category: 'Alimentação & Apetite',
-      icon: '🍎',
-      priority: 'Rotina',
-      title: 'Aceitação plena da frutinha fresca amassada',
-      text: 'Aceitou com muita alegria toda a porção de banana raspadinha com aveia e tomou 160ml de leite materno. Excelente hidratação durante a manhã.',
-      recordedBy: 'Tia Teresa Melo (Educadora de Infância)'
-    },
-    {
-      id: 'g-obs-8',
-      childId: 'sofia-silva',
-      date: 'Ontem, às 16:00',
-      category: 'Desenvolvimento Motor',
-      icon: '🏃',
-      priority: 'Conquista / Marco',
-      title: 'Passinhos firmes empurrando o carrinho',
-      text: 'Deu vários passinhos firmes empurrando o carrinho de madeira de apoio! Riu muito, bateu palmas e manteve o equilíbrio com auxílio afetuoso da Tia.',
-      recordedBy: 'Tia Teresa Melo (Educadora de Infância)'
-    },
-    {
-      id: 'g-obs-9',
-      childId: 'sofia-silva',
-      date: 'Ontem, às 11:15',
-      category: 'Soninho & Repouso',
-      icon: '😴',
-      priority: 'Rotina',
-      title: 'Soneca matinal de 50 minutos',
-      text: 'Adormeceu suavemente com a sua mantinha favorita. Respiração serena e temperatura normal aferida de 36.5°C.',
-      recordedBy: 'Tia Teresa Melo (Educadora de Infância)'
-    }
-  ];
 
   // Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
+    setTimeout(() => setToastMessage(null), 4000);
+  }, []);
 
   // Modals
-  const [reportCardModal, setReportCardModal] = useState(false);
-  const [taxDeclarationModal, setTaxDeclarationModal] = useState(false);
-  const [ibanModal, setIbanModal] = useState(false);
-  const [multibancoModal, setMultibancoModal] = useState(false);
-  const [receiptPreviewRecord, setReceiptPreviewRecord] = useState<any | null>(null);
-  const [selectedInvoiceView, setSelectedInvoiceView] = useState<Invoice | null>(null);
-  const [signAuthorizationModal, setSignAuthorizationModal] = useState(false);
-  const [newMessageModal, setNewMessageModal] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [receiptPreviewRecord, setReceiptPreviewRecord] = useState<DbFinancialRecord | null>(null);
+  const [payModalRecord, setPayModalRecord] = useState<DbFinancialRecord | null>(null);
+  const [selectedPayMethod, setSelectedPayMethod] = useState('Multicaixa Express (MCX)');
 
-  // Pilar 1: Assiduidade Semanal & Boletim Trimestral de Educação Infantil
-  const routineHistory = [
-    { day: 'Hoje (Terça)', entry: '08:24 (Portaria Central - Validação Biométrica)', meal: 'Almoço Biológico Completo (Peixe com legumes e fruta fresca)', activity: 'Oficina de Psicomotricidade & Modelagem com Argila' },
-    { day: 'Segunda-feira', entry: '08:26 (Portaria Central - Validação Biométrica)', meal: 'Almoço Biológico Completo (Sopa da horta e arroz com frango)', activity: 'Oficina de Música & Canções em Roda' },
-    { day: 'Sexta-feira (Semana Passada)', entry: '08:25 (Portaria Central)', meal: 'Almoço Completo', activity: 'Saída de Campo no Pomar da Escola' },
-    { day: 'Quinta-feira', entry: '08:30 (Atestado Pediátrico Arquivado)', meal: 'Dieta Ligeira Monitorizada', activity: 'Cantinho de Leitura & Contação de Histórias' }
-  ];
-
-  // Pilar 2: Facturas Electrónicas & Recibos em Moeda Nacional (Kwanza - Kz / AGT)
-  const [guardianInvoices, setGuardianInvoices] = useState<Invoice[]>(() => {
-    try {
-      const saved = localStorage.getItem('mayelin_invoices');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // Pilar 3: Comunicações
-  const [messagesList, setMessagesList] = useState([
-    {
-      id: 'msg-1',
-      senderRole: 'Educadora Titular (Tia Clara)',
-      senderName: 'Tia Clara Marques (Educadora)',
-      date: 'Hoje, às 10:45',
-      subject: 'Elogio Especial: Participação exemplar na Horta Pedagógica',
-      preview: 'Estimado Dr. António, o Rodrigo teve uma manhã brilhante no plantio das sementinhas de girassol e cooperou com todos os coleguinhas. Parabéns pelo apoio familiar!',
-      unread: true
-    },
-    {
-      id: 'msg-2',
-      senderRole: 'Coordenação Pedagógica',
-      senderName: 'Prof. Carlos Esteves',
-      date: '02 de Março, 2025',
-      subject: 'Confirmação: Oficina de Psicomotricidade Lúdica',
-      preview: 'Confirmamos a participação do Rodrigo nas oficinas motoras de enriquecimento às quintas-feiras.',
-      unread: false
-    },
-    {
-      id: 'msg-3',
-      senderRole: 'Secretaria Escolar',
-      senderName: 'Dra. Manuela Castro',
-      date: '25 de Fevereiro, 2025',
-      subject: 'Renovação de Matrícula para o Ano Letivo 2025/2026',
-      preview: 'Informamos que o período de renovação prioritária para irmãos (Rodrigo e Sofia) já está aberto.',
-      unread: false
-    }
-  ]);
-
-  // Pilar 4: Autorizações Digitais
-  const [urgentAuth, setUrgentAuth] = useState<{
-    id: string;
-    title: string;
-    date: string;
-    transport: string;
-    meal: string;
-    medicalCheck: string;
-    signed: boolean;
-    hash?: string;
-  }>({
-    id: 'auth-luanda',
-    title: 'Visita Pedagógica ao Parque Natural e Museu de História Natural de Luanda',
-    date: '14 de Março de 2025 (08:30 às 15:30)',
-    transport: 'Autocarro Escolar Climatizado com Cintos e Vigilância de 4 Educadoras',
-    meal: 'Piquenique Nutritivo fornecido pelo Refeitório Biológico da Escola',
-    medicalCheck: 'Kit de Primeiros Socorros + Ficha Médica de Alergias pré-validada',
-    signed: false
-  });
-
-  const [signedAuthHistory, setSignedAuthHistory] = useState([
-    {
-      id: 'sa-1',
-      title: 'Saída à Horta Biológica e Laboratório Maker de Compostagem',
-      date: '20 de Fevereiro de 2025',
-      signer: 'Dr. António Ferreira Silva (eIDAS PIN)',
-      hash: 'sha256-e91b4c892837f401ad8b76ce81'
-    },
-    {
-      id: 'sa-2',
-      title: 'Torneio Inter-Escolar de Natação e Psicomotricidade Aquática',
-      date: '15 de Janeiro de 2025',
-      signer: 'Dr. António Ferreira Silva (Biometria Facial)',
-      hash: 'sha256-8a7192bc51034fed8290192a02'
-    }
-  ]);
-
+  const [consentToSign, setConsentToSign] = useState<DbDigitalConsent | null>(null);
   const [pinInput, setPinInput] = useState('');
 
-  const handleSignAuthorization = (e: React.FormEvent) => {
+  const [newMessageModal, setNewMessageModal] = useState(false);
+  const [msgRecipient, setMsgRecipient] = useState('');
+  const [msgSubject, setMsgSubject] = useState('');
+  const [msgBody, setMsgBody] = useState('');
+
+  const [pickupModalOpen, setPickupModalOpen] = useState(false);
+  const [pickupPersonName, setPickupPersonName] = useState('');
+  const [pickupRelationship, setPickupRelationship] = useState('Avó / Avô');
+  const [pickupDocumentId, setPickupDocumentId] = useState('');
+  const [pickupPhone, setPickupPhone] = useState('');
+  const [pickupDate, setPickupDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [pickupTimeLimit, setPickupTimeLimit] = useState('18:30');
+
+  const loadWorkspace = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const data = await portalApi.getGuardianWorkspace(authToken);
+      setChildren(data.children);
+      setRoutineLogs(data.routineLogs);
+      setObservations(data.observations);
+      setFinancialRecords(data.financialRecords);
+      setMessages(data.messages);
+      setConsents(data.consents);
+      setPickupAuthorizations(data.pickupAuthorizations);
+      setAnnouncements(data.announcements);
+
+      setActiveChildId((prev) => {
+        if (prev && data.children.some((c) => c.id === prev)) return prev;
+        return data.children[0]?.id || '';
+      });
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Erro ao carregar dados do encarregado.');
+    } finally {
+      setLoading(false);
+    }
+  }, [authToken]);
+
+  useEffect(() => {
+    loadWorkspace();
+  }, [loadWorkspace]);
+
+  const activeChild = useMemo(
+    () => children.find((c) => c.id === activeChildId) || children[0] || null,
+    [children, activeChildId]
+  );
+
+  // Scoped records for active child (or all if no child linked yet)
+  const childObservations = useMemo(() => {
+    if (!activeChild) return observations;
+    return observations.filter((o) => o.student_id === activeChild.id || o.student_name === activeChild.name);
+  }, [observations, activeChild]);
+
+  const filteredObservations = useMemo(() => {
+    if (obsCategoryFilter === 'todas') return childObservations;
+    return childObservations.filter((o) => o.category === obsCategoryFilter);
+  }, [childObservations, obsCategoryFilter]);
+
+  const childRoutineLogs = useMemo(() => {
+    if (!activeChild) return routineLogs;
+    return routineLogs.filter((r) => r.student_id === activeChild.id);
+  }, [routineLogs, activeChild]);
+
+  const pendingFinancial = useMemo(
+    () => financialRecords.filter((f) => f.status !== 'Liquidado'),
+    [financialRecords]
+  );
+
+  const pendingConsents = useMemo(
+    () => consents.filter((c) => !c.signed),
+    [consents]
+  );
+
+  const signedConsents = useMemo(
+    () => consents.filter((c) => c.signed),
+    [consents]
+  );
+
+  const recipientOptions = useMemo(() => {
+    const list: string[] = [];
+    if (activeChild?.teacher_name) {
+      list.push(`${formatEducatorName(activeChild.teacher_name)} (Educadora Titular - ${activeChild.classroom_name})`);
+    }
+    list.push('Coordenação Pedagógica');
+    list.push('Secretaria Geral & Financeiro');
+    return list;
+  }, [activeChild]);
+
+  useEffect(() => {
+    if (!msgRecipient && recipientOptions.length > 0) {
+      setMsgRecipient(recipientOptions[0]);
+    }
+  }, [msgRecipient, recipientOptions]);
+
+  const handleOpenMessageModal = (preselectedRecipient?: string, preselectedSubject?: string) => {
+    setMsgRecipient(preselectedRecipient || recipientOptions[0] || 'Secretaria Geral');
+    setMsgSubject(preselectedSubject || '');
+    setMsgBody('');
+    setNewMessageModal(true);
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pinInput || pinInput.length < 4) {
-      showToast('Por favor insira um código PIN de 4 dígitos válido.');
+    if (!msgRecipient.trim() || !msgSubject.trim() || !msgBody.trim()) return;
+    setSubmitting(true);
+    try {
+      const { message } = await portalApi.sendGuardianMessage(authToken, {
+        studentId: activeChild?.id,
+        recipientName: msgRecipient,
+        subject: msgSubject,
+        message: msgBody
+      });
+      setMessages((prev) => [message, ...prev]);
+      setNewMessageModal(false);
+      setMsgSubject('');
+      setMsgBody('');
+      showToast('Mensagem enviada e guardada na base de dados da escola.');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao enviar mensagem.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreatePickupAuthorization = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pickupPersonName.trim() || !pickupDocumentId.trim()) return;
+    setSubmitting(true);
+    try {
+      const { authorization } = await portalApi.createPickupAuthorization(authToken, {
+        studentId: activeChild?.id,
+        personName: pickupPersonName,
+        relationship: pickupRelationship,
+        documentId: pickupDocumentId,
+        phone: pickupPhone,
+        authDate: pickupDate,
+        timeLimit: pickupTimeLimit
+      });
+      setPickupAuthorizations((prev) => [authorization, ...prev]);
+      setPickupModalOpen(false);
+      setPickupPersonName('');
+      setPickupDocumentId('');
+      setPickupPhone('');
+      showToast('Autorização de retirada submetida. A Direção/Portaria já pode validá-la.');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao registar autorização.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSignConsent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!consentToSign || pinInput.trim().length < 4) {
+      showToast('Insira um código PIN válido com pelo menos 4 dígitos.');
       return;
     }
-
-    const newHash = `sha256-${Math.random().toString(36).substring(2, 10)}${Date.now()}`;
-    setUrgentAuth((prev) => ({
-      ...prev,
-      signed: true,
-      hash: newHash
-    }));
-
-    setSignedAuthHistory([
-      {
-        id: `sa-${Date.now()}`,
-        title: urgentAuth.title,
-        date: 'Hoje (Assinado Digitalmente)',
-        signer: 'Dr. António Ferreira Silva (PIN Seguro)',
-        hash: newHash
-      },
-      ...signedAuthHistory
-    ]);
-
-    setSignAuthorizationModal(false);
-    setPinInput('');
-    showToast('Autorização assinada digitalmente com validade jurídica (eIDAS & RGPD).');
+    setSubmitting(true);
+    try {
+      const { consent } = await portalApi.signConsent(authToken, consentToSign.id, pinInput.trim());
+      setConsents((prev) => prev.map((c) => (c.id === consent.id ? consent : c)));
+      setConsentToSign(null);
+      setPinInput('');
+      showToast('Consentimento assinado digitalmente com sucesso.');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao assinar documento.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const handleConfirmPayment = async () => {
+    if (!payModalRecord) return;
+    setSubmitting(true);
+    try {
+      const { record } = await portalApi.payInvoice(authToken, payModalRecord.id, selectedPayMethod);
+      setFinancialRecords((prev) => prev.map((r) => (r.id === record.id ? record : r)));
+      setPayModalRecord(null);
+      showToast(`Liquidação da fatura ${record.invoice_number} registada com sucesso.`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao registar pagamento.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const firstPendingConsent = pendingConsents[0] || null;
+  const nextInvoice = pendingFinancial[0] || financialRecords[0] || null;
+
+  const guardianToolbarControls = (
+    <>
+      <div className="flex items-center gap-2.5 flex-wrap">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-[#8c4f00] border border-amber-200">
+          <Users className="w-3.5 h-3.5 text-[#fd9924]" />
+          <span>Encarregado: {currentUser.name}</span>
+        </span>
+        <span className="text-[11px] text-[#5c3f42]">
+          {currentUser.nif ? `NIF: ${currentUser.nif}` : currentUser.email}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between md:justify-end gap-2 shrink-0 flex-wrap">
+        <button
+          type="button"
+          onClick={loadWorkspace}
+          disabled={loading}
+          className="px-3 py-1.5 rounded-xl bg-[#faebe1] hover:bg-[#eee0d6] text-[#5c3f42] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+          title="Atualizar dados"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">Atualizar</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSection('finance')}
+          className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+            pendingFinancial.length > 0
+              ? 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+          }`}
+        >
+          <CheckCircle2
+            className={`w-3.5 h-3.5 ${pendingFinancial.length > 0 ? 'text-amber-600' : 'text-emerald-600'}`}
+          />
+          <span>
+            {pendingFinancial.length > 0
+              ? `${pendingFinancial.length} Propina(s) Pendente(s)`
+              : 'Propinas em Dia'}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSection('comms')}
+          className="relative p-2 rounded-xl text-[#5c3f42] hover:bg-[#faebe1] transition-colors cursor-pointer"
+          aria-label="Mensagens e Circulares"
+        >
+          <Send className="w-4 h-4 text-[#5c3f42]" />
+          {(messages.some((m) => m.unread) || announcements.length > 0) && (
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#ed145b] rounded-full ring-2 ring-white" />
+          )}
+        </button>
+      </div>
+    </>
+  );
 
   return (
     <div
@@ -360,166 +381,166 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       aria-label="Painel do Responsável - Portal dos Encarregados de Educação"
       className="bg-[#fff8f5] text-[#211a14] w-full flex-1 flex flex-col overflow-hidden font-['Nunito_Sans'] antialiased min-h-0"
     >
-      {/* ========================================================================= */}
-      {/* 1. TOPNAVBAR: IDENTIFICAÇÃO DO ENCARREGADO & CONTEXTO DO EDUCANDO ATIVO  */}
-      {/* ========================================================================= */}
-      <header
-        className="bg-white border-b border-[#eee0d6] px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
-        role="banner"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 text-[#fd9924] flex items-center justify-center font-bold shadow-xs shrink-0">
-            <Users className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-sm sm:text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
-                Portal dos Encarregados de Educação & Tutores
-              </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-[#8c4f00] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                Sessão Segura Encriptada
-              </span>
-              <span className="text-[10px] font-semibold bg-[#faebe1] text-[#5c3f42] px-2 py-0.5 rounded border border-[#eee0d6]">
-                RGPD • WCAG 2.1 AA
-              </span>
-            </div>
-            <p className="text-[11px] text-[#5c3f42] mt-0.5">
-              Encarregado Autenticado: <strong>Dr. António Ferreira Silva</strong> • NIF: 218 409 382 • Luanda
-            </p>
-          </div>
-        </div>
+      {headerPortalTarget && createPortal(guardianToolbarControls, headerPortalTarget)}
 
-        {/* Top Shortcuts: Regularização de Propinas & Notificações */}
-        <div className="flex items-center justify-between md:justify-end gap-2.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveSection('finance')}
-            className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-100 transition-colors"
-          >
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Propinas em Dia (Multicaixa)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSection('comms')}
-            className="relative p-2 rounded-xl text-[#5c3f42] hover:bg-[#faebe1] transition-colors"
-            aria-label="Mensagens e Notificações"
-          >
-            <Send className="w-4 h-4 text-[#5c3f42]" />
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#ed145b] rounded-full ring-2 ring-white" />
-          </button>
-
+      {headerPortalTarget === undefined && (
+        <header
+          className="bg-white border-b border-[#eee0d6] px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 z-20"
+          role="banner"
+        >
+          {guardianToolbarControls}
           {onClose && (
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 rounded-xl text-[#5c3f42] hover:text-[#211a14] hover:bg-[#faebe1] transition-colors flex items-center gap-1.5 text-xs font-bold ml-1"
+              className="px-3 py-1.5 rounded-xl text-[#5c3f42] hover:text-[#211a14] hover:bg-[#faebe1] transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
               aria-label="Voltar ao Website"
-              title="Voltar ao Website"
             >
               <ArrowLeft className="w-4 h-4 text-amber-600" />
               <span className="hidden sm:inline">Voltar ao Website</span>
             </button>
           )}
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* ========================================================================= */}
-      {/* CARD DE CONTEXTO DO EDUCANDO SELECIONADO & MÉTRICAS RÁPIDAS               */}
+      {/* CARD DE CONTEXTO DO EDUCANDO ATIVO                                        */}
       {/* ========================================================================= */}
       <section
         className="bg-gradient-to-r from-amber-50 via-orange-50/60 to-rose-50/40 border-b border-amber-200/80 px-4 sm:px-6 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0"
         aria-label="Perfil do educando ativo"
       >
-        {/* Child Profile & Brother Switcher */}
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#fd9924] text-white flex items-center justify-center font-extrabold text-lg shadow-sm shrink-0 border-2 border-white">
-            {activeChild.avatarLetter}
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
-                {activeChild.name}
-              </h2>
-              <span className="text-xs font-bold text-[#fd9924] bg-white px-2.5 py-0.5 rounded-full border border-amber-200 shadow-2xs">
-                {activeChild.classroom}
-              </span>
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {activeChild.status}
-              </span>
-            </div>
-            <p className="text-xs text-[#5c3f42] mt-1">
-              Educadora Titular (Tia): <strong>{activeChild.leadTeacher}</strong> • {activeChild.cycle}
-            </p>
+        {activeChild ? (
+          <>
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[#fd9924] text-white flex items-center justify-center font-extrabold text-lg shadow-sm shrink-0 border-2 border-white">
+                {activeChild.avatar_letter}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base font-bold font-['Quicksand'] text-[#211a14] leading-tight">
+                    {activeChild.name}
+                  </h2>
+                  <span className="text-xs font-bold text-[#fd9924] bg-white px-2.5 py-0.5 rounded-full border border-amber-200 shadow-2xs">
+                    {activeChild.classroom_name}
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    {activeChild.status}
+                  </span>
+                </div>
+                <p className="text-xs text-[#5c3f42] mt-1">
+                  Educadora Titular:{' '}
+                  <strong>{formatEducatorName(activeChild.teacher_name)}</strong> •{' '}
+                  {activeChild.cycle} • {activeChild.age}
+                </p>
 
-            {/* Alternador de Irmãos */}
-            <div className="flex items-center gap-1.5 mt-2">
-              <span className="text-[11px] font-semibold text-[#5c3f42]">Irmãos Matriculados:</span>
-              {childrenList.map((ch) => (
-                <button
-                  key={ch.id}
-                  type="button"
-                  onClick={() => {
-                    setActiveChildId(ch.id);
-                    showToast(`Contexto alterado para ${ch.name} (${ch.classroom}).`);
-                  }}
-                  className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all ${
-                    activeChildId === ch.id
-                      ? 'bg-[#fd9924] text-white shadow-xs'
-                      : 'bg-white border border-[#eee0d6] text-[#5c3f42] hover:border-amber-400'
+                {children.length > 1 && (
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span className="text-[11px] font-semibold text-[#5c3f42]">
+                      Educandos Vinculados:
+                    </span>
+                    {children.map((ch) => (
+                      <button
+                        key={ch.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveChildId(ch.id);
+                          showToast(`Contexto alterado para ${ch.name} (${ch.classroom_name}).`);
+                        }}
+                        className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                          activeChild.id === ch.id
+                            ? 'bg-[#fd9924] text-white shadow-xs'
+                            : 'bg-white border border-[#eee0d6] text-[#5c3f42] hover:border-amber-400'
+                        }`}
+                      >
+                        {ch.name.split(' ')[0]} ({ch.classroom_name.split(' ')[0]})
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs shrink-0">
+              <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
+                <span className="text-[11px] text-[#5c3f42] block font-semibold">Assiduidade</span>
+                <p className="text-lg font-bold font-['Quicksand'] text-emerald-700 mt-0.5">
+                  {activeChild.presence_rate}%
+                </p>
+                <span className="text-[10px] text-[#8c6b6d]">Frequência ativa</span>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
+                <span className="text-[11px] text-[#5c3f42] block font-semibold">Desenvolvimento</span>
+                <p className="text-sm font-bold font-['Quicksand'] text-[#00a6c0] mt-1 leading-tight truncate">
+                  {activeChild.development_status}
+                </p>
+                <span className="text-[10px] text-sky-700 font-bold">Acompanhado pelas Tias</span>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
+                <span className="text-[11px] text-[#5c3f42] block font-semibold">Propinas</span>
+                <p
+                  className={`text-lg font-bold font-['Quicksand'] mt-0.5 ${
+                    pendingFinancial.length > 0 ? 'text-amber-600' : 'text-emerald-700'
                   }`}
                 >
-                  {ch.name.split(' ')[0]} ({ch.classroom.split(' ')[0]})
-                </button>
-              ))}
+                  {pendingFinancial.length > 0 ? `${pendingFinancial.length} Pendente` : 'Regularizada'}
+                </p>
+                <span className="text-[10px] text-[#8c6b6d]">Faturação em Kz</span>
+              </div>
+
+              <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
+                <span className="text-[11px] text-[#5c3f42] block font-semibold">Observações</span>
+                <p className="text-lg font-bold font-['Quicksand'] text-[#ed145b] mt-0.5">
+                  {childObservations.length}
+                </p>
+                <span className="text-[10px] text-pink-700 font-bold">Registos da Tia</span>
+              </div>
             </div>
+          </>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-[#fd9924] text-white flex items-center justify-center font-extrabold text-base shadow-sm shrink-0">
+                {currentUser.avatarLetter || 'E'}
+              </div>
+              <div>
+                <h2 className="text-sm sm:text-base font-bold font-['Quicksand'] text-[#211a14]">
+                  {loading
+                    ? 'A carregar educandos vinculados...'
+                    : 'Nenhuma criança vinculada a esta conta ainda'}
+                </h2>
+                <p className="text-xs text-[#5c3f42] mt-0.5">
+                  {loading
+                    ? 'A consultar os registos reais no Supabase...'
+                    : 'Solicite à Secretaria que associe a matrícula do seu educando ao seu e-mail no ato de inscrição.'}
+                </p>
+              </div>
+            </div>
+            {!loading && (
+              <button
+                type="button"
+                onClick={() =>
+                  handleOpenMessageModal(
+                    'Secretaria Geral & Financeiro',
+                    'Solicitação de vinculação de matrícula'
+                  )
+                }
+                className="px-4 py-2 rounded-xl bg-[#ed145b] text-white text-xs font-bold hover:bg-pink-600 transition-colors shrink-0 cursor-pointer"
+              >
+                Contactar Secretaria
+              </button>
+            )}
           </div>
-        </div>
-
-        {/* 4 Métricas Rápidas do Estudante */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs shrink-0">
-          <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-[#5c3f42] block font-semibold">Taxa de Presença</span>
-            <p className="text-lg font-bold font-['Quicksand'] text-emerald-700 mt-0.5">
-              {activeChild.presenceRate}%
-            </p>
-            <span className="text-[10px] text-[#8c6b6d]">0 faltas injustificadas</span>
-          </div>
-
-          <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-[#5c3f42] block font-semibold">Desenvolvimento</span>
-            <p className="text-sm font-bold font-['Quicksand'] text-[#00a6c0] mt-1 leading-tight truncate">
-              {activeChild.developmentStatus}
-            </p>
-            <span className="text-[10px] text-sky-700 font-bold">Acompanhado pelas Tias</span>
-          </div>
-
-          <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-[#5c3f42] block font-semibold">Situação Financeira</span>
-            <p className="text-lg font-bold font-['Quicksand'] text-emerald-700 mt-0.5">
-              Regularizada
-            </p>
-            <span className="text-[10px] text-[#8c6b6d]">Multicaixa Express Ativo</span>
-          </div>
-
-          <div className="bg-white p-3 rounded-xl border border-amber-200/80 shadow-2xs">
-            <span className="text-[11px] text-[#5c3f42] block font-semibold">Comunicação</span>
-            <p className="text-lg font-bold font-['Quicksand'] text-[#ed145b] mt-0.5">
-              {activeChild.newMessagesCount} Nova
-            </p>
-            <span className="text-[10px] text-pink-700 font-bold">Educadora (Tia)</span>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* ========================================================================= */}
       {/* 2. BODY LAYOUT: SIDENAVBAR + PAINÉIS FUNCIONAIS                           */}
       {/* ========================================================================= */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* SideNavBar Lateral */}
         <nav
           className="w-full md:w-64 bg-white text-[#5c3f42] p-3 sm:p-4 flex md:flex-col justify-between shrink-0 overflow-x-auto md:overflow-y-auto border-r border-[#eee0d6]"
           aria-label="Módulos do encarregado de educação"
@@ -529,747 +550,912 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               Área do Encarregado
             </span>
 
-            <button
-              type="button"
-              onClick={() => setActiveSection('overview')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
-                activeSection === 'overview'
-                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
-                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
-              }`}
-            >
-              <Smile className="w-4 h-4 shrink-0" />
-              <span>Visão Integrada</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveSection('routine')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
-                activeSection === 'routine'
-                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
-                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
-              }`}
-            >
-              <Heart className="w-4 h-4 shrink-0" />
-              <span>Rotina & Observações da Tia</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveSection('finance')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
-                activeSection === 'finance'
-                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
-                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
-              }`}
-            >
-              <DollarSign className="w-4 h-4 shrink-0" />
-              <span>Propinas & Pagamentos</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveSection('comms')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
-                activeSection === 'comms'
-                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
-                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
-              }`}
-            >
-              <Send className="w-4 h-4 shrink-0" />
-              <span>Canal Direto de Comunicação</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveSection('authorizations')}
-              className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
-                activeSection === 'authorizations'
-                  ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
-                  : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4 shrink-0" />
-              <span>Autorizações Digitais (eIDAS)</span>
-            </button>
+            {(
+              [
+                { id: 'overview', label: 'Visão Integrada', icon: Smile },
+                { id: 'routine', label: 'Rotina & Observações da Tia', icon: Heart },
+                { id: 'finance', label: 'Propinas & Faturação', icon: DollarSign },
+                { id: 'comms', label: 'Canal Direto & Circulares', icon: Send },
+                { id: 'authorizations', label: 'Autorizações & Portaria', icon: ShieldCheck }
+              ] as const
+            ).map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveSection(item.id)}
+                  className={`min-h-[42px] w-full px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all text-left whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'bg-[#fd9924] text-white shadow-md shadow-amber-500/20'
+                      : 'text-[#5c3f42] hover:bg-[#fff1e7] hover:text-[#211a14]'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="pt-3 border-t border-[#eee0d6] hidden md:block">
             <div className="p-2.5 rounded-xl bg-[#faebe1] text-[11px] space-y-1 border border-[#eee0d6]">
-              <p className="font-bold text-[#211a14]">Proteção de Dados do Menor</p>
+              <p className="font-bold text-[#211a14]">Acompanhamento Humanizado</p>
               <p className="text-[#5c3f42]">
-                Acesso encriptado auditado em conformidade com o RGPD.
+                Sem notas numéricas: pareceres qualitativos escritos pelas Tias educadoras.
               </p>
             </div>
           </div>
         </nav>
 
-        {/* Main Workspace Area */}
         <main
           className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-[#fff8f5] focus:outline-none"
           tabIndex={-1}
         >
-          {/* Toast Notification */}
           {toastMessage && (
             <div
               role="status"
               aria-live="polite"
-              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-[#5c3f42] animate-in fade-in slide-in-from-top-2"
+              className="p-3.5 bg-[#211a14] text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 border border-[#5c3f42]"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{toastMessage}</span>
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* SECÇÃO 1: VISÃO INTEGRADA                                                 */}
-          {/* ========================================================================= */}
-          {activeSection === 'overview' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              {/* Alerta de Ação Urgente Pendente: Visita Pedagógica em Luanda */}
-              {!urgentAuth.signed && (
-                <div className="bg-gradient-to-r from-pink-500 to-rose-600 text-white p-5 rounded-2xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                      Ação Requerida Urgente
-                    </span>
-                    <h3 className="font-['Quicksand'] font-bold text-base sm:text-lg">
-                      {urgentAuth.title}
-                    </h3>
-                    <p className="text-xs text-pink-100">
-                      Data da Saída: {urgentAuth.date} • Requer consentimento digital do encarregado de educação.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSignAuthorizationModal(true)}
-                    className="min-h-[42px] px-5 py-2 rounded-xl bg-white text-[#ed145b] font-bold text-xs shadow-md hover:bg-pink-50 transition-all flex items-center justify-center gap-1.5 shrink-0"
-                  >
-                    <KeyRound className="w-4 h-4" />
-                    <span>Assinar Digitalmente (PIN / Biometria)</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Grid Resumo do Dia e Próximos Passos */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {/* Resumo de Assiduidade Hoje */}
-                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#fd9924]" />
-                      <span>Registo de Assiduidade de Hoje</span>
-                    </h3>
-                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                      Entrada às 08:24
-                    </span>
-                  </div>
-
-                  <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
-                    <p className="font-bold text-[#211a14]">Portaria Central • Validação Biométrica</p>
-                    <p className="text-[#5c3f42]">
-                      Chegada acolhedora às 08:24 com apresentação do cartão escolar seguro.
-                    </p>
-                    <p className="text-[#5c3f42]">
-                      Almoço servido às 12:15 com porção integral de peixe e salada da horta.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveSection('routine')}
-                    className="text-xs font-bold text-[#fd9924] hover:underline flex items-center gap-1"
-                  >
-                    <span>Ver rotina diária e observações da Tia</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Próxima Cobrança Agendada */}
-                <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-[#00a6c0]" />
-                      <span>Próxima Cobrança Agendada</span>
-                    </h3>
-                    <span className="text-[11px] font-bold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-full">
-                      Multicaixa Express
-                    </span>
-                  </div>
-
-                  <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1">
-                    <div className="flex justify-between items-center font-bold">
-                      <span className="text-[#211a14]">Mensalidade Escolar - Março de 2025</span>
-                      <span className="text-base text-[#211a14]">150.000,00 Kz</span>
-                    </div>
-                    <p className="text-[#5c3f42]">Vencimento a 08/03/2025 via Multicaixa / Débito em Conta</p>
-                    <p className="text-emerald-700 font-semibold">O seu IBAN registado: AO06 0040 0000 8291 0281 9283 1</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveSection('finance')}
-                    className="text-xs font-bold text-[#00a6c0] hover:underline flex items-center gap-1"
-                  >
-                    <span>Ver os meus recibos e métodos de pagamento</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+          {loadError && (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-800">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span className="font-semibold">{loadError}</span>
               </div>
+              <button
+                type="button"
+                onClick={loadWorkspace}
+                className="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 cursor-pointer self-start sm:self-auto"
+              >
+                Tentar novamente
+              </button>
             </div>
           )}
 
-          {/* ========================================================================= */}
-          {/* PILAR 1: ACOMPANHAMENTO DE ROTINA & OBSERVAÇÕES DA TIA                    */}
-          {/* ========================================================================= */}
-          {activeSection === 'routine' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
-                    Acompanhamento de Rotina & Observações da Tia • {activeChild.name}
-                  </h3>
-                  <p className="text-xs text-[#5c3f42]">
-                    Assiduidade com confirmação biométrica, refeições biológicas e pareceres qualitativos da Educadora (Tia)
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setReportCardModal(true)}
-                  className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#fd9924] text-white hover:bg-amber-600 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer active:scale-95 shrink-0"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download do Relatório de Desenvolvimento (PDF)</span>
-                </button>
-              </div>
-
-              {/* Assiduidade Semanal Cronológica */}
-              <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-600" />
-                  <span>Registo Diário Cronológico da Semana</span>
-                </h4>
-
-                <div className="divide-y divide-[#eee0d6] text-xs">
-                  {routineHistory.map((item, idx) => (
-                    <div key={idx} className="py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-2">
-                      <span className="font-bold text-[#211a14] w-44">{item.day}</span>
-                      <span className="text-[#5c3f42] flex-1">{item.entry}</span>
-                      <span className="text-[#5c3f42] flex-1">{item.meal}</span>
-                      <span className="text-[#00a6c0] font-semibold flex-1">{item.activity}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Diário de Desenvolvimento & Observações Carinhosas da Tia (Sem notas numéricas) */}
-              <div className="bg-white rounded-2xl border border-[#eee0d6] p-5 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#eee0d6]">
-                  <div>
-                    <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2 font-['Quicksand']">
-                      <Heart className="w-4 h-4 text-[#ed145b] fill-[#ed145b]" />
-                      <span>Diário de Desenvolvimento & Observações da Educadora</span>
-                    </h4>
-                    <p className="text-xs text-[#5c3f42] mt-0.5">
-                      Registos qualitativos e afetuosos realizados pela {activeChild.leadTeacher}
-                    </p>
-                  </div>
-                  <span className="text-xs font-bold text-[#ed145b] bg-pink-50 border border-pink-200 px-3 py-1 rounded-full self-start sm:self-auto">
-                    {childObservations.filter((o) => o.childId === activeChild.id).length} Observações Registadas
-                  </span>
-                </div>
-
-                {/* Aviso Pedagógico Explicativo da Creche */}
-                <div className="p-3.5 bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-200/80 rounded-2xl text-xs text-[#5c3f42] flex items-start gap-2.5">
-                  <span className="text-lg leading-none shrink-0">🌸</span>
-                  <div className="leading-relaxed">
-                    <strong className="text-[#211a14] block mb-0.5">Metodologia Afetuosa da Creche Mayelin:</strong>
-                    Na nossa creche e educação infantil <strong>não existem notas nem pautas numéricas</strong>. O progresso de cada criança é acompanhado de forma contínua e humanizada através das observações atentas das Tias sobre alimentação, soninho, motricidade, autonomia e socialização.
-                  </div>
-                </div>
-
-                {/* Filtro por Categoria de Observação */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none">
-                  {[
-                    { id: 'todas', label: 'Todas as Observações', icon: '📝' },
-                    { id: 'Alimentação & Apetite', label: 'Alimentação', icon: '🍎' },
-                    { id: 'Soninho & Repouso', label: 'Soninho', icon: '😴' },
-                    { id: 'Desenvolvimento Motor', label: 'Motricidade', icon: '🏃' },
-                    { id: 'Linguagem & Expressão', label: 'Linguagem', icon: '💬' },
-                    { id: 'Adaptação & Emoções', label: 'Afeto & Emoções', icon: '❤️' }
-                  ].map((cat) => {
-                    const count = cat.id === 'todas'
-                      ? childObservations.filter((o) => o.childId === activeChild.id).length
-                      : childObservations.filter((o) => o.childId === activeChild.id && o.category === cat.id).length;
-
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setObsCategoryFilter(cat.id)}
-                        className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap cursor-pointer transition-all flex items-center gap-1.5 text-xs ${
-                          obsCategoryFilter === cat.id
-                            ? 'bg-[#ed145b] text-white shadow-xs'
-                            : 'bg-[#fff8f5] text-[#5c3f42] hover:bg-[#faebe1] border border-[#eee0d6]'
-                        }`}
-                      >
-                        <span>{cat.icon}</span>
-                        <span>{cat.label}</span>
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${obsCategoryFilter === cat.id ? 'bg-white/20 text-white' : 'bg-pink-100 text-[#ed145b]'}`}>
-                          {count}
+          {loading ? (
+            <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#5c3f42]">
+              <Loader2 className="w-7 h-7 animate-spin text-[#fd9924]" />
+              <p className="text-xs font-bold">A sincronizar os dados do seu educando...</p>
+            </div>
+          ) : (
+            <>
+              {/* ========================================================================= */}
+              {/* SECÇÃO 1: VISÃO INTEGRADA                                                 */}
+              {/* ========================================================================= */}
+              {activeSection === 'overview' && (
+                <div className="space-y-6">
+                  {firstPendingConsent && (
+                    <div className="bg-gradient-to-r from-pink-500 to-rose-600 text-white p-5 rounded-2xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          Consentimento Digital Pendente
                         </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Lista de Cards de Observações */}
-                <div className="space-y-3 pt-1">
-                  {childObservations
-                    .filter((obs) => obs.childId === activeChild.id)
-                    .filter((obs) => obsCategoryFilter === 'todas' || obs.category === obsCategoryFilter)
-                    .map((obs) => (
-                      <div
-                        key={obs.id}
-                        className="p-4 sm:p-5 rounded-2xl bg-white border border-[#eee0d6] hover:border-pink-200 transition-all space-y-2.5 shadow-2xs"
+                        <h3 className="font-['Quicksand'] font-bold text-base sm:text-lg">
+                          {firstPendingConsent.title}
+                        </h3>
+                        <p className="text-xs text-pink-100">
+                          Data: {firstPendingConsent.event_date} • Requer validação com PIN do encarregado.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setConsentToSign(firstPendingConsent)}
+                        className="min-h-[42px] px-5 py-2 rounded-xl bg-white text-[#ed145b] font-bold text-xs shadow-md hover:bg-pink-50 transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base">{obs.icon}</span>
-                            <span className="text-xs font-bold text-[#ed145b] bg-pink-50 px-2.5 py-0.5 rounded-full border border-pink-100">
-                              {obs.category}
+                        <KeyRound className="w-4 h-4" />
+                        <span>Assinar Digitalmente</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {/* Card 1: Rotina & Última Observação */}
+                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-[#fd9924]" />
+                          <span>Último Registo de Rotina & Acompanhamento</span>
+                        </h3>
+                        {activeChild && (
+                          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                            {activeChild.status}
+                          </span>
+                        )}
+                      </div>
+
+                      {childRoutineLogs.length > 0 ? (
+                        <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
+                          <p className="font-bold text-[#211a14]">{childRoutineLogs[0].day_label}</p>
+                          <p className="text-[#5c3f42]">
+                            <strong>Entrada:</strong> {childRoutineLogs[0].entry_info}
+                          </p>
+                          <p className="text-[#5c3f42]">
+                            <strong>Alimentação:</strong> {childRoutineLogs[0].meal_info}
+                          </p>
+                          <p className="text-[#00a6c0] font-semibold">
+                            {childRoutineLogs[0].activity_info}
+                          </p>
+                        </div>
+                      ) : childObservations.length > 0 ? (
+                        <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-[#ed145b]">
+                              {getObservationIcon(childObservations[0].category)}{' '}
+                              {childObservations[0].category}
                             </span>
-                            <span
-                              className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                                obs.priority === 'Conquista / Marco'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : obs.priority === 'Importante'
-                                  ? 'bg-rose-100 text-rose-800'
-                                  : 'bg-emerald-100 text-emerald-800'
-                              }`}
-                            >
-                              {obs.priority === 'Conquista / Marco' ? '🌟 Conquista' : obs.priority === 'Importante' ? '⚠️ Importante' : '🌱 Diário de Rotina'}
+                            <span className="text-[11px] text-[#8c6b6d]">
+                              {formatDatePt(childObservations[0].created_at)}
                             </span>
                           </div>
-                          <span className="text-[11px] text-[#8c6b6d] font-semibold">
-                            {obs.date}
+                          <p className="font-bold text-[#211a14]">{childObservations[0].title}</p>
+                          <p className="text-[#5c3f42] line-clamp-2">"{childObservations[0].text}"</p>
+                          <p className="text-[11px] text-[#8c6b6d]">
+                            Por {formatEducatorName(childObservations[0].recorded_by)}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42]">
+                          Ainda não existem registos de rotina ou observações publicadas pela Educadora.
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveSection('routine')}
+                        className="text-xs font-bold text-[#fd9924] hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Ver rotina diária e observações da Tia</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Card 2: Situação Financeira */}
+                    <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-[#00a6c0]" />
+                          <span>Resumo de Faturação (Kz)</span>
+                        </h3>
+                        <span className="text-[11px] font-bold text-sky-800 bg-sky-100 px-2.5 py-0.5 rounded-full">
+                          Multicaixa Express
+                        </span>
+                      </div>
+
+                      {nextInvoice ? (
+                        <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs space-y-1.5">
+                          <div className="flex justify-between items-center font-bold gap-2">
+                            <span className="text-[#211a14]">{nextInvoice.description}</span>
+                            <span className="text-base text-[#211a14] shrink-0">
+                              {formatCurrencyKz(nextInvoice.amount)}
+                            </span>
+                          </div>
+                          <p className="text-[#5c3f42]">
+                            Fatura {nextInvoice.invoice_number} • Vencimento: {nextInvoice.due_date}
+                          </p>
+                          <div className="flex items-center justify-between pt-1">
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                nextInvoice.status === 'Liquidado'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {nextInvoice.status}
+                            </span>
+                            {nextInvoice.status !== 'Liquidado' && (
+                              <button
+                                type="button"
+                                onClick={() => setPayModalRecord(nextInvoice)}
+                                className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-[11px] cursor-pointer"
+                              >
+                                Pagar Agora
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42]">
+                          Nenhuma fatura ou propina emitida para esta conta até ao momento.
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveSection('finance')}
+                        className="text-xs font-bold text-[#00a6c0] hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Consultar histórico de propinas e recibos</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Últimas Circulares Escolares */}
+                  <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-['Quicksand'] font-bold text-sm text-[#211a14] flex items-center gap-2">
+                        <Megaphone className="w-4 h-4 text-[#ed145b]" />
+                        <span>Comunicados Recentes da Escola</span>
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setActiveSection('comms')}
+                        className="text-xs font-bold text-[#ed145b] hover:underline cursor-pointer"
+                      >
+                        Ver todos ({announcements.length})
+                      </button>
+                    </div>
+
+                    {announcements.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {announcements.slice(0, 2).map((ann) => (
+                          <div
+                            key={ann.id}
+                            className="p-3.5 rounded-xl bg-[#fff8f5] border border-[#eee0d6] text-xs space-y-1"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                                  ann.priority === 'urgente'
+                                    ? 'bg-rose-100 text-rose-800'
+                                    : ann.priority === 'importante'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-sky-100 text-sky-800'
+                                }`}
+                              >
+                                {ann.priority}
+                              </span>
+                              <span className="text-[10px] text-[#8c6b6d]">
+                                {formatDatePt(ann.created_at)}
+                              </span>
+                            </div>
+                            <p className="font-bold text-[#211a14]">{ann.title}</p>
+                            <p className="text-[#5c3f42] line-clamp-2">{ann.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[#5c3f42]">Sem comunicados publicados até ao momento.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* PILAR 1: ACOMPANHAMENTO DE ROTINA & OBSERVAÇÕES DA TIA                    */}
+              {/* ========================================================================= */}
+              {activeSection === 'routine' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
+                        Rotina & Observações da Tia
+                        {activeChild ? ` • ${activeChild.name}` : ''}
+                      </h3>
+                      <p className="text-xs text-[#5c3f42]">
+                        Acompanhamento diário e pareceres qualitativos escritos pelas Educadoras (Tias)
+                      </p>
+                    </div>
+
+                    {activeChild && (
+                      <button
+                        type="button"
+                        onClick={() => setReportModalOpen(true)}
+                        className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#fd9924] text-white hover:bg-amber-600 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer shrink-0"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>Relatório Qualitativo (Imprimir / PDF)</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Registo Diário Cronológico */}
+                  <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                    <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-emerald-600" />
+                      <span>Registo Diário Cronológico</span>
+                    </h4>
+
+                    {childRoutineLogs.length > 0 ? (
+                      <div className="divide-y divide-[#eee0d6] text-xs">
+                        {childRoutineLogs.map((item) => (
+                          <div
+                            key={item.id}
+                            className="py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-2"
+                          >
+                            <span className="font-bold text-[#211a14] md:w-44">{item.day_label}</span>
+                            <span className="text-[#5c3f42] flex-1">{item.entry_info}</span>
+                            <span className="text-[#5c3f42] flex-1">{item.meal_info}</span>
+                            <span className="text-[#00a6c0] font-semibold flex-1">
+                              {item.activity_info}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42]">
+                        Nenhum registo de rotina diária lançado para este educando ainda.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Diário de Desenvolvimento & Observações Carinhosas da Tia (Sem notas) */}
+                  <div className="bg-white rounded-2xl border border-[#eee0d6] p-5 shadow-xs space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#eee0d6]">
+                      <div>
+                        <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2 font-['Quicksand']">
+                          <Heart className="w-4 h-4 text-[#ed145b] fill-[#ed145b]" />
+                          <span>Diário de Desenvolvimento & Observações da Educadora</span>
+                        </h4>
+                        <p className="text-xs text-[#5c3f42] mt-0.5">
+                          {activeChild
+                            ? `Registos qualitativos acompanhados por ${formatEducatorName(activeChild.teacher_name)}`
+                            : 'Registos qualitativos publicados pelas Educadoras (Tias)'}
+                        </p>
+                      </div>
+                      <span className="text-xs font-bold text-[#ed145b] bg-pink-50 border border-pink-200 px-3 py-1 rounded-full self-start sm:self-auto">
+                        {childObservations.length} Observação(ões)
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-gradient-to-r from-pink-50 to-amber-50 border border-pink-200/80 rounded-2xl text-xs text-[#5c3f42] flex items-start gap-2.5">
+                      <span className="text-lg leading-none shrink-0">🌸</span>
+                      <div className="leading-relaxed">
+                        <strong className="text-[#211a14] block mb-0.5">
+                          Metodologia Afetuosa da Creche Mayelin:
+                        </strong>
+                        Na nossa creche <strong>não existem notas nem pautas numéricas</strong>. O
+                        desenvolvimento de cada criança é acompanhado continuamente através das
+                        observações atentas das Tias sobre alimentação, soninho, motricidade,
+                        linguagem e adaptação emocional.
+                      </div>
+                    </div>
+
+                    {/* Filtros */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                      {[
+                        { id: 'todas', label: 'Todas', icon: '📝' },
+                        { id: 'Alimentação & Apetite', label: 'Alimentação', icon: '🍎' },
+                        { id: 'Soninho & Repouso', label: 'Soninho', icon: '😴' },
+                        { id: 'Desenvolvimento Motor', label: 'Motricidade', icon: '🏃' },
+                        { id: 'Linguagem & Interação', label: 'Linguagem', icon: '💬' },
+                        { id: 'Adaptação & Emoções', label: 'Afeto & Emoções', icon: '❤️' },
+                        { id: 'Saúde & Cuidados', label: 'Saúde & Cuidados', icon: '🩺' }
+                      ].map((cat) => {
+                        const count =
+                          cat.id === 'todas'
+                            ? childObservations.length
+                            : childObservations.filter((o) => o.category === cat.id).length;
+
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setObsCategoryFilter(cat.id)}
+                            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap cursor-pointer transition-all flex items-center gap-1.5 text-xs ${
+                              obsCategoryFilter === cat.id
+                                ? 'bg-[#ed145b] text-white shadow-xs'
+                                : 'bg-[#fff8f5] text-[#5c3f42] hover:bg-[#faebe1] border border-[#eee0d6]'
+                            }`}
+                          >
+                            <span>{cat.icon}</span>
+                            <span>{cat.label}</span>
+                            <span
+                              className={`text-[10px] px-1.5 rounded-full ${
+                                obsCategoryFilter === cat.id
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-pink-100 text-[#ed145b]'
+                              }`}
+                            >
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="space-y-3 pt-1">
+                      {filteredObservations.map((obs) => {
+                        const educatorName = formatEducatorName(obs.recorded_by);
+                        return (
+                          <div
+                            key={obs.id}
+                            className="p-4 sm:p-5 rounded-2xl bg-white border border-[#eee0d6] hover:border-pink-200 transition-all space-y-2.5 shadow-2xs"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-base">{getObservationIcon(obs.category)}</span>
+                                <span className="text-xs font-bold text-[#ed145b] bg-pink-50 px-2.5 py-0.5 rounded-full border border-pink-100">
+                                  {obs.category}
+                                </span>
+                                <span
+                                  className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                                    obs.priority === 'Conquista / Marco'
+                                      ? 'bg-amber-100 text-amber-800'
+                                      : obs.priority === 'Importante'
+                                      ? 'bg-rose-100 text-rose-800'
+                                      : 'bg-emerald-100 text-emerald-800'
+                                  }`}
+                                >
+                                  {obs.priority}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-[#8c6b6d] font-semibold">
+                                {formatDatePt(obs.created_at)}
+                              </span>
+                            </div>
+
+                            <h5 className="font-bold text-xs sm:text-sm text-[#211a14] font-['Quicksand']">
+                              {obs.title}
+                            </h5>
+
+                            <div className="p-3.5 bg-[#fff8f5] rounded-xl border border-[#eee0d6]/80 text-xs sm:text-sm text-[#211a14] leading-relaxed">
+                              "{obs.text}"
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-[#eee0d6]/50 text-xs">
+                              <span className="text-[#5c3f42] flex items-center gap-1.5 font-bold text-[11px]">
+                                <Smile className="w-3.5 h-3.5 text-[#fd9924]" />
+                                <span>
+                                  Observação registada por <strong>{educatorName}</strong>
+                                </span>
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleOpenMessageModal(
+                                    educatorName,
+                                    `Sobre a observação: ${obs.title}`
+                                  )
+                                }
+                                className="text-[#00a6c0] hover:text-sky-700 font-bold hover:underline cursor-pointer flex items-center gap-1 text-[11px]"
+                              >
+                                <Send className="w-3 h-3" />
+                                <span>Responder à {educatorName}</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {filteredObservations.length === 0 && (
+                        <div className="p-6 text-center bg-[#fff8f5] rounded-2xl border border-[#eee0d6] text-xs text-[#5c3f42]">
+                          Nenhuma observação registada pela Tia para esta seleção ainda.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* PILAR 2: PAINEL FINANCEIRO, PROPINAS & FATURAÇÃO                          */}
+              {/* ========================================================================= */}
+              {activeSection === 'finance' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
+                        Propinas & Faturação Escolar (Kz)
+                      </h3>
+                      <p className="text-xs text-[#5c3f42]">
+                        Consulte faturas emitidas pela Secretaria, liquide pendentes e imprima recibos
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
+                    <div className="p-4 bg-[#fff8f5] border-b border-[#eee0d6] flex items-center justify-between">
+                      <h4 className="font-bold text-sm text-[#211a14]">
+                        Histórico de Mensalidades & Faturas ({financialRecords.length})
+                      </h4>
+                      <span
+                        className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                          pendingFinancial.length > 0
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-emerald-50 text-emerald-700'
+                        }`}
+                      >
+                        {pendingFinancial.length > 0
+                          ? `${pendingFinancial.length} Pendente(s)`
+                          : 'Situação Regularizada'}
+                      </span>
+                    </div>
+
+                    {financialRecords.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
+                            <tr>
+                              <th className="p-3.5">Fatura</th>
+                              <th className="p-3.5">Educando / Descrição</th>
+                              <th className="p-3.5">Valor (Kz)</th>
+                              <th className="p-3.5">Método</th>
+                              <th className="p-3.5">Vencimento / Data</th>
+                              <th className="p-3.5">Estado</th>
+                              <th className="p-3.5 text-right">Ação</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#eee0d6]">
+                            {financialRecords.map((item) => (
+                              <tr key={item.id} className="hover:bg-[#fff1e7]/70 transition-colors">
+                                <td className="p-3.5 font-bold font-mono text-[#211a14]">
+                                  {item.invoice_number}
+                                </td>
+                                <td className="p-3.5 text-[#5c3f42]">
+                                  <span className="font-bold text-[#211a14] block">
+                                    {item.student_name}
+                                  </span>
+                                  <span>{item.description}</span>
+                                </td>
+                                <td className="p-3.5 font-extrabold text-[#211a14] whitespace-nowrap">
+                                  {formatCurrencyKz(item.amount)}
+                                </td>
+                                <td className="p-3.5 text-[#5c3f42]">{item.payment_method}</td>
+                                <td className="p-3.5 text-[#5c3f42]">
+                                  {item.paid_date ? `Pago em ${item.paid_date}` : `Vence ${item.due_date}`}
+                                </td>
+                                <td className="p-3.5">
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                      item.status === 'Liquidado'
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : item.status === 'Aviso Enviado'
+                                        ? 'bg-rose-100 text-rose-800'
+                                        : 'bg-amber-100 text-amber-800'
+                                    }`}
+                                  >
+                                    {item.status}
+                                  </span>
+                                </td>
+                                <td className="p-3.5 text-right">
+                                  {item.status === 'Liquidado' ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => setReceiptPreviewRecord(item)}
+                                      className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#8c4f00] font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Printer className="w-3 h-3" />
+                                      <span>Recibo</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => setPayModalRecord(item)}
+                                      className="px-3 py-1 bg-[#fd9924] hover:bg-amber-600 text-white font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Smartphone className="w-3 h-3" />
+                                      <span>Liquidar</span>
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-xs text-[#5c3f42]">
+                        Nenhuma fatura registada para esta conta no momento.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* PILAR 3: CANAL DIRETO DE COMUNICAÇÃO & CIRCULARES                         */}
+              {/* ========================================================================= */}
+              {activeSection === 'comms' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
+                        Canal Direto de Comunicação & Circulares
+                      </h3>
+                      <p className="text-xs text-[#5c3f42]">
+                        Comunicação direta com a Tia (Educadora Titular), Coordenação e Secretaria Geral
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenMessageModal()}
+                      className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#00a6c0] hover:bg-sky-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer shrink-0"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Nova Mensagem</span>
+                    </button>
+                  </div>
+
+                  {/* Mensagens Diretas */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#8c6b6d]">
+                      Mensagens Diretas ({messages.length})
+                    </h4>
+
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`bg-white p-5 rounded-2xl border shadow-xs space-y-2.5 transition-all ${
+                          msg.unread ? 'border-amber-300 ring-2 ring-amber-100/60' : 'border-[#eee0d6]'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#faebe1] text-[#5c3f42]">
+                              {msg.sender_role}
+                            </span>
+                            <h5 className="font-bold text-sm text-[#211a14]">
+                              {msg.sender_name} → {msg.recipient_name}
+                            </h5>
+                          </div>
+                          <span className="text-xs text-[#8c6b6d] font-semibold">
+                            {formatDatePt(msg.created_at)}
                           </span>
                         </div>
 
-                        <h5 className="font-bold text-xs sm:text-sm text-[#211a14] font-['Quicksand']">
-                          {obs.title}
-                        </h5>
+                        <p className="font-bold text-xs text-[#211a14]">{msg.subject}</p>
+                        <p className="text-xs text-[#5c3f42] leading-relaxed">{msg.preview}</p>
 
-                        <div className="p-3.5 bg-[#fff8f5] rounded-xl border border-[#eee0d6]/80 text-xs sm:text-sm text-[#211a14] leading-relaxed">
-                          "{obs.text}"
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-[#eee0d6]/50 text-xs">
-                          <span className="text-[#5c3f42] flex items-center gap-1.5 font-bold text-[11px]">
-                            <Smile className="w-3.5 h-3.5 text-[#fd9924]" />
-                            <span>Observação escrita com amor por <strong>{obs.recordedBy}</strong></span>
-                          </span>
-
+                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#eee0d6]">
                           <button
                             type="button"
-                            onClick={() => setNewMessageModal(true)}
-                            className="text-[#00a6c0] hover:text-sky-700 font-bold hover:underline cursor-pointer flex items-center gap-1 text-[11px]"
+                            onClick={() =>
+                              handleOpenMessageModal(msg.recipient_name, `Re: ${msg.subject}`)
+                            }
+                            className="px-3 py-1 bg-sky-50 hover:bg-sky-100 text-[#00a6c0] font-bold text-xs rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
                           >
                             <Send className="w-3 h-3" />
-                            <span>Enviar mensagem à Tia</span>
+                            <span>Nova Mensagem no Assunto</span>
                           </button>
                         </div>
                       </div>
                     ))}
 
-                  {childObservations
-                    .filter((obs) => obs.childId === activeChild.id)
-                    .filter((obs) => obsCategoryFilter === 'todas' || obs.category === obsCategoryFilter).length === 0 && (
-                    <div className="p-6 text-center bg-[#fff8f5] rounded-2xl border border-[#eee0d6] text-xs text-[#5c3f42]">
-                      Nenhuma observação registada para esta categoria.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* PILAR 2: PROPINAS, PAGAMENTOS & RECIBOS DO ENCARREGADO                    */}
-          {/* ========================================================================= */}
-          {activeSection === 'finance' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
-                    As Minhas Propinas, Pagamentos & Recibos (Kz)
-                  </h3>
-                  <p className="text-xs text-[#5c3f42]">
-                    Recibos emitidos pela escola a seu favor e documentos para a sua declaração de despesas de educação
-                  </p>
-                </div>
-
-                {/* Ações Rápidas Financeiras */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => setTaxDeclarationModal(true)}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#211a14] hover:bg-[#382b22] text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>Declaração de Despesas (AGT 2024)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setMultibancoModal(true)}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <CreditCard className="w-3.5 h-3.5" />
-                    <span>2.ª Via Multicaixa / MCX</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIbanModal(true)}
-                    className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#faebe1] hover:bg-[#f4e6db] text-[#211a14] font-bold text-xs flex items-center gap-1.5 transition-colors"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>O Meu IBAN (Débito em Conta)</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Tabela de Histórico de Liquidações */}
-              <div className="bg-white rounded-2xl border border-[#eee0d6] overflow-hidden shadow-xs">
-                <div className="p-4 bg-[#fff8f5] border-b border-[#eee0d6] flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-sm text-[#211a14]">
-                      Histórico de Facturas Electrónicas & Recibos Emitidos (Kz)
-                    </h4>
-                    <p className="text-[11px] text-[#5c3f42]">
-                      Documentos com Código de Validação CVA e certificação da Administração Geral Tributária (AGT)
-                    </p>
+                    {messages.length === 0 && (
+                      <div className="p-6 text-center bg-white rounded-2xl border border-[#eee0d6] text-xs text-[#5c3f42]">
+                        Nenhuma mensagem enviada ou recebida ainda. Clique em "Nova Mensagem" para falar com a Educadora ou Secretaria.
+                      </div>
+                    )}
                   </div>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Emissão Certificada AGT</span>
-                  </span>
-                </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#fff8f5] border-b border-[#eee0d6] text-[#5c3f42] font-bold uppercase text-[10px] tracking-wider">
-                      <tr>
-                        <th className="p-3.5">Factura Electrónica & CVA</th>
-                        <th className="p-3.5">Descrição</th>
-                        <th className="p-3.5">Valor (Kz)</th>
-                        <th className="p-3.5">Canal de Liquidação</th>
-                        <th className="p-3.5">Data / Vencimento</th>
-                        <th className="p-3.5">Estado</th>
-                        <th className="p-3.5 text-right">Documentos Fiscais</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#eee0d6]">
-                      {guardianInvoices.map((item) => (
-                        <tr key={item.id} className="hover:bg-[#fff1e7]/70 transition-colors">
-                          <td className="p-3.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-bold font-mono text-[#211a14]">{item.invoiceNumber}</span>
-                              <span
-                                className={`px-1.5 py-0.2 rounded font-extrabold text-[9px] ${
-                                  item.documentType === 'FE'
-                                    ? 'bg-pink-100 text-[#ed145b]'
-                                    : item.documentType === 'FRE'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-amber-100 text-amber-800'
-                                }`}
-                              >
-                                {item.documentType}
-                              </span>
-                            </div>
-                            {item.electronic?.cvaCode ? (
-                              <span className="text-[10px] text-emerald-700 font-mono block mt-0.5">
-                                ✓ CVA: {item.electronic.cvaCode}
-                              </span>
-                            ) : (
-                              <span className="text-[10px] text-amber-700 font-mono block mt-0.5">
-                                • Modo Contingência
-                              </span>
-                            )}
-                          </td>
+                  {/* Circulares da Escola */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#8c6b6d]">
+                      Circulares & Avisos da Creche ({announcements.length})
+                    </h4>
 
-                          <td className="p-3.5">
-                            <span className="font-bold text-[#211a14] block">
-                              {item.items[0]?.description || 'Propina Mensal Integrada'}
-                            </span>
-                            <span className="text-[10px] text-[#8c6b6d]">{item.classroom}</span>
-                          </td>
-
-                          <td className="p-3.5 font-extrabold font-mono text-[#211a14]">
-                            {formatKwanza(item.totalAmount)}
-                          </td>
-
-                          <td className="p-3.5">
-                            <span className="text-[#5c3f42] block font-semibold">
-                              {item.paymentMethod || 'Multicaixa Express'}
-                            </span>
-                            {item.paymentReference?.reference && (
-                              <span className="text-[10px] text-[#8c6b6d] font-mono">
-                                Ref: {item.paymentReference.reference}
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="p-3.5 text-[#5c3f42]">
-                            <span className="block font-medium">{item.paidAt || item.issueDate}</span>
-                            <span className="text-[10px] text-[#8c6b6d]">Venc: {item.dueDate}</span>
-                          </td>
-
-                          <td className="p-3.5">
+                    {announcements.map((ann) => (
+                      <div
+                        key={ann.id}
+                        className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-2"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-2">
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                item.status === 'Liquidada'
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                ann.priority === 'urgente'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : ann.priority === 'importante'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-emerald-100 text-emerald-800'
+                              }`}
+                            >
+                              {ann.priority}
+                            </span>
+                            <h5 className="font-bold text-sm text-[#211a14]">{ann.title}</h5>
+                          </div>
+                          <span className="text-xs text-[#8c6b6d]">
+                            {formatDatePt(ann.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#5c3f42] leading-relaxed">{ann.content}</p>
+                        <p className="text-[11px] text-[#8c6b6d] font-semibold">
+                          Publicado por {ann.author}
+                        </p>
+                      </div>
+                    ))}
+
+                    {announcements.length === 0 && (
+                      <div className="p-6 text-center bg-white rounded-2xl border border-[#eee0d6] text-xs text-[#5c3f42]">
+                        Nenhuma circular publicada para os encarregados no momento.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* PILAR 4: AUTORIZAÇÕES DE RETIRADA & CONSENTIMENTOS DIGITAIS               */}
+              {/* ========================================================================= */}
+              {activeSection === 'authorizations' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
+                        Autorizações de Retirada (Portaria) & Consentimentos Digitais
+                      </h3>
+                      <p className="text-xs text-[#5c3f42]">
+                        Registe familiares autorizados para recolha na portaria ou assine consentimentos de saídas pedagógicas
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setPickupModalOpen(true)}
+                      className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#ed145b] hover:bg-pink-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Autorizar Pessoa para Retirada</span>
+                    </button>
+                  </div>
+
+                  {/* Lista de Autorizações de Retirada na Portaria */}
+                  <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                    <h4 className="font-bold text-sm text-[#211a14] flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-[#fd9924]" />
+                      <span>Pessoas Autorizadas na Portaria ({pickupAuthorizations.length})</span>
+                    </h4>
+
+                    {pickupAuthorizations.length > 0 ? (
+                      <div className="divide-y divide-[#eee0d6] text-xs">
+                        {pickupAuthorizations.map((auth) => (
+                          <div
+                            key={auth.id}
+                            className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-2"
+                          >
+                            <div>
+                              <p className="font-bold text-[#211a14]">
+                                {auth.person_name}{' '}
+                                <span className="text-[#5c3f42] font-normal">
+                                  ({auth.relationship})
+                                </span>
+                              </p>
+                              <p className="text-[#5c3f42] text-[11px] mt-0.5">
+                                Documento: {auth.document_id}
+                                {auth.phone ? ` • Tel: ${auth.phone}` : ''} • Data: {auth.auth_date} (até{' '}
+                                {auth.time_limit})
+                              </p>
+                            </div>
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[11px] font-bold self-start md:self-auto ${
+                                auth.status === 'Aprovado'
                                   ? 'bg-emerald-100 text-emerald-800'
                                   : 'bg-amber-100 text-amber-800'
                               }`}
                             >
-                              {item.status}
+                              {auth.status === 'Aprovado'
+                                ? 'Aprovado pela Direção'
+                                : 'Aguarda Validação da Direção'}
                             </span>
-                          </td>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-xs text-[#5c3f42]">
+                        Nenhuma autorização especial de retirada registada ainda. Utilize o botão acima para autorizar um familiar.
+                      </div>
+                    )}
+                  </div>
 
-                          <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
-                            {/* Visualizador da Factura Electrónica Oficial */}
+                  {/* Consentimentos Pendentes */}
+                  {pendingConsents.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-rose-700">
+                        Consentimentos Pendentes de Assinatura ({pendingConsents.length})
+                      </h4>
+
+                      {pendingConsents.map((consent) => (
+                        <div
+                          key={consent.id}
+                          className="p-5 rounded-2xl bg-white border border-rose-300 ring-2 ring-rose-100 shadow-sm space-y-3"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#eee0d6]/60">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                                Pendente
+                              </span>
+                              <h5 className="font-bold text-sm text-[#211a14]">{consent.title}</h5>
+                            </div>
+                            <span className="text-xs text-[#5c3f42] font-semibold">
+                              {consent.event_date}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-[#5c3f42]">
+                            <div className="p-2.5 bg-[#fff8f5] rounded-xl">
+                              <span className="font-bold block text-[#211a14] mb-0.5">Transporte:</span>
+                              {consent.transport}
+                            </div>
+                            <div className="p-2.5 bg-[#fff8f5] rounded-xl">
+                              <span className="font-bold block text-[#211a14] mb-0.5">Alimentação:</span>
+                              {consent.meal}
+                            </div>
+                            <div className="p-2.5 bg-[#fff8f5] rounded-xl">
+                              <span className="font-bold block text-[#211a14] mb-0.5">
+                                Salvaguardas Médicas:
+                              </span>
+                              {consent.medical_check}
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end">
                             <button
                               type="button"
-                              onClick={() => setSelectedInvoiceView(item)}
-                              className="px-2.5 py-1 bg-white hover:bg-pink-50 border border-pink-200 text-[#ed145b] font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                              title="Visualizar Factura Electrónica A4 / PDF"
+                              onClick={() => setConsentToSign(consent)}
+                              className="px-4 py-2 bg-[#ed145b] text-white rounded-xl text-xs font-bold hover:bg-pink-600 transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
                             >
-                              <FileText className="w-3 h-3" />
-                              <span>Factura (PDF)</span>
+                              <KeyRound className="w-3.5 h-3.5" />
+                              <span>Assinar Digitalmente com PIN</span>
                             </button>
-
-                            {/* Recibo Emitido se Liquidada */}
-                            {item.status === 'Liquidada' ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setReceiptPreviewRecord({
-                                    id: item.id,
-                                    ref: item.invoiceNumber,
-                                    desc: item.items[0]?.description || 'Propina Mensal',
-                                    amount: item.totalAmount,
-                                    method: item.paymentMethod || 'Multicaixa Express',
-                                    date: item.paidAt || item.issueDate
-                                  })
-                                }
-                                className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-[#8c4f00] font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                              >
-                                <Printer className="w-3 h-3" />
-                                <span>Recibo</span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => setMultibancoModal(true)}
-                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                              >
-                                <CreditCard className="w-3 h-3" />
-                                <span>Liquidar</span>
-                              </button>
-                            )}
-                          </td>
-                        </tr>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* PILAR 3: CANAL DIRETO DE COMUNICAÇÃO SEGURA                               */}
-          {/* ========================================================================= */}
-          {activeSection === 'comms' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
-                    Canal Direto de Comunicação Segura • Individual (1:1)
-                  </h3>
-                  <p className="text-xs text-[#5c3f42]">
-                    Diálogo direto com a Tia (Educadora Titular), Coordenação Pedagógica e Secretaria Geral
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setNewMessageModal(true)}
-                  className="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#00a6c0] hover:bg-sky-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Nova Mensagem Encriptada</span>
-                </button>
-              </div>
-
-              {/* Feed de Mensagens */}
-              <div className="space-y-3">
-                {messagesList.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`bg-white p-5 rounded-2xl border shadow-xs space-y-2.5 transition-all ${
-                      msg.unread ? 'border-amber-300 ring-2 ring-amber-100/60' : 'border-[#eee0d6]'
-                    }`}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#faebe1] text-[#5c3f42]">
-                          {msg.senderRole}
-                        </span>
-                        <h4 className="font-bold text-sm text-[#211a14]">{msg.senderName}</h4>
-                      </div>
-                      <span className="text-xs text-[#8c6b6d] font-semibold">{msg.date}</span>
                     </div>
-
-                    <p className="font-bold text-xs text-[#211a14]">{msg.subject}</p>
-                    <p className="text-xs text-[#5c3f42] leading-relaxed">{msg.preview}</p>
-
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#eee0d6]">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          showToast(`Resposta rápida aberta para ${msg.senderName}.`);
-                        }}
-                        className="px-3 py-1 bg-sky-50 hover:bg-sky-100 text-[#00a6c0] font-bold text-xs rounded-lg transition-colors flex items-center gap-1"
-                      >
-                        <Send className="w-3 h-3" />
-                        <span>Responder à Mensagem</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* PILAR 4: AUTORIZAÇÕES DIGITAIS COM VALIDADE JURÍDICA (eIDAS & RGPD)       */}
-          {/* ========================================================================= */}
-          {activeSection === 'authorizations' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              <div>
-                <h3 className="text-base font-bold font-['Quicksand'] text-[#211a14]">
-                  Autorizações Digitais de Saída & Consentimentos (eIDAS & RGPD)
-                </h3>
-                <p className="text-xs text-[#5c3f42]">
-                  Assinaturas digitais juridicamente vinculativas com registo de hash criptográfico
-                </p>
-              </div>
-
-              {/* Cartão de Destaque Urgente (Visita Pedagógica) */}
-              <div
-                className={`p-5 rounded-2xl border transition-all ${
-                  urgentAuth.signed
-                    ? 'bg-emerald-50/70 border-emerald-200'
-                    : 'bg-white border-rose-300 ring-2 ring-rose-100 shadow-md'
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#eee0d6]/60">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        urgentAuth.signed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                      }`}
-                    >
-                      {urgentAuth.signed ? 'Assinado Digitalmente' : 'Consentimento Pendente'}
-                    </span>
-                    <h4 className="font-bold text-sm text-[#211a14]">{urgentAuth.title}</h4>
-                  </div>
-                  <span className="text-xs text-[#5c3f42] font-semibold">{urgentAuth.date}</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-3 text-xs text-[#5c3f42]">
-                  <div className="p-2.5 bg-[#fff8f5] rounded-xl">
-                    <span className="font-bold block text-[#211a14] mb-0.5">Transporte:</span>
-                    {urgentAuth.transport}
-                  </div>
-                  <div className="p-2.5 bg-[#fff8f5] rounded-xl">
-                    <span className="font-bold block text-[#211a14] mb-0.5">Alimentação:</span>
-                    {urgentAuth.meal}
-                  </div>
-                  <div className="p-2.5 bg-[#fff8f5] rounded-xl">
-                    <span className="font-bold block text-[#211a14] mb-0.5">Salvaguardas Médicas:</span>
-                    {urgentAuth.medicalCheck}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  {urgentAuth.signed ? (
-                    <span className="text-xs text-emerald-800 font-mono font-semibold flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                      Hash eIDAS: {urgentAuth.hash}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-rose-700 font-semibold">
-                      Atenção: A falta de assinatura impede a participação do educando na visita.
-                    </span>
                   )}
 
-                  {!urgentAuth.signed && (
-                    <button
-                      type="button"
-                      onClick={() => setSignAuthorizationModal(true)}
-                      className="px-4 py-2 bg-[#ed145b] text-white rounded-xl text-xs font-bold hover:bg-pink-600 transition-colors shadow-xs flex items-center gap-1.5"
-                    >
-                      <KeyRound className="w-3.5 h-3.5" />
-                      <span>Assinar Digitalmente Agora</span>
-                    </button>
-                  )}
-                </div>
-              </div>
+                  {/* Histórico de Consentimentos Assinados */}
+                  <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
+                    <h4 className="font-bold text-sm text-[#211a14]">
+                      Histórico de Consentimentos Assinados ({signedConsents.length})
+                    </h4>
 
-              {/* Histórico de Autorizações Assinadas */}
-              <div className="bg-white p-5 rounded-2xl border border-[#eee0d6] shadow-xs space-y-3">
-                <h4 className="font-bold text-sm text-[#211a14]">
-                  Histórico de Autorizações Assinadas & Consentimentos
-                </h4>
-
-                <div className="divide-y divide-[#eee0d6] text-xs">
-                  {signedAuthHistory.map((item) => (
-                    <div key={item.id} className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
-                      <div>
-                        <p className="font-bold text-[#211a14]">{item.title}</p>
-                        <p className="text-[#5c3f42] text-[11px] mt-0.5">
-                          Assinado por {item.signer} • {item.date}
-                        </p>
+                    {signedConsents.length > 0 ? (
+                      <div className="divide-y divide-[#eee0d6] text-xs">
+                        {signedConsents.map((item) => (
+                          <div
+                            key={item.id}
+                            className="py-3 flex flex-col md:flex-row md:items-center justify-between gap-2"
+                          >
+                            <div>
+                              <p className="font-bold text-[#211a14]">{item.title}</p>
+                              <p className="text-[#5c3f42] text-[11px] mt-0.5">
+                                Assinado por {item.signer || currentUser.name} •{' '}
+                                {formatDatePt(item.signed_at || item.event_date)}
+                              </p>
+                            </div>
+                            {item.signature_hash && (
+                              <span className="font-mono text-[11px] bg-[#faebe1] text-[#5c3f42] px-2.5 py-1 rounded-md">
+                                {item.signature_hash}
+                              </span>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                      <span className="font-mono text-[11px] bg-[#faebe1] text-[#5c3f42] px-2.5 py-1 rounded-md">
-                        {item.hash}
-                      </span>
-                    </div>
-                  ))}
+                    ) : (
+                      <p className="text-xs text-[#5c3f42]">
+                        Nenhum consentimento de saída pedagógica assinado até ao momento.
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
         </main>
       </div>
 
       {/* ========================================================================= */}
-      {/* MODAL 1: ASSINATURA DIGITAL (PIN / BIOMETRIA) COM VALIDADE JURÍDICA        */}
+      {/* MODAL: ASSINATURA DIGITAL COM PIN                                         */}
       {/* ========================================================================= */}
-      {signAuthorizationModal && (
+      {consentToSign && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="sign-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6]">
             <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <div className="flex items-center gap-2">
                 <KeyRound className="w-5 h-5 text-[#ed145b]" />
@@ -1279,8 +1465,11 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </div>
               <button
                 type="button"
-                onClick={() => setSignAuthorizationModal(false)}
-                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
+                onClick={() => {
+                  setConsentToSign(null);
+                  setPinInput('');
+                }}
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42] cursor-pointer"
                 aria-label="Fechar modal"
               >
                 <X className="w-4 h-4" />
@@ -1288,17 +1477,19 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             </div>
 
             <p className="text-xs text-[#5c3f42] leading-relaxed">
-              Está a autorizar a deslocação de <strong>{activeChild.name}</strong> para a <strong>{urgentAuth.title}</strong> no dia 14 de Março de 2025.
+              Está a autorizar <strong>{consentToSign.title}</strong> ({consentToSign.event_date})
+              {activeChild ? ` para ${activeChild.name}` : ''}.
             </p>
 
-            <form onSubmit={handleSignAuthorization} className="space-y-3 text-xs">
+            <form onSubmit={handleSignConsent} className="space-y-3 text-xs">
               <div>
                 <label className="font-bold text-[#5c3f42] block mb-1">
-                  Código PIN de Segurança do Encarregado (4 dígitos)
+                  Código PIN de Confirmação (mínimo 4 dígitos)
                 </label>
                 <input
                   type="password"
-                  maxLength={4}
+                  minLength={4}
+                  maxLength={8}
                   required
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
@@ -1307,23 +1498,23 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 />
               </div>
 
-              <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-[11px] text-[#5c3f42]">
-                A aposição do PIN gera um carimbo temporal e hash criptográfico nos termos do Regulamento eIDAS da União Europeia.
-              </div>
-
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setSignAuthorizationModal(false)}
-                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
+                  onClick={() => {
+                    setConsentToSign(null);
+                    setPinInput('');
+                  }}
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#ed145b] text-white rounded-xl font-bold hover:bg-pink-600 flex items-center gap-1.5"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-[#ed145b] text-white rounded-xl font-bold hover:bg-pink-600 flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  <Lock className="w-3.5 h-3.5" />
+                  {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
                   <span>Validar e Assinar</span>
                 </button>
               </div>
@@ -1333,26 +1524,26 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: RELATÓRIO DE DESENVOLVIMENTO & OBSERVAÇÕES EM PDF                */}
+      {/* MODAL: NOVA AUTORIZAÇÃO DE RETIRADA (PORTARIA)                            */}
       {/* ========================================================================= */}
-      {reportCardModal && (
+      {pickupModalOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="report-modal-title"
+          aria-labelledby="pickup-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6]">
             <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <div className="flex items-center gap-2">
-                <Printer className="w-5 h-5 text-[#fd9924]" />
-                <h3 id="report-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                  Relatório de Desenvolvimento da Criança (PDF)
+                <UserCheck className="w-5 h-5 text-[#ed145b]" />
+                <h3 id="pickup-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
+                  Autorizar Pessoa para Retirada na Portaria
                 </h3>
               </div>
               <button
                 type="button"
-                onClick={() => setReportCardModal(false)}
+                onClick={() => setPickupModalOpen(false)}
                 className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42] cursor-pointer"
                 aria-label="Fechar"
               >
@@ -1360,229 +1551,93 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
               </button>
             </div>
 
-            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-1.5">
-              <p className="font-bold text-[#211a14] text-sm">
-                Relatorio_Desenvolvimento_{activeChild.name.replace(/\s+/g, '_')}_2ºTrimestre_2024-2025.pdf
-              </p>
-              <p className="text-[#5c3f42]">
-                Turma: {activeChild.classroom} • Acompanhado por: {activeChild.leadTeacher}
-              </p>
-              <p className="text-emerald-700 font-semibold flex items-center gap-1.5 pt-1">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Parecer Descritivo e Qualitativo Homologado pela Coordenação</span>
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setReportCardModal(false)}
-                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs cursor-pointer hover:bg-[#eee0d6]"
-              >
-                Fechar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  showToast('Relatório de desenvolvimento da criança em PDF descarregado com sucesso.');
-                  setReportCardModal(false);
-                }}
-                className="px-4 py-2 bg-[#fd9924] text-white rounded-xl font-bold text-xs hover:bg-amber-600 flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Descarregar Relatório PDF</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL 3: DECLARAÇÃO DE DESPESAS DE EDUCAÇÃO PARA A AGT 2024               */}
-      {/* ========================================================================= */}
-      {taxDeclarationModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="tax-modal-title"
-          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
-        >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-600" />
-                <h3 id="tax-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                  Declaração Anual de Propinas & Despesas (AGT 2024)
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setTaxDeclarationModal(false)}
-                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
-                aria-label="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-2">
-              <p className="font-bold text-[#211a14]">Declaracao_Despesas_Educacao_AGT_2024.pdf</p>
-              <p className="text-[#5c3f42]">
-                Total de propinas liquidadas por si em 2024: <strong>1.500.000,00 Kz</strong>
-              </p>
-              <p className="text-[#5c3f42] text-[11px]">
-                NIF do Encarregado: 218 409 382 (Dr. António Ferreira Silva)
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setTaxDeclarationModal(false)}
-                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  showToast('Declaração de despesas de educação (AGT) descarregada com sucesso.');
-                  setTaxDeclarationModal(false);
-                }}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 flex items-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Descarregar Declaração (PDF)</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL 4: 2ª VIA MULTIBANCO / MB WAY                                       */}
-      {/* ========================================================================= */}
-      {multibancoModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="mb-modal-title"
-          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
-        >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
-              <h3 id="mb-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                2.ª Via da Referência para Pagamento (Multicaixa / MCX Express)
-              </h3>
-              <button
-                type="button"
-                onClick={() => setMultibancoModal(false)}
-                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
-                aria-label="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-2">
-              <div className="flex justify-between">
-                <span className="text-[#5c3f42]">Entidade:</span>
-                <span className="font-bold font-mono text-[#211a14]">00192 (EMIS)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#5c3f42]">Referência:</span>
-                <span className="font-bold font-mono text-[#211a14]">829 102 918</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#5c3f42]">Montante:</span>
-                <span className="font-bold text-[#211a14]">150.000,00 Kz</span>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setMultibancoModal(false)}
-                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
-              >
-                Fechar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  showToast('Notificação enviada para o seu aplicativo Multicaixa Express.');
-                  setMultibancoModal(false);
-                }}
-                className="px-4 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs hover:bg-amber-600 flex items-center gap-1.5"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Pagar com Multicaixa Express</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL 5: ATUALIZAÇÃO DO MEU IBAN (DÉBITO EM CONTA)                        */}
-      {/* ========================================================================= */}
-      {ibanModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="iban-modal-title"
-          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
-        >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
-              <h3 id="iban-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                Atualizar o Meu IBAN para Débito em Conta
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIbanModal(false)}
-                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
-                aria-label="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                showToast('Novo IBAN registado com sucesso para as próximas cobranças.');
-                setIbanModal(false);
-              }}
-              className="space-y-3 text-xs"
-            >
+            <form onSubmit={handleCreatePickupAuthorization} className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-[#5c3f42] block mb-1">O seu novo IBAN (Angola - AO06)</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">Nome Completo da Pessoa</label>
                 <input
                   type="text"
                   required
-                  defaultValue="AO06 0040 0000 8291 0281 9283 1"
-                  className="w-full p-2.5 font-mono text-xs rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#fd9924]"
+                  value={pickupPersonName}
+                  onChange={(e) => setPickupPersonName(e.target.value)}
+                  placeholder="Ex: Maria Manuela Ferreira"
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#ed145b]"
                 />
               </div>
 
-              <div className="p-3 bg-[#fff8f5] rounded-xl border border-[#eee0d6] text-[11px] text-[#5c3f42]">
-                A alteração entra em vigor no ciclo de cobrança subsequente após validação com a entidade bancária.
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Parentesco / Vínculo</label>
+                  <select
+                    value={pickupRelationship}
+                    onChange={(e) => setPickupRelationship(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white"
+                  >
+                    <option value="Avó / Avô">Avó / Avô</option>
+                    <option value="Tia / Tio">Tia / Tio</option>
+                    <option value="Irmão / Irmã Maior">Irmão / Irmã Maior</option>
+                    <option value="Motorista / Pessoa de Confiança">Pessoa de Confiança</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-[#5c3f42] block mb-1">BI / Passaporte</label>
+                  <input
+                    type="text"
+                    required
+                    value={pickupDocumentId}
+                    onChange={(e) => setPickupDocumentId(e.target.value)}
+                    placeholder="004819283LA041"
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#ed145b]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Telefone</label>
+                  <input
+                    type="tel"
+                    value={pickupPhone}
+                    onChange={(e) => setPickupPhone(e.target.value)}
+                    placeholder="923 000 000"
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Data</label>
+                  <input
+                    type="date"
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#5c3f42] block mb-1">Hora Limite</label>
+                  <input
+                    type="time"
+                    value={pickupTimeLimit}
+                    onChange={(e) => setPickupTimeLimit(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIbanModal(false)}
-                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
+                  onClick={() => setPickupModalOpen(false)}
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#fd9924] text-white rounded-xl font-bold hover:bg-amber-600"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-[#ed145b] text-white rounded-xl font-bold hover:bg-pink-600 flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  Confirmar o Meu IBAN
+                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Submeter Autorização</span>
                 </button>
               </div>
             </form>
@@ -1591,7 +1646,157 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 6: RECIBO DE PAGAMENTO EMITIDO PELA ESCOLA                          */}
+      {/* MODAL: RELATÓRIO QUALITATIVO DA CRIANÇA (IMPRIMIR / PDF)                  */}
+      {/* ========================================================================= */}
+      {reportModalOpen && activeChild && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="report-modal-title"
+          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
+        >
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <div className="flex items-center gap-2">
+                <Printer className="w-5 h-5 text-[#fd9924]" />
+                <h3 id="report-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
+                  Relatório Qualitativo de Desenvolvimento
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReportModalOpen(false)}
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42] cursor-pointer"
+                aria-label="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-2 max-h-72 overflow-y-auto">
+              <p className="font-bold text-[#211a14] text-sm">
+                {activeChild.name} • {activeChild.classroom_name}
+              </p>
+              <p className="text-[#5c3f42]">
+                Educadora Titular: <strong>{formatEducatorName(activeChild.teacher_name)}</strong>
+              </p>
+              <p className="text-[#5c3f42]">
+                Estado de Desenvolvimento: <strong>{activeChild.development_status}</strong> • Assiduidade:{' '}
+                <strong>{activeChild.presence_rate}%</strong>
+              </p>
+              <div className="pt-2 border-t border-[#eee0d6] space-y-2">
+                <p className="font-bold text-[#211a14]">
+                  Observações Qualitativas ({childObservations.length}):
+                </p>
+                {childObservations.length > 0 ? (
+                  childObservations.map((obs) => (
+                    <div key={obs.id} className="p-2.5 bg-white rounded-xl border border-[#eee0d6]">
+                      <p className="font-bold text-[#ed145b]">
+                        {obs.category} — {obs.title}
+                      </p>
+                      <p className="text-[#5c3f42] mt-0.5">{obs.text}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[#5c3f42]">Sem observações registadas ainda.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setReportModalOpen(false)}
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs cursor-pointer"
+              >
+                Fechar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.print();
+                  setReportModalOpen(false);
+                }}
+                className="px-4 py-2 bg-[#fd9924] text-white rounded-xl font-bold text-xs hover:bg-amber-600 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Imprimir / Guardar PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: LIQUIDAÇÃO DE PROPINA                                              */}
+      {/* ========================================================================= */}
+      {payModalRecord && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pay-modal-title"
+          className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
+        >
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
+              <h3 id="pay-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
+                Registar Liquidação — {payModalRecord.invoice_number}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setPayModalRecord(null)}
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42] cursor-pointer"
+                aria-label="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-1.5">
+              <p className="font-bold text-[#211a14]">{payModalRecord.description}</p>
+              <p className="text-[#5c3f42]">Educando: {payModalRecord.student_name}</p>
+              <p className="text-lg font-extrabold text-[#211a14]">
+                {formatCurrencyKz(payModalRecord.amount)}
+              </p>
+            </div>
+
+            <div className="text-xs">
+              <label className="font-bold text-[#5c3f42] block mb-1">Método de Pagamento</label>
+              <select
+                value={selectedPayMethod}
+                onChange={(e) => setSelectedPayMethod(e.target.value)}
+                className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white"
+              >
+                <option value="Multicaixa Express (MCX)">Multicaixa Express (MCX)</option>
+                <option value="Referência Multicaixa">Referência Multicaixa</option>
+                <option value="Transferência Bancária">Transferência Bancária</option>
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setPayModalRecord(null)}
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={handleConfirmPayment}
+                className="px-4 py-2 bg-amber-500 text-white rounded-xl font-bold text-xs hover:bg-amber-600 flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+              >
+                {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Smartphone className="w-3.5 h-3.5" />}
+                <span>Confirmar Pagamento</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: RECIBO OFICIAL                                                     */}
       {/* ========================================================================= */}
       {receiptPreviewRecord && (
         <div
@@ -1600,15 +1805,15 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="rec-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6]">
             <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <h3 id="rec-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                Recibo de Pagamento Emitido pela Escola
+                Recibo de Pagamento
               </h3>
               <button
                 type="button"
                 onClick={() => setReceiptPreviewRecord(null)}
-                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42] cursor-pointer"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -1616,28 +1821,33 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
             </div>
 
             <div className="bg-[#fff8f5] p-4 rounded-2xl border border-[#eee0d6] text-xs space-y-1.5">
-              <p className="font-bold text-[#211a14]">{receiptPreviewRecord.ref}</p>
-              <p className="text-[#5c3f42]">{receiptPreviewRecord.desc}</p>
-              <p className="text-[#211a14] font-bold">Valor: {receiptPreviewRecord.amount.toLocaleString('pt-AO', { minimumFractionDigits: 2 })} Kz</p>
-              <p className="text-emerald-700 font-semibold">Liquidado via {receiptPreviewRecord.method}</p>
-              <p className="text-[#8c6b6d] font-mono text-[10px]">Hash de autenticidade: MAY-AGT-48192-2025</p>
+              <p className="font-bold text-[#211a14] font-mono">{receiptPreviewRecord.invoice_number}</p>
+              <p className="text-[#5c3f42]">{receiptPreviewRecord.description}</p>
+              <p className="text-[#5c3f42]">Educando: {receiptPreviewRecord.student_name}</p>
+              <p className="text-[#211a14] font-bold">
+                Valor: {formatCurrencyKz(receiptPreviewRecord.amount)}
+              </p>
+              <p className="text-emerald-700 font-semibold">
+                Liquidado via {receiptPreviewRecord.payment_method}
+                {receiptPreviewRecord.paid_date ? ` em ${receiptPreviewRecord.paid_date}` : ''}
+              </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setReceiptPreviewRecord(null)}
-                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs"
+                className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold text-xs cursor-pointer"
               >
                 Fechar
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  showToast('Recibo impresso em formato PDF com sucesso.');
+                  window.print();
                   setReceiptPreviewRecord(null);
                 }}
-                className="px-4 py-2 bg-[#211a14] text-white rounded-xl font-bold text-xs hover:bg-[#382b22] flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#211a14] text-white rounded-xl font-bold text-xs hover:bg-[#382b22] flex items-center gap-1.5 cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Imprimir / PDF</span>
@@ -1648,7 +1858,7 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 7: NOVA MENSAGEM ENCRIPTADA                                         */}
+      {/* MODAL: NOVA MENSAGEM                                                      */}
       {/* ========================================================================= */}
       {newMessageModal && (
         <div
@@ -1657,36 +1867,34 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
           aria-labelledby="msg-modal-title"
           className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6] animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#eee0d6]">
             <div className="flex items-center justify-between pb-3 border-b border-[#eee0d6]">
               <h3 id="msg-modal-title" className="font-bold text-sm text-[#211a14] font-['Quicksand']">
-                Enviar Mensagem Encriptada
+                Enviar Mensagem para a Escola
               </h3>
               <button
                 type="button"
                 onClick={() => setNewMessageModal(false)}
-                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42]"
+                className="p-1 rounded-lg text-[#8c6b6d] hover:text-[#5c3f42] cursor-pointer"
                 aria-label="Fechar"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                showToast('Mensagem enviada com sucesso com encriptação e conformidade RGPD.');
-                setNewMessageModal(false);
-              }}
-              className="space-y-3 text-xs"
-            >
+            <form onSubmit={handleSendMessage} className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-[#5c3f42] block mb-1">Destinatário Institucional</label>
-                <select className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white">
-                  <option>Tia Clara Marques (Educadora Titular - Jardim de Infância)</option>
-                  <option>Tia Teresa Melo (Educadora Titular - Maternal)</option>
-                  <option>Prof. Carlos Esteves (Coordenação Pedagógica)</option>
-                  <option>Dra. Manuela Castro (Secretaria Geral)</option>
+                <label className="font-bold text-[#5c3f42] block mb-1">Destinatário</label>
+                <select
+                  value={msgRecipient}
+                  onChange={(e) => setMsgRecipient(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#eee0d6] bg-white"
+                >
+                  {recipientOptions.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -1695,7 +1903,9 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Dúvida sobre o trabalho da Feira da Ciência"
+                  value={msgSubject}
+                  onChange={(e) => setMsgSubject(e.target.value)}
+                  placeholder="Ex: Dúvida sobre a rotina ou autorização"
                   className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#00a6c0]"
                 />
               </div>
@@ -1705,7 +1915,9 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 <textarea
                   rows={3}
                   required
-                  placeholder="Escreva a mensagem confidencial..."
+                  value={msgBody}
+                  onChange={(e) => setMsgBody(e.target.value)}
+                  placeholder="Escreva a sua mensagem..."
                   className="w-full p-2.5 rounded-xl border border-[#eee0d6] focus:outline-none focus:border-[#00a6c0]"
                 />
               </div>
@@ -1714,32 +1926,22 @@ export default function GuardianSchoolDashboard({ onClose }: GuardianSchoolDashb
                 <button
                   type="button"
                   onClick={() => setNewMessageModal(false)}
-                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#00a6c0] text-white rounded-xl font-bold hover:bg-sky-700 flex items-center gap-1.5"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-[#00a6c0] text-white rounded-xl font-bold hover:bg-sky-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  <Send className="w-3.5 h-3.5" />
+                  {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                   <span>Enviar Mensagem</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
-
-      {/* MODAL: VISUALIZADOR DA FACTURA ELECTRÓNICA PARA O ENCARREGADO */}
-      {selectedInvoiceView && (
-        <InvoiceDocumentView
-          invoice={selectedInvoiceView}
-          onClose={() => setSelectedInvoiceView(null)}
-          onSendEmail={(inv) =>
-            showToast(`Cópia da Factura Electrónica ${inv.invoiceNumber} enviada para o seu e-mail!`)
-          }
-        />
       )}
     </div>
   );

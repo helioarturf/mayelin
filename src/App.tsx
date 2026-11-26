@@ -13,84 +13,16 @@ import ContactAndMap from './components/ContactAndMap';
 import MealMenuModal from './components/MealMenuModal';
 import Footer from './components/Footer';
 import RealPhotosGallery from './components/RealPhotosGallery';
-import OfflineIndicator from './components/OfflineIndicator';
-import { seedDatabase } from './services/seedData';
-import { syncManager } from './services/syncManager';
 
 import { SCHOOL_CONTACT } from './data/mockData';
-import { AgeGroup, Student, PickupAuthorization, VisitAppointment, UserRole, SchoolAnnouncement, DailyLogItem } from './types';
-import { MessageCircle, Smartphone, Calendar, ArrowUp } from 'lucide-react';
+import { AgeGroup, UserRole } from './types';
+import { MessageCircle, Smartphone, ArrowUp } from 'lucide-react';
 
 export default function App() {
-  useEffect(() => {
-    // Zerar dados demo em cache (migração única)
-    const demoCleared = localStorage.getItem('mayelin_demo_cleared_v1');
-    if (!demoCleared) {
-      try {
-        const keys = ['mayelin_students', 'mayelin_authorizations', 'mayelin_announcements', 'mayelin_invoices'];
-        keys.forEach((k) => localStorage.removeItem(k));
-        if ('indexedDB' in window) {
-          indexedDB.deleteDatabase('MayelinPortalDB');
-        }
-        localStorage.setItem('mayelin_demo_cleared_v1', '1');
-      } catch {}
-    }
-    seedDatabase();
-    syncManager.sync();
-  }, []);
-  // Modal states
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Active portal role state (admin, educador/professor, pais)
   const [portalRole, setPortalRole] = useState<UserRole>('pais');
-
-  // Selected age group for classroom & visit scheduler
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup>('bercario');
-
-  // Students state with localStorage
-  const [students, setStudents] = useState<Student[]>(() => {
-    try {
-      const saved = localStorage.getItem('mayelin_students');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [activeStudentId, setActiveStudentId] = useState<string>('');
-
-  // Authorizations state with localStorage
-  const [authorizations, setAuthorizations] = useState<PickupAuthorization[]>(() => {
-    try {
-      const saved = localStorage.getItem('mayelin_authorizations');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // Appointments state with localStorage
-  const [appointments, setAppointments] = useState<VisitAppointment[]>(() => {
-    try {
-      const saved = localStorage.getItem('mayelin_appointments');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // School Announcements state with localStorage
-  const [announcements, setAnnouncements] = useState<SchoolAnnouncement[]>(() => {
-    try {
-      const saved = localStorage.getItem('mayelin_announcements');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // Show back to top button
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -100,79 +32,6 @@ export default function App() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem('mayelin_students', JSON.stringify(students));
-  }, [students]);
-
-  useEffect(() => {
-    localStorage.setItem('mayelin_authorizations', JSON.stringify(authorizations));
-  }, [authorizations]);
-
-  useEffect(() => {
-    localStorage.setItem('mayelin_appointments', JSON.stringify(appointments));
-  }, [appointments]);
-
-  useEffect(() => {
-    localStorage.setItem('mayelin_announcements', JSON.stringify(announcements));
-  }, [announcements]);
-
-  const handleAddAuthorization = (newAuth: Omit<PickupAuthorization, 'id' | 'createdAt'>) => {
-    const created: PickupAuthorization = {
-      ...newAuth,
-      id: `auth-${Date.now()}`,
-      createdAt: 'Agora'
-    };
-    setAuthorizations((prev) => [created, ...prev]);
-  };
-
-  const handleUpdateAuthorizationStatus = (id: string, status: 'Aprovado' | 'Pendente') => {
-    setAuthorizations((prev) =>
-      prev.map((auth) => (auth.id === id ? { ...auth, status } : auth))
-    );
-  };
-
-  const handleBookAppointment = (apt: VisitAppointment) => {
-    setAppointments((prev) => [apt, ...prev]);
-  };
-
-  const handleUpdateAppointmentStatus = (id: string, status: string) => {
-    setAppointments((prev) =>
-      prev.map((apt) => (apt.id === id ? { ...apt, notes: status } : apt))
-    );
-  };
-
-  const handleAddAnnouncement = (anc: Omit<SchoolAnnouncement, 'id'>) => {
-    const created: SchoolAnnouncement = {
-      ...anc,
-      id: `anc-${Date.now()}`
-    };
-    setAnnouncements((prev) => [created, ...prev]);
-  };
-
-  const handleAddDailyLog = (studentId: string, log: Omit<DailyLogItem, 'id'>) => {
-    const newLog: DailyLogItem = {
-      ...log,
-      id: `log-${Date.now()}`
-    };
-    setStudents((prev) =>
-      prev.map((s) => {
-        if (s.id === studentId) {
-          return {
-            ...s,
-            dailyLogs: [newLog, ...s.dailyLogs]
-          };
-        }
-        return s;
-      })
-    );
-  };
-
-  const handleUpdateStudentStatus = (studentId: string, status: Student['status']) => {
-    setStudents((prev) =>
-      prev.map((s) => (s.id === studentId ? { ...s, status } : s))
-    );
-  };
 
   const handleOpenPortalWithRole = (role?: UserRole) => {
     if (role) setPortalRole(role);
@@ -191,9 +50,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const activeStudent = students.find((s) => s.id === activeStudentId) || students[0];
-
-  // Render Portal as a Full Dedicated Page instead of a modal
   if (isPortalOpen) {
     return (
       <ParentPortalModal
@@ -202,18 +58,6 @@ export default function App() {
           setIsPortalOpen(false);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
-        students={students}
-        activeStudentId={activeStudentId}
-        onSelectStudent={setActiveStudentId}
-        authorizations={authorizations}
-        onAddAuthorization={handleAddAuthorization}
-        onUpdateAuthorizationStatus={handleUpdateAuthorizationStatus}
-        appointments={appointments}
-        onUpdateAppointmentStatus={handleUpdateAppointmentStatus}
-        announcements={announcements}
-        onAddAnnouncement={handleAddAnnouncement}
-        onAddDailyLog={handleAddDailyLog}
-        onUpdateStudentStatus={handleUpdateStudentStatus}
         currentRole={portalRole}
         onChangeRole={setPortalRole}
       />
@@ -233,35 +77,31 @@ export default function App() {
       />
 
       <main className="flex-1">
-        {/* 3. Hero Section with Arch Imagery and Micro Live Activity */}
+        {/* 3. Hero Section */}
         <Hero onOpenPortal={() => setIsPortalOpen(true)} />
 
-        {/* 4. Sobre Nós & Essência Pedagógica (3 Pilares) */}
+        {/* 4. Sobre Nós & Essência Pedagógica */}
         <AboutSection />
 
-        {/* 5. Nossas Turmas (Berçário, Maternal, Pré-Escola & Jardim) */}
+        {/* 5. Nossas Turmas */}
         <ClassesSection onSelectClassroom={handleSelectClassroom} />
 
         {/* 6. Estrutura Viva & Oficinas Inclusas */}
         <FacilitiesSection onOpenMenu={() => setIsMenuOpen(true)} />
 
-        {/* 6.5. Galeria de Fotos Reais & Facebook Oficial */}
+        {/* 6.5. Galeria de Fotos Reais */}
         <RealPhotosGallery />
 
-        {/* 7. Gestão Integrada & Portal Escolar (3 Perfis: Gestão, Educadora (Tia), Pais) */}
-        <ParentPortalSection
-          onOpenPortal={handleOpenPortalWithRole}
-          activeStudent={activeStudent}
-        />
+        {/* 7. Gestão Integrada & Portal Escolar */}
+        <ParentPortalSection onOpenPortal={handleOpenPortalWithRole} />
 
-        {/* 8. Agendamento Interativo de Visita & Pré-Matrícula */}
+        {/* 8. Agendamento Interativo de Visita (Gravado no Supabase) */}
         <VisitScheduler
           selectedAgeGroup={selectedAgeGroup}
           onChangeAgeGroup={setSelectedAgeGroup}
-          onAppointmentBooked={handleBookAppointment}
         />
 
-        {/* 9. Perguntas Frequentes (FAQ) & Depoimentos Reais */}
+        {/* 9. Perguntas Frequentes (FAQ) & Depoimentos */}
         <FaqAndTestimonials />
 
         {/* 10. Localização, Contato & Mapa */}
@@ -314,7 +154,6 @@ export default function App() {
           <span className="hidden sm:inline">WhatsApp</span>
         </a>
       </div>
-      <OfflineIndicator />
     </div>
   );
 }

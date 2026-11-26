@@ -1,12 +1,64 @@
 import { useState, useEffect, FormEvent } from 'react';
-import { DoorOpen, CheckCircle2, Sun, CloudSun, Clock, Lock, Check, Calendar, User, Phone, Mail, Sparkles } from 'lucide-react';
+import { DoorOpen, CheckCircle2, Sun, CloudSun, Clock, Lock, Check, AlertCircle, Sparkles } from 'lucide-react';
 import { AgeGroup, ShiftType, VisitAppointment } from '../types';
 import { SCHOOL_CONTACT } from '../data/mockData';
+import { portalApi } from '../lib/api';
 
 interface VisitSchedulerProps {
   selectedAgeGroup: AgeGroup;
   onChangeAgeGroup: (ageGroup: AgeGroup) => void;
-  onAppointmentBooked: (apt: VisitAppointment) => void;
+  onAppointmentBooked?: (apt: VisitAppointment) => void;
+}
+
+const VISIT_TIME_SLOTS = [
+  { value: '09:00', label: '09:00 (Manhã)' },
+  { value: '10:30', label: '10:30 (Manhã)' },
+  { value: '14:00', label: '14:00 (Tarde)' },
+  { value: '16:00', label: '16:00 (Tarde)' }
+] as const;
+
+function toLocalDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseLocalDate(dateStr: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const parsed = new Date(y, m - 1, d);
+  if (
+    parsed.getFullYear() !== y ||
+    parsed.getMonth() !== m - 1 ||
+    parsed.getDate() !== d
+  ) {
+    return null;
+  }
+  return parsed;
+}
+
+function isWeekendDate(dateStr: string): boolean {
+  const parsed = parseLocalDate(dateStr);
+  if (!parsed) return false;
+  const day = parsed.getDay();
+  return day === 0 || day === 6;
+}
+
+function getNextBusinessDayString(from = new Date()): string {
+  const candidate = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1);
+  while (candidate.getDay() === 0 || candidate.getDay() === 6) {
+    candidate.setDate(candidate.getDate() + 1);
+  }
+  return toLocalDateString(candidate);
+}
+
+function isTimeSlotInPastForToday(timeStr: string, dateStr: string, now = new Date()): boolean {
+  if (dateStr !== toLocalDateString(now)) return false;
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return true;
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  return hours * 60 + minutes <= currentMinutes;
 }
 
 export default function VisitScheduler({
@@ -19,45 +71,130 @@ export default function VisitScheduler({
   const [childName, setChildName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [email, setEmail] = useState('');
-  const [visitDate, setVisitDate] = useState('');
+  const [visitDate, setVisitDate] = useState(() => getNextBusinessDayString());
   const [visitTime, setVisitTime] = useState('10:30');
 
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [timeError, setTimeError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [confirmedBooking, setConfirmedBooking] = useState<VisitAppointment | null>(null);
 
-  // Set minimum date to tomorrow
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDateString = tomorrow.toISOString().split('T')[0];
+  const todayString = toLocalDateString(new Date());
+
+  const validateDateAndTime = (targetDate: string, targetTime: string): { dateMsg: string | null; timeMsg: string | null } => {
+    const now = new Date();
+    const today = toLocalDateString(now);
+
+    let dateMsg: string | null = null;
+    let timeMsg: string | null = null;
+
+    if (!targetDate) {
+      dateMsg = 'Selecione uma data para a visita.';
+    } else if (!parseLocalDate(targetDate)) {
+      dateMsg = 'Data inválida. Utilize o formato correto.';
+    } else if (targetDate < today) {
+      dateMsg = 'Não é possível agendar visitas em dias passados.';
+    } else if (isWeekendDate(targetDate)) {
+      dateMsg = 'Atendimento apenas de segunda a sexta-feira (não funcionamos aos fins de semana).';
+    }
+
+    if (!targetTime) {
+      timeMsg = 'Selecione um horário preferido.';
+    } else if (dateMsg && isWeekendDate(targetDate)) {
+      timeMsg = 'Sem horários disponíveis aos finais de semana.';
+    } else if (!VISIT_TIME_SLOTS.some((slot) => slot.value === targetTime)) {
+      timeMsg = 'Selecione um horário válido dentro do atendimento.';
+    } else if (isTimeSlotInPastForToday(targetTime, targetDate, now)) {
+      timeMsg = 'Este horário já passou para hoje. Escolha um horário posterior ou outro dia útil.';
+    }
+
+    return { dateMsg, timeMsg };
+  };
 
   useEffect(() => {
     if (!visitDate) {
-      setVisitDate(minDateString);
+      setVisitDate(getNextBusinessDayString());
     }
-  }, [minDateString, visitDate]);
+  }, [visitDate]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleDateChange = (newDate: string) => {
+    setVisitDate(newDate);
+    setSubmitError(null);
+    const { dateMsg, timeMsg } = validateDateAndTime(newDate, visitTime);
+    setDateError(dateMsg);
+    setTimeError(timeMsg);
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    setVisitTime(newTime);
+    setSubmitError(null);
+    const { dateMsg, timeMsg } = validateDateAndTime(visitDate, newTime);
+    setDateError(dateMsg);
+    setTimeError(timeMsg);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!parentName.trim() || !childName.trim() || !whatsapp.trim()) return;
+    if (!parentName.trim() || !childName.trim() || !whatsapp.trim() || !email.trim()) return;
 
-    const newAppointment: VisitAppointment = {
-      id: `apt-${Date.now()}`,
-      ageGroup: selectedAgeGroup,
-      shift,
-      parentName,
-      childName,
-      whatsapp,
-      email,
-      date: visitDate,
-      time: visitTime,
-      createdAt: new Date().toLocaleDateString('pt-BR')
-    };
+    const { dateMsg, timeMsg } = validateDateAndTime(visitDate, visitTime);
+    setDateError(dateMsg);
+    setTimeError(timeMsg);
 
-    setConfirmedBooking(newAppointment);
-    onAppointmentBooked(newAppointment);
+    if (dateMsg || timeMsg) {
+      setSubmitError(dateMsg || timeMsg);
+      return;
+    }
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      const { appointment } = await portalApi.createAppointment({
+        ageGroup: selectedAgeGroup,
+        shift,
+        parentName: parentName.trim(),
+        childName: childName.trim(),
+        whatsapp: whatsapp.trim(),
+        email: email.trim(),
+        date: visitDate,
+        time: visitTime
+      });
+
+      const booked: VisitAppointment = {
+        id: appointment.id,
+        ageGroup: appointment.age_group,
+        shift: appointment.shift,
+        parentName: appointment.parent_name,
+        childName: appointment.child_name,
+        whatsapp: appointment.whatsapp,
+        email: appointment.email,
+        date: appointment.visit_date,
+        time: appointment.visit_time,
+        createdAt: new Date(appointment.created_at).toLocaleDateString('pt-PT')
+      };
+
+      setConfirmedBooking(booked);
+      if (onAppointmentBooked) onAppointmentBooked(booked);
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível registar o agendamento de visita.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleResetForm = () => {
     setConfirmedBooking(null);
+    setSubmitError(null);
+    setDateError(null);
+    setTimeError(null);
+    setVisitDate(getNextBusinessDayString());
+    setVisitTime('10:30');
     setParentName('');
     setChildName('');
     setWhatsapp('');
@@ -291,11 +428,26 @@ export default function VisitScheduler({
                       id="visit-date-input"
                       type="date"
                       required
-                      min={minDateString}
+                      min={todayString}
+                      aria-invalid={Boolean(dateError)}
                       value={visitDate}
-                      onChange={(e) => setVisitDate(e.target.value)}
-                      className="w-full min-h-[44px] px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-[#fff8f5] border border-[#eee0d6] focus:border-[#ed145b] focus:ring-4 focus:ring-pink-200 text-xs sm:text-sm text-[#211a14] outline-none transition-all"
+                      onChange={(e) => handleDateChange(e.target.value)}
+                      className={`w-full min-h-[44px] px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-[#fff8f5] border text-xs sm:text-sm text-[#211a14] outline-none transition-all ${
+                        dateError
+                          ? 'border-rose-500 ring-2 ring-rose-100 focus:border-rose-600 focus:ring-rose-200'
+                          : 'border-[#eee0d6] focus:border-[#ed145b] focus:ring-4 focus:ring-pink-200'
+                      }`}
                     />
+                    {dateError ? (
+                      <p role="alert" className="mt-1.5 text-[11px] font-semibold text-rose-700 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{dateError}</span>
+                      </p>
+                    ) : (
+                      <p className="mt-1.5 text-[11px] text-[#5c3f42]">
+                        Disponível de segunda a sexta-feira.
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -305,18 +457,45 @@ export default function VisitScheduler({
                     <select
                       id="visit-time-input"
                       value={visitTime}
-                      onChange={(e) => setVisitTime(e.target.value)}
+                      onChange={(e) => handleTimeChange(e.target.value)}
                       required
-                      className="w-full min-h-[44px] px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-[#fff8f5] border border-[#eee0d6] focus:border-[#ed145b] focus:ring-4 focus:ring-pink-200 text-xs sm:text-sm text-[#211a14] outline-none transition-all"
+                      aria-invalid={Boolean(timeError)}
+                      className={`w-full min-h-[44px] px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl bg-[#fff8f5] border text-xs sm:text-sm text-[#211a14] outline-none transition-all ${
+                        timeError
+                          ? 'border-rose-500 ring-2 ring-rose-100 focus:border-rose-600 focus:ring-rose-200'
+                          : 'border-[#eee0d6] focus:border-[#ed145b] focus:ring-4 focus:ring-pink-200'
+                      }`}
                     >
-                      <option value="09:00">09:00 (Manhã)</option>
-                      <option value="10:30">10:30 (Manhã)</option>
-                      <option value="14:00">14:00 (Tarde)</option>
-                      <option value="16:00">16:00 (Tarde)</option>
+                      {VISIT_TIME_SLOTS.map((slot) => {
+                        const slotBlocked =
+                          isWeekendDate(visitDate) ||
+                          visitDate < todayString ||
+                          isTimeSlotInPastForToday(slot.value, visitDate);
+                        return (
+                          <option key={slot.value} value={slot.value} disabled={slotBlocked}>
+                            {slot.label}
+                            {slotBlocked ? ' (Indisponível)' : ''}
+                          </option>
+                        );
+                      })}
                     </select>
+                    {timeError && (
+                      <p role="alert" className="mt-1.5 text-[11px] font-semibold text-rose-700 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{timeError}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Erro ao submeter */}
+              {submitError && (
+                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>{submitError}</span>
+                </div>
+              )}
 
               {/* Botão de Confirmação & Garantia */}
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#eee0d6]">
@@ -327,11 +506,21 @@ export default function VisitScheduler({
 
                 <button
                   type="submit"
+                  disabled={isSubmitting || Boolean(dateError) || Boolean(timeError)}
                   id="confirm-appointment-submit-btn"
-                  className="w-full sm:w-auto min-h-[48px] inline-flex items-center justify-center gap-3 px-6 sm:px-10 py-3.5 sm:py-4 rounded-full bg-[#ed145b] text-white font-['Nunito_Sans'] font-bold text-sm sm:text-base ninos-shadow-lg hover:bg-pink-600 hover:scale-105 active:scale-95 transition-all"
+                  className="w-full sm:w-auto min-h-[48px] inline-flex items-center justify-center gap-3 px-6 sm:px-10 py-3.5 sm:py-4 rounded-full bg-[#ed145b] text-white font-['Nunito_Sans'] font-bold text-sm sm:text-base ninos-shadow-lg hover:bg-pink-600 hover:scale-105 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <Check className="w-5 h-5 shrink-0" />
-                  <span>Confirmar Agendamento</span>
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>A registar visita...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5 shrink-0" />
+                      <span>Confirmar Agendamento</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

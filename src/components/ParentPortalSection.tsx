@@ -11,14 +11,13 @@ import {
   Users,
   Check
 } from 'lucide-react';
-import { Student, UserRole } from '../types';
+import { UserRole } from '../types';
 
 interface ParentPortalSectionProps {
   onOpenPortal: (role?: UserRole) => void;
-  activeStudent: Student;
 }
 
-export default function ParentPortalSection({ onOpenPortal, activeStudent }: ParentPortalSectionProps) {
+export default function ParentPortalSection({ onOpenPortal }: ParentPortalSectionProps) {
   return (
     <section id="portal-familia" className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
       {/* 3 Profiles Showcase Strip */}
@@ -33,7 +32,7 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
             </h3>
           </div>
           <p className="text-xs sm:text-sm text-[#5c3f42] max-w-md">
-            Conectamos direção, educadores e famílias numa única plataforma interativa e segura.
+            Conectamos direção, educadoras (Tias) e famílias numa única plataforma interativa e segura.
           </p>
         </div>
 
@@ -65,7 +64,7 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
 
           {/* 2. Educadora (Tia) */}
           <div
-            onClick={() => onOpenPortal('professor')}
+            onClick={() => onOpenPortal('educador')}
             className="p-4 sm:p-5 rounded-2xl bg-sky-50/60 border border-sky-200/80 hover:bg-sky-100/70 cursor-pointer group transition-all flex flex-col justify-between space-y-3"
           >
             <div>
@@ -76,7 +75,7 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
                 Educadora (Tia)
               </h4>
               <p className="text-xs text-[#5c3f42] mt-1 leading-relaxed">
-                Cuidados afetuosos de creche: diário de bordo com 1 clique (alimentação, soninho, trocas de fralda/higiene), chamadas e fotos da rotina.
+                Cuidados afetuosos de creche: observações importantes sobre cada criança, chamadas da manhã e atividades da turma.
               </p>
             </div>
             <button
@@ -101,7 +100,7 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
                 Pais/Encarregados
               </h4>
               <p className="text-xs text-[#5c3f42] mt-1 leading-relaxed">
-                Acompanhamento em tempo real, álbum de fotos, liberação de retirada de terceiros e ficha médica.
+                Acompanhamento em tempo real, observações da Tia, liberação de retirada de terceiros e pagamentos.
               </p>
             </div>
             <button
@@ -116,50 +115,50 @@ export default function ParentPortalSection({ onOpenPortal, activeStudent }: Par
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-        {/* Smartphone Mockup UI Frame */}
+        {/* Smartphone Frame */}
         <div className="lg:col-span-5 order-2 lg:order-1 flex justify-center">
           <div
             id="smartphone-interactive-mockup"
             onClick={() => onOpenPortal('pais')}
             className="w-full max-w-[320px] sm:max-w-sm rounded-[36px] sm:rounded-[44px] p-3 sm:p-3.5 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950 shadow-2xl border-4 border-pink-200 cursor-pointer group hover:scale-[1.02] transition-transform"
-            title="Clique para abrir a demonstração interativa do Portal da Família"
+            title="Clique para aceder ao Portal da Família"
           >
             <div className="bg-[#fff8f5] rounded-[28px] sm:rounded-[36px] overflow-hidden border border-[#eee0d6] p-3.5 sm:p-4 space-y-3.5 sm:space-y-4">
               {/* Header App */}
               <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-[#eee0d6]">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#ed145b] flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-sm">
-                    {activeStudent.avatarLetter}
+                    M
                   </div>
                   <div>
                     <h5 className="text-xs sm:text-sm font-['Nunito_Sans'] text-[#211a14] font-bold">
-                      Mayelin Kids App
+                      Mayelin Kids Portal
                     </h5>
                     <p className="text-[10px] sm:text-[11px] font-['Nunito_Sans'] text-emerald-600 font-bold flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span>Conectado à Turma</span>
+                      <span>Ligado em Tempo Real</span>
                     </p>
                   </div>
                 </div>
                 <span className="text-[10px] sm:text-[11px] font-bold text-[#ed145b] bg-pink-100 px-2 py-0.5 rounded-full">
-                  Ao Vivo
+                  Seguro
                 </span>
               </div>
 
-              {/* Student Banner */}
+              {/* Showcase Banner */}
               <div className="bg-pink-50/90 p-3 sm:p-3.5 rounded-2xl flex items-center justify-between border border-pink-100">
                 <div>
-                  <p className="text-[10px] sm:text-[11px] font-['Nunito_Sans'] text-[#5c3f42]">Aluno(a):</p>
+                  <p className="text-[10px] sm:text-[11px] font-['Nunito_Sans'] text-[#5c3f42]">Diário da Creche:</p>
                   <p className="text-xs sm:text-sm font-['Nunito_Sans'] font-bold text-[#ed145b]">
-                    {activeStudent.name} • {activeStudent.classroom}
+                    Observações & Cuidados das Tias
                   </p>
                 </div>
                 <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-['Nunito_Sans'] bg-emerald-500 text-white font-bold">
-                  {activeStudent.status}
+                  Ativo
                 </span>
               </div>
 
-              {/* Quick Action Inside Mockup */}
+              {/* Quick Action */}
               <div className="pt-1">
                 <button
                   type="button"
