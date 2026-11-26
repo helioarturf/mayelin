@@ -345,6 +345,10 @@ async function apiRequest<T>(
     throw new Error(message);
   }
 
+  if (!isJson || data === null) {
+    throw new Error('O servidor da API não devolveu JSON válido. Verifique se as rotas /api estão ativas.');
+  }
+
   return data as T;
 }
 

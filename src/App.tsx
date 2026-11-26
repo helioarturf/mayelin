@@ -19,7 +19,10 @@ import { AgeGroup, UserRole } from './types';
 import { MessageCircle, Smartphone, ArrowUp } from 'lucide-react';
 
 export default function App() {
-  const [isPortalOpen, setIsPortalOpen] = useState(false);
+  const [isPortalOpen, setIsPortalOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.location.pathname === '/portal' || new URLSearchParams(window.location.search).get('portal') === '1';
+  });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [portalRole, setPortalRole] = useState<UserRole>('pais');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<AgeGroup>('bercario');
@@ -56,6 +59,9 @@ export default function App() {
         isOpen={true}
         onClose={() => {
           setIsPortalOpen(false);
+          if (typeof window !== 'undefined' && window.location.pathname === '/portal') {
+            window.history.replaceState({}, '', '/');
+          }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         currentRole={portalRole}
