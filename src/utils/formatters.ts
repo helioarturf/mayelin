@@ -47,3 +47,17 @@ export function isEducatorRole(role: string): boolean {
     normalized.includes('tia')
   );
 }
+
+/**
+ * Calcula o ano letivo vigente segundo o calendário escolar angolano (setembro a julho).
+ * Ex.: Novembro de 2026 -> "2026/2027"; Março de 2027 -> "2026/2027".
+ */
+export function getCurrentAcademicYear(referenceDate: Date = new Date()): string {
+  const year = referenceDate.getFullYear();
+  const month = referenceDate.getMonth(); // 0 = Janeiro, 8 = Setembro
+  if (month >= 8) {
+    return `${year}/${year + 1}`;
+  }
+  return `${year - 1}/${year}`;
+}
+

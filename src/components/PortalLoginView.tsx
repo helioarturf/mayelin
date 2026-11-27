@@ -22,6 +22,7 @@ import {
 import { UserRole } from '../types';
 import { SCHOOL_CONTACT, SCHOOL_IMAGES } from '../data/mockData';
 import { AuthUser, AuthStatusResponse, portalApi } from '../lib/api';
+import { getCurrentAcademicYear } from '../utils/formatters';
 
 export type { AuthUser };
 
@@ -166,7 +167,7 @@ export default function PortalLoginView({
             Base de Dados Supabase
           </span>
           <span className="text-xs text-[#5c3f42] font-bold bg-[#faebe1] px-2.5 py-0.5 rounded-full border border-[#eee0d6] hidden lg:inline">
-            Ano Letivo 2024/2025
+            Ano Letivo {getCurrentAcademicYear()}
           </span>
         </div>
       </header>

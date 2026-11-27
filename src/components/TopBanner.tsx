@@ -1,3 +1,5 @@
+import { getCurrentAcademicYear } from '../utils/formatters';
+
 export default function TopBanner() {
   return (
     <div
@@ -6,7 +8,7 @@ export default function TopBanner() {
     >
       <span>🎈 Bem-vindos ao Jardim Escola da Mayelin — Matrículas Abertas com Condições Especiais!</span>
       <span className="hidden sm:inline bg-white/25 px-2.5 py-0.5 rounded-full text-xs font-bold">
-        Visitas & Matrículas para 2026
+        Visitas & Matrículas {getCurrentAcademicYear()}
       </span>
     </div>
   );
