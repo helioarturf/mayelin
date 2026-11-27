@@ -40,6 +40,62 @@ function sendDbError(res: Response, error: unknown, fallback: string): void {
   res.status(status).json({ error: message });
 }
 
+const ALLOWED_ANNOUNCEMENT_MIME_TYPES = new Set([
+  'application/pdf',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/png',
+  'image/jpeg',
+  'image/webp'
+]);
+
+const MAX_ANNOUNCEMENT_FILE_BYTES = 3 * 1024 * 1024; // 3 MB
+
+function sanitizeAnnouncementFilename(rawName: string): string {
+  const base = rawName.split(/[/\\]/).pop() || 'circular-documento';
+  const cleaned = base.replace(/[^\w.\-\s()]/g, '_').trim();
+  return (cleaned || 'circular-documento').slice(0, 140);
+}
+
+function parseValidatedAnnouncementAttachment(input: unknown): {
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
+} | null {
+  if (!input || typeof input !== 'object') return null;
+  const obj = input as { name?: unknown; type?: unknown; dataUrl?: unknown };
+  if (typeof obj.name !== 'string' || typeof obj.dataUrl !== 'string') {
+    throw new Error('Dados do documento anexo inválidos.');
+  }
+  const match = obj.dataUrl.match(/^data:([a-zA-Z0-9.+/-]+);base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) {
+    throw new Error('Formato do ficheiro inválido. Utilize PDF, Word, TXT ou imagem.');
+  }
+  const mime = match[1].toLowerCase();
+  if (!ALLOWED_ANNOUNCEMENT_MIME_TYPES.has(mime)) {
+    throw new Error('Tipo de ficheiro não permitido. Aceite apenas PDF, DOC, DOCX, TXT, PNG, JPG ou WEBP.');
+  }
+  const byteSize = Buffer.byteLength(match[2], 'base64');
+  if (byteSize <= 0 || byteSize > MAX_ANNOUNCEMENT_FILE_BYTES) {
+    throw new Error('O documento excede o limite máximo de 3 MB.');
+  }
+
+  return {
+    name: sanitizeAnnouncementFilename(obj.name),
+    type: mime,
+    size: byteSize,
+    dataUrl: `data:${mime};base64,${match[2]}`
+  };
+}
+
+function stripAnnouncementAttachmentData<T extends Record<string, unknown>>(row: T): Omit<T, 'attachment_data'> {
+  if (!row || typeof row !== 'object') return row;
+  const { attachment_data: _omitted, ...rest } = row;
+  return rest;
+}
+
 export function createApiRouter(): Router {
   const router = Router();
 
@@ -372,7 +428,7 @@ export function createApiRouter(): Router {
         classrooms: classesRes.data ?? [],
         financialRecords: financeRes.data ?? [],
         staffList: staffRes.data ?? [],
-        announcements: announcementsRes.data ?? [],
+        announcements: (announcementsRes.data ?? []).map((a) => stripAnnouncementAttachmentData(a)),
         appointments: appointmentsRes.data ?? [],
         students: studentsRes.data ?? [],
         pickupAuthorizations: pickupsRes.data ?? []
@@ -893,9 +949,24 @@ export function createApiRouter(): Router {
   });
 
   router.post('/admin/announcements', requireAuth, requireRole(['admin']), async (req: AuthRequest, res) => {
-    const { title, content, channels, target, priority, authorizationsRequired } = req.body ?? {};
-    if (typeof title !== 'string' || !title.trim() || typeof content !== 'string' || !content.trim()) {
-      res.status(400).json({ error: 'Título e conteúdo da circular são obrigatórios.' });
+    const { title, content, channels, target, priority, authorizationsRequired, attachment } = req.body ?? {};
+    let parsedAttachment: ReturnType<typeof parseValidatedAnnouncementAttachment> = null;
+    try {
+      if (attachment !== undefined && attachment !== null) {
+        parsedAttachment = parseValidatedAnnouncementAttachment(attachment);
+      }
+    } catch (err) {
+      res.status(400).json({ error: err instanceof Error ? err.message : 'Documento anexo inválido.' });
+      return;
+    }
+
+    const trimmedTitle = typeof title === 'string' ? title.trim() : '';
+    const trimmedContent = typeof content === 'string' ? content.trim() : '';
+    const finalContent =
+      trimmedContent || (parsedAttachment ? `Consulte o documento anexo: ${parsedAttachment.name}` : '');
+
+    if (!trimmedTitle || !finalContent) {
+      res.status(400).json({ error: 'Título e conteúdo ou documento da circular são obrigatórios.' });
       return;
     }
 
@@ -904,29 +975,104 @@ export function createApiRouter(): Router {
       const { count: studentCount } = await supabase.from('students').select('id', { count: 'exact', head: true });
       const totalRecipients = studentCount || 0;
 
-      const { data, error } = await supabase
+      const basePayload = {
+        title: trimmedTitle,
+        content: finalContent,
+        channels: Array.isArray(channels) && channels.length > 0 ? channels.map(String) : ['App Push', 'E-mail'],
+        target: ['todos', 'pais', 'educadoras', 'professores'].includes(target) ? target : 'todos',
+        priority: ['normal', 'importante', 'urgente'].includes(priority) ? priority : 'normal',
+        author: req.user?.name || 'Direção Geral',
+        open_rate: 100,
+        recipient_count: totalRecipients,
+        authorizations_required: Boolean(authorizationsRequired),
+        authorizations_signed_count: 0,
+        authorizations_total: totalRecipients,
+        status: 'Enviada'
+      };
+
+      const insertPayload = parsedAttachment
+        ? {
+            ...basePayload,
+            attachment_name: parsedAttachment.name,
+            attachment_type: parsedAttachment.type,
+            attachment_size: parsedAttachment.size,
+            attachment_data: parsedAttachment.dataUrl
+          }
+        : basePayload;
+
+      let schemaColumnWarning = false;
+      let { data, error } = await supabase
         .from('announcements')
-        .insert({
-          title: title.trim(),
-          content: content.trim(),
-          channels: Array.isArray(channels) && channels.length > 0 ? channels.map(String) : ['App Push', 'E-mail'],
-          target: ['todos', 'pais', 'educadoras', 'professores'].includes(target) ? target : 'todos',
-          priority: ['normal', 'importante', 'urgente'].includes(priority) ? priority : 'normal',
-          author: req.user?.name || 'Direção Geral',
-          open_rate: 100,
-          recipient_count: totalRecipients,
-          authorizations_required: Boolean(authorizationsRequired),
-          authorizations_signed_count: 0,
-          authorizations_total: totalRecipients,
-          status: 'Enviada'
-        })
+        .insert(insertPayload)
         .select('*')
         .single();
 
+      if (error && parsedAttachment) {
+        const errCode = (error as { code?: string }).code;
+        if (errCode === '42703' || errCode === 'PGRST204') {
+          schemaColumnWarning = true;
+          const fallbackRes = await supabase
+            .from('announcements')
+            .insert(basePayload)
+            .select('*')
+            .single();
+          data = fallbackRes.data;
+          error = fallbackRes.error;
+        }
+      }
+
       if (error) throw error;
-      res.status(201).json({ announcement: data });
+      res.status(201).json({
+        announcement: stripAnnouncementAttachmentData(data),
+        schemaColumnWarning
+      });
     } catch (error) {
       sendDbError(res, error, 'Erro ao publicar circular.');
+    }
+  });
+
+  router.get('/announcements/:id/attachment', requireAuth, async (req: AuthRequest, res) => {
+    const { id } = req.params;
+    try {
+      const supabase = getSupabaseClient();
+      const { data: ann, error } = await supabase
+        .from('announcements')
+        .select('id, target, attachment_name, attachment_type, attachment_data')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!ann || !ann.attachment_data) {
+        res.status(404).json({ error: 'Documento anexo não encontrado.' });
+        return;
+      }
+
+      const role = req.user?.role;
+      const allowedByRole =
+        role === 'admin' ||
+        (role === 'educador' && ['todos', 'educadoras', 'professores'].includes(ann.target)) ||
+        (role === 'pais' && ['todos', 'pais'].includes(ann.target));
+
+      if (!allowedByRole) {
+        res.status(403).json({ error: 'Sem permissão para aceder a este documento.' });
+        return;
+      }
+
+      const match = String(ann.attachment_data).match(/^data:([a-zA-Z0-9.+/-]+);base64,([A-Za-z0-9+/=]+)$/);
+      if (!match || !ALLOWED_ANNOUNCEMENT_MIME_TYPES.has(match[1].toLowerCase())) {
+        res.status(400).json({ error: 'Documento anexo inválido ou corrompido.' });
+        return;
+      }
+
+      const fileBuffer = Buffer.from(match[2], 'base64');
+      const safeName = sanitizeAnnouncementFilename(String(ann.attachment_name || 'circular-documento'));
+
+      res.setHeader('Content-Type', match[1].toLowerCase());
+      res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`);
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.send(fileBuffer);
+    } catch (error) {
+      sendDbError(res, error, 'Erro ao descarregar documento anexo.');
     }
   });
 
@@ -1312,7 +1458,7 @@ export function createApiRouter(): Router {
         messages: messagesRes.data ?? [],
         consents: consentsRes.data ?? [],
         pickupAuthorizations: pickupsRes.data ?? [],
-        announcements: announcementsRes.data ?? []
+        announcements: (announcementsRes.data ?? []).map((a) => stripAnnouncementAttachmentData(a))
       });
     } catch (error) {
       sendDbError(res, error, 'Erro ao carregar o portal dos encarregados.');

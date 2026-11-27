@@ -170,6 +170,10 @@ create table if not exists public.announcements (
   authorizations_signed_count integer not null default 0,
   authorizations_total integer not null default 0,
   status text not null default 'Enviada',
+  attachment_name text,
+  attachment_type text,
+  attachment_size integer,
+  attachment_data text,
   created_at timestamptz not null default now()
 );
 
@@ -284,3 +288,11 @@ alter table public.financial_records add column if not exists factplus_reference
 alter table public.financial_records add column if not exists factplus_status text;
 alter table public.financial_records add column if not exists factplus_validated_at timestamptz;
 alter table public.financial_records add column if not exists factplus_message text;
+
+-- ============================================================================
+-- Migração incremental para anexos de documentos em circulares escolares
+-- ============================================================================
+alter table public.announcements add column if not exists attachment_name text;
+alter table public.announcements add column if not exists attachment_type text;
+alter table public.announcements add column if not exists attachment_size integer;
+alter table public.announcements add column if not exists attachment_data text;

@@ -28,10 +28,14 @@ import {
   FileCode,
   SlidersHorizontal,
   Baby,
-  DoorOpen
+  DoorOpen,
+  Paperclip,
+  Upload,
+  FileText
 } from 'lucide-react';
 import { formatEducatorName } from '../utils/formatters';
 import {
+  AnnouncementAttachmentPayload,
   AuthUser,
   DbAnnouncement,
   DbClassroom,
@@ -147,6 +151,9 @@ export default function AdminSchoolDashboard({
   const [annPriority, setAnnPriority] = useState<'normal' | 'importante' | 'urgente'>('normal');
   const [annChannels, setAnnChannels] = useState<string[]>(['App Push', 'E-mail']);
   const [annAuthReq, setAnnAuthReq] = useState(false);
+  const [annAttachment, setAnnAttachment] = useState<AnnouncementAttachmentPayload | null>(null);
+  const [annAttachmentError, setAnnAttachmentError] = useState<string | null>(null);
+  const [downloadingAnnId, setDownloadingAnnId] = useState<string | null>(null);
 
   const loadOverview = useCallback(async () => {
     setLoading(true);
@@ -470,25 +477,114 @@ export default function AdminSchoolDashboard({
     }
   };
 
+  const handleAnnouncementFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setAnnAttachmentError(null);
+    if (!file) return;
+
+    const allowedTypes = new Set([
+      'application/pdf',
+      'text/plain',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/png',
+      'image/jpeg',
+      'image/webp'
+    ]);
+    const lowerName = file.name.toLowerCase();
+    const resolvedType =
+      file.type ||
+      (lowerName.endsWith('.pdf')
+        ? 'application/pdf'
+        : lowerName.endsWith('.txt')
+        ? 'text/plain'
+        : lowerName.endsWith('.doc')
+        ? 'application/msword'
+        : lowerName.endsWith('.docx')
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : '');
+
+    if (!allowedTypes.has(resolvedType)) {
+      setAnnAttachmentError('Formato não suportado. Utilize PDF, Word (.doc/.docx), TXT ou imagem (PNG/JPG).');
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      setAnnAttachmentError('O documento excede o limite máximo de 3 MB.');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (!result.startsWith('data:')) {
+        setAnnAttachmentError('Não foi possível ler o ficheiro selecionado.');
+        return;
+      }
+      setAnnAttachment({
+        name: file.name,
+        type: resolvedType,
+        size: file.size,
+        dataUrl: result
+      });
+
+      if (!annTitle.trim()) {
+        const cleanTitle = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+        if (cleanTitle) setAnnTitle(cleanTitle);
+      }
+
+      if (resolvedType === 'text/plain' && !annContent.trim()) {
+        const textReader = new FileReader();
+        textReader.onload = () => {
+          if (typeof textReader.result === 'string' && textReader.result.trim()) {
+            setAnnContent(textReader.result.trim().slice(0, 4000));
+          }
+        };
+        textReader.readAsText(file, 'UTF-8');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDownloadAnnouncementAttachment = async (ann: DbAnnouncement) => {
+    setDownloadingAnnId(ann.id);
+    try {
+      await portalApi.downloadAnnouncementAttachment(authToken, ann.id, ann.attachment_name);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao descarregar documento anexo.');
+    } finally {
+      setDownloadingAnnId(null);
+    }
+  };
+
   const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!annTitle.trim() || !annContent.trim()) return;
+    if (!annTitle.trim() || (!annContent.trim() && !annAttachment)) return;
     setSubmitting(true);
     try {
-      const { announcement } = await portalApi.createAnnouncement(authToken, {
+      const { announcement, schemaColumnWarning } = await portalApi.createAnnouncement(authToken, {
         title: annTitle.trim(),
         content: annContent.trim(),
         channels: annChannels.length > 0 ? annChannels : ['App Push'],
         target: annTarget,
         priority: annPriority,
-        authorizationsRequired: annAuthReq
+        authorizationsRequired: annAuthReq,
+        attachment: annAttachment
       });
       setAnnouncementsList((prev) => [announcement, ...prev]);
       setAnnTitle('');
       setAnnContent('');
       setAnnAuthReq(false);
+      setAnnAttachment(null);
+      setAnnAttachmentError(null);
       setCommsModalOpen(false);
-      showToast('Circular publicada no Supabase para toda a comunidade!');
+      showToast(
+        schemaColumnWarning
+          ? 'Circular publicada, mas execute a migração SQL do Supabase para guardar anexos.'
+          : 'Circular publicada no Supabase para toda a comunidade!'
+      );
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Erro ao publicar circular.');
     } finally {
@@ -1605,7 +1701,29 @@ export default function AdminSchoolDashboard({
                               {new Date(ann.created_at).toLocaleDateString('pt-PT')}
                             </span>
                           </div>
-                          <p className="text-xs text-[#5c3f42]">{ann.content}</p>
+                          <p className="text-xs text-[#5c3f42] whitespace-pre-line">{ann.content}</p>
+                          {ann.attachment_name && (
+                            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#fff8f5] border border-[#eee0d6] px-3 py-2 text-xs">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Paperclip className="w-3.5 h-3.5 text-[#ed145b] shrink-0" />
+                                <span className="font-bold text-[#211a14] truncate">{ann.attachment_name}</span>
+                                {typeof ann.attachment_size === 'number' && ann.attachment_size > 0 && (
+                                  <span className="text-[11px] text-[#8c6b6d] shrink-0">
+                                    ({Math.max(1, Math.round(ann.attachment_size / 1024))} KB)
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                disabled={downloadingAnnId === ann.id}
+                                onClick={() => handleDownloadAnnouncementAttachment(ann)}
+                                className="px-2.5 py-1 rounded-lg bg-white border border-[#eee0d6] hover:bg-[#faebe1] text-[#ed145b] font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer disabled:opacity-60"
+                              >
+                                <Download className="w-3 h-3" />
+                                <span>{downloadingAnnId === ann.id ? 'A descarregar...' : 'Descarregar Documento'}</span>
+                              </button>
+                            </div>
+                          )}
                           <div className="flex flex-wrap items-center gap-2">
                             {(ann.channels || []).map((ch, idx) => (
                               <span key={idx} className="px-2 py-0.5 rounded-md bg-[#faebe1] text-[#5c3f42] text-[10px] font-bold">
@@ -2326,15 +2444,64 @@ export default function AdminSchoolDashboard({
                 </div>
               </div>
               <div>
-                <label className="font-bold text-[#5c3f42] block mb-1">Conteúdo *</label>
+                <label className="font-bold text-[#5c3f42] block mb-1">
+                  Conteúdo {annAttachment ? '(Opcional com documento anexo)' : '*'}
+                </label>
                 <textarea
                   rows={3}
-                  required
+                  required={!annAttachment}
                   value={annContent}
                   onChange={(e) => setAnnContent(e.target.value)}
+                  placeholder={annAttachment ? 'Resumo adicional da circular (opcional)...' : 'Escreva o texto da circular...'}
                   className="w-full p-2.5 rounded-xl border border-[#eee0d6]"
                 />
               </div>
+
+              <div>
+                <label className="font-bold text-[#5c3f42] block mb-1">
+                  Importar Documento (PDF, Word, TXT ou Imagem até 3 MB)
+                </label>
+                {!annAttachment ? (
+                  <label className="flex items-center justify-center gap-2 p-3.5 rounded-xl border-2 border-dashed border-[#e8d5c8] bg-[#fff8f5] hover:border-[#ed145b] hover:bg-pink-50/40 transition-colors cursor-pointer text-[#5c3f42]">
+                    <Upload className="w-4 h-4 text-[#ed145b] shrink-0" />
+                    <span className="font-semibold text-xs">
+                      Selecionar documento do computador ou telemóvel
+                    </span>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp"
+                      onChange={handleAnnouncementFileChange}
+                      className="sr-only"
+                    />
+                  </label>
+                ) : (
+                  <div className="flex items-center justify-between gap-2 p-3 rounded-xl border border-emerald-200 bg-emerald-50/70 text-emerald-900">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-4 h-4 text-emerald-700 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-bold truncate text-xs">{annAttachment.name}</p>
+                        <p className="text-[11px] opacity-80">
+                          {Math.max(1, Math.round(annAttachment.size / 1024))} KB • Pronto para publicar
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAnnAttachment(null);
+                        setAnnAttachmentError(null);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-rose-700 hover:bg-rose-50 font-bold text-[11px] shrink-0 cursor-pointer"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                )}
+                {annAttachmentError && (
+                  <p className="text-[11px] text-rose-700 font-semibold mt-1">{annAttachmentError}</p>
+                )}
+              </div>
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -2345,7 +2512,14 @@ export default function AdminSchoolDashboard({
                 <span className="font-semibold text-[#5c3f42]">Requer assinatura digital dos encarregados</span>
               </label>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setCommsModalOpen(false)} className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCommsModalOpen(false);
+                    setAnnAttachmentError(null);
+                  }}
+                  className="px-4 py-2 bg-[#faebe1] text-[#5c3f42] rounded-xl font-bold"
+                >
                   Cancelar
                 </button>
                 <button

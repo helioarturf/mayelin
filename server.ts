@@ -13,7 +13,7 @@ async function startServer() {
   const httpServer = http.createServer(app);
   const port = Number(process.env.PORT) || 3000;
 
-  app.use(express.json({ limit: '1mb' }));
+  app.use(express.json({ limit: '6mb' }));
 
   // Mount API routes
   app.use('/api', createApiRouter());

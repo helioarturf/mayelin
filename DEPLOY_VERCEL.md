@@ -1,6 +1,6 @@
 # Deploy na Vercel — Jardim Escola da Mayelin
 
-O projeto funciona na Vercel com o frontend React/Vite em `dist/` e a API Express como Serverless Function em `/api/index.ts`, ligada ao **Supabase** e à **API FactPlus**.
+O projeto funciona na Vercel com o frontend React/Vite em `dist/` e a API Express como Serverless Function em `/api/index.js` (gerado automaticamente a partir de `server/vercel-entry.ts` durante `npm run build`), ligada ao **Supabase** e à **API FactPlus**.
 
 ## Variáveis de Ambiente na Vercel (Settings → Environment Variables)
 Configure as seguintes variáveis sem prefixo `VITE_`:
@@ -14,6 +14,6 @@ Configure as seguintes variáveis sem prefixo `VITE_`:
 - `FACTPLUS_API_KEY` (chave API da FactPlus)
 
 ## Rotas
-- `/api/(.*)` é encaminhado para `/api/index.ts` via `vercel.json`.
+- `/api/(.*)` é encaminhado para `/api/index.js` via `vercel.json`.
 - As restantes rotas da aplicação (ex.: `/` e `/portal`) carregam `/index.html`.
 - Após alterar variáveis de ambiente na Vercel, execute sempre um **Redeploy**.

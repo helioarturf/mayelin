@@ -143,7 +143,17 @@ export interface DbAnnouncement {
   authorizations_signed_count: number;
   authorizations_total: number;
   status: string;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
+  attachment_size?: number | null;
   created_at: string;
+}
+
+export interface AnnouncementAttachmentPayload {
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
 }
 
 export interface DbVisitAppointment {
@@ -548,13 +558,37 @@ export const portalApi = {
       target: 'todos' | 'pais' | 'educadoras';
       priority: 'normal' | 'importante' | 'urgente';
       authorizationsRequired: boolean;
+      attachment?: AnnouncementAttachmentPayload | null;
     }
-  ): Promise<{ announcement: DbAnnouncement }> {
-    return apiRequest<{ announcement: DbAnnouncement }>(
+  ): Promise<{ announcement: DbAnnouncement; schemaColumnWarning?: boolean }> {
+    return apiRequest<{ announcement: DbAnnouncement; schemaColumnWarning?: boolean }>(
       '/api/admin/announcements',
       { method: 'POST', body: JSON.stringify(payload) },
       token
     );
+  },
+
+  async downloadAnnouncementAttachment(token: string, id: string, fallbackName?: string | null): Promise<void> {
+    const res = await fetch(`/api/announcements/${encodeURIComponent(id)}/attachment`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      const isJson = res.headers.get('content-type')?.includes('application/json');
+      const errData = isJson ? await res.json().catch(() => null) : null;
+      throw new Error(
+        (errData && typeof errData.error === 'string' && errData.error) ||
+          `Não foi possível descarregar o documento (${res.status}).`
+      );
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fallbackName || 'circular-documento';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   },
 
   updateAppointmentStatus(

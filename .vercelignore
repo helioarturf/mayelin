@@ -1,0 +1,6 @@
+dev-dist/
+dist-server/
+.cpanel.yml
+CPANEL_DEPLOY_AUTO.md
+DEPLOY_CPANEL.md
+*.log
